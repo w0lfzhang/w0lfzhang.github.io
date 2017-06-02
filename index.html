@@ -358,7 +358,7 @@
       
         
           <p>这题做的时候想用fastbin unlink来达到任意地址写，但是无法找到满足条件的size字段，无奈只好放弃~~。</p>
-<h2 id="Challenge"><a href="#Challenge" class="headerlink" title="Challenge"></a>Challenge</h2><p>这题漏洞是个off-by-one，但是它没有提供edit功能，所以就不好利用。首先逆向得到个结构体：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">note</span></span></div><div class="line">&#123;</div><div class="line">	<span class="keyword">long</span> flag;</div><div class="line">	<span class="keyword">long</span> size;</div><div class="line">	<span class="keyword">char</span> title[<span class="number">16</span>];</div><div class="line">	<span class="keyword">char</span> *content;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="Challenge"><a href="#Challenge" class="headerlink" title="Challenge"></a>Challenge</h2><p>这题漏洞是个off-by-one，但是它没有提供edit功能，所以就不好利用。首先逆向得到个结构体：<br>
           <div class="post-more-link text-center">
             <a class="btn" href="/2017/05/31/2017-RCTF-Rnote/#more" rel="contents">
               Read more &raquo;
