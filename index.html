@@ -287,116 +287,6 @@
             
               
                 
-                <a class="post-title-link" href="/2017/06/02/hello-world/" itemprop="url">
-                  Hello World
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">Posted on</span>
-            <time itemprop="dateCreated" datetime="2017-06-02T10:45:50+08:00" content="2017-06-02">
-              2017-06-02
-            </time>
-          </span>
-
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2017/06/02/hello-world/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/06/02/hello-world/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-	 
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          
-            <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="external">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="external">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="external">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="external">GitHub</a>.</p>
-<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo new <span class="string">"My New Post"</span></div></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="external">Writing</a></p>
-<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo server</div></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="external">Server</a></p>
-<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo generate</div></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="external">Generating</a></p>
-<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">$ hexo deploy</div></pre></td></tr></table></figure>
-<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="external">Deployment</a></p>
-
-          
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
                 <a class="post-title-link" href="/2017/05/31/2017-RCTF-Rnote/" itemprop="url">
                   2017 RCTF Rnote
                 </a>
@@ -718,22 +608,13 @@
 
       
         
-          
-            <p>哎，正好星期三有考试，搞得我心不在焉，也没怎么认真做题。主要还是渣，渣，渣，重要的事要说三遍~！</p>
-<h2 id="Challenge"><a href="#Challenge" class="headerlink" title="Challenge"></a>Challenge</h2><p>第一题是个栈溢出，有两个问题需要解决：一是退出while循环，我那时不知道，现在知道了，可以用io.shutdown(‘send’)，新姿势~~<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">shutdown(direction = "send")</div><div class="line">Closes the tube for futher reading or writing depending on direction.</div><div class="line"></div><div class="line">Parameters: direction (str) – Which direction to close; “in”, “read” or “recv” closes the tube in the ingoing direction, “out”, “write” or “send” closes it in the outgoing direction.</div><div class="line">Returns:  None</div></pre></td></tr></table></figure></p>
-<p>第二个问题是libc没给。现在主要解决第二个问题。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> __<span class="function">cdecl <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></div><div class="line">&#123;</div><div class="line">  <span class="keyword">char</span> nptr; <span class="comment">// [sp+0h] [bp-40h]@2</span></div><div class="line">  <span class="keyword">char</span> buf[<span class="number">40</span>]; <span class="comment">// [sp+10h] [bp-30h]@4</span></div><div class="line">  <span class="keyword">int</span> v6; <span class="comment">// [sp+38h] [bp-8h]@4</span></div><div class="line">  <span class="keyword">int</span> v7; <span class="comment">// [sp+3Ch] [bp-4h]@2</span></div><div class="line"></div><div class="line">  Init();</div><div class="line">  write(<span class="number">1</span>, <span class="string">"Welcome to Recho server!\n"</span>, <span class="number">0x19</span>uLL);</div><div class="line">  <span class="keyword">while</span> ( read(<span class="number">0</span>, &amp;nptr, <span class="number">0x10</span>uLL) &gt; <span class="number">0</span> )</div><div class="line">  &#123;</div><div class="line">    v7 = atoi(&amp;nptr);</div><div class="line">    <span class="keyword">if</span> ( v7 &lt;= <span class="number">15</span> )</div><div class="line">      v7 = <span class="number">16</span>;</div><div class="line">    v6 = read(<span class="number">0</span>, buf, v7);</div><div class="line">    buf[v6] = <span class="number">0</span>;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%s"</span>, buf);</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>刚开始我是想用SROP来做，但因为这题用起来比较麻烦，所以我放弃了。后来问了我学长，按他的思路写一下。<br>MD，总忘记64位参数传递寄存器的顺序。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">rdi, rsi, rdx, rcx, r8, r9</div></pre></td></tr></table></figure></p>
-<p>日狗了，栈上的数据TM总不对，有毒啊。。。我试了两台虚拟机都不行，我怀疑我的虚拟机出问题了。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="meta">gdb-peda$</span> x/32gx $rbp</div><div class="line">0x7ffceda18870: 0x6010300000000000  0x4006fc0000000000</div><div class="line">0x7ffceda18880: 0x0000180000000000  0x40070d0000000000</div><div class="line">0x7ffceda18890: 0x00000a0000000000  0x0000000000400791</div></pre></td></tr></table></figure></p>
-<p>我肯定踩了狗屎了，这虚拟机肯定有毒。我放弃了，将思路记录下。</p>
-<h2 id="Exploit"><a href="#Exploit" class="headerlink" title="Exploit"></a>Exploit</h2><ol>
-<li>首先执行一次脚本来leaking两个libc函数的地址从而得到libc.so。</li>
-<li>这时可以确定atoi和system的相对偏移，我们可以把atoi的got表项通过gadget add byte ptr [rdi], al;ret来改为system的地址。虽然偏移可能相差比较大，但是可以一字节一字节的修改。</li>
-<li>再次回到main函数中，发送/bin/sh;即可。</li>
-</ol>
-<p>应该没啥问题吧…</p>
-<p>后来看了下<a href="https://www.xctf.org.cn/information/e0d90ad9d0609320fd6743706135a80913d27b8d/" target="_blank" rel="external">官方wp</a>…其实很简单，程序中预留了flag字符串和用于syscall的gadget(syscall的地址很容易由read，write函数地址得出，加上相应偏移量即可)，所以只需要把read或其他函数的got表覆盖为syscall的地址，然后只需要一个改变rax的gadget(用于改变系统调用号)就能执行open-&gt;read-&gt;write系统调用链了。这种方法确实妙，出题人还是花了心思的。</p>
-
-          
+          <p>哎，正好星期三有考试，搞得我心不在焉，也没怎么认真做题。主要还是渣，渣，渣，重要的事要说三遍~！</p>
+<h2 id="Challenge"><a href="#Challenge" class="headerlink" title="Challenge"></a>Challenge</h2><p>第一题是个栈溢出，有两个问题需要解决：一是退出while循环，我那时不知道，现在知道了，可以用io.shutdown(‘send’)，新姿势~~<br>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2017/05/28/2017-RCTF-Recho/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
         
       
     </div>
@@ -884,6 +765,129 @@
 
 
     
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
+                <a class="post-title-link" href="/2017/05/13/Kernel-Exploit-Stack-Smashing/" itemprop="url">
+                  Kernel Exploit: Stack Smashing
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2017-05-13T03:06:33+08:00" content="2017-05-13">
+              2017-05-13
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/kernel-exploit/" itemprop="url" rel="index">
+                    <span itemprop="name">kernel_exploit</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/05/13/Kernel-Exploit-Stack-Smashing/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/05/13/Kernel-Exploit-Stack-Smashing/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>做完了NULL Dereference实验，接下来就是stack smashing了。<br>内核态的栈溢出跟用户态的基本是一样的。都是套路….<br>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2017/05/13/Kernel-Exploit-Stack-Smashing/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
   </section>
 
   
@@ -929,7 +933,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">33</span>
+              <span class="site-state-item-count">32</span>
               <span class="site-state-item-name">posts</span>
             </a>
           </div>
