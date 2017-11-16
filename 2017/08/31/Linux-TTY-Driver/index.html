@@ -1,0 +1,877 @@
+<!doctype html>
+
+
+
+
+<html class="theme-next pisces">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="tty driver," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/w0lfzhang.ico?v=5.0.2" />
+
+
+
+
+
+
+<meta name="description" content="tty驱动这个东西我理解起来有点困难。但是最近做的kernel exploitation都涉及tty这个东西，所以很有必要把它搞懂。断断续续看了2天，差不多搞懂了~">
+<meta name="keywords" content="tty driver">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux TTY Driver">
+<meta property="og:url" content="http://yoursite.com/2017/08/31/Linux-TTY-Driver/index.html">
+<meta property="og:site_name" content="w0lfzhang&#39;s blog">
+<meta property="og:description" content="tty驱动这个东西我理解起来有点困难。但是最近做的kernel exploitation都涉及tty这个东西，所以很有必要把它搞懂。断断续续看了2天，差不多搞懂了~">
+<meta property="og:image" content="http://of38fq57s.bkt.clouddn.com/tty_driver_arch.gif">
+<meta property="og:image" content="http://of38fq57s.bkt.clouddn.com/tty.png">
+<meta property="og:updated_time" content="2017-11-16T13:43:33.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux TTY Driver">
+<meta name="twitter:description" content="tty驱动这个东西我理解起来有点困难。但是最近做的kernel exploitation都涉及tty这个东西，所以很有必要把它搞懂。断断续续看了2天，差不多搞懂了~">
+<meta name="twitter:image" content="http://of38fq57s.bkt.clouddn.com/tty_driver_arch.gif">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"always"},
+    fancybox: true,
+    motion: false,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/08/31/Linux-TTY-Driver/"/>
+
+
+  <title> Linux TTY Driver | w0lfzhang's blog </title>
+</head>
+
+<body itemscope itemtype="//schema.org/WebPage" lang="en">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-86514506-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?c3be9cb478c70b5f3b819ddd0ba381b6";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="//schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">w0lfzhang's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">pwn, pwn, pwn!!!</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Linux TTY Driver
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2017-08-31T01:53:26+08:00" content="2017-08-31">
+              2017-08-31
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/kernel-development/" itemprop="url" rel="index">
+                    <span itemprop="name">kernel_development</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/08/31/Linux-TTY-Driver/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/08/31/Linux-TTY-Driver/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>tty驱动这个东西我理解起来有点困难。但是最近做的kernel exploitation都涉及tty这个东西，所以很有必要把它搞懂。断断续续看了2天，差不多搞懂了~<br><a id="more"></a></p>
+<h2 id="WTF-is-tty"><a href="#WTF-is-tty" class="headerlink" title="WTF is tty?"></a>WTF is tty?</h2><p>tty(teletype)是各种类型的终端的一种简称，如串行端口终端(/dev/ttySn)，伪终端(dev/pty/)，控制终端(/dev/tty)，控制台终端(/dev/ttyn, /dev/console)等。终端也是一种字符设备，终端模型从上到下可划分为三层：</p>
+<ol>
+<li>顶层tty core驱动层提供字符设备接口；</li>
+<li>最底层是tty driver层用来和硬件进行通讯，实现tty_operations供tty core和LDISC层调用；</li>
+<li>中间层line discipline实现终端输入输出数据处理的策略。<br><img src="http://of38fq57s.bkt.clouddn.com/tty_driver_arch.gif"></li>
+</ol>
+<h2 id="Some-Structures"><a href="#Some-Structures" class="headerlink" title="Some Structures"></a>Some Structures</h2><p>有几个结构体在整个框架中都比较重要，还是需要熟悉一下。<br>任何驱动程序的主要数据结构是<a href="http://elixir.free-electrons.com/linux/latest/source/include/linux/tty_driver.h#L296" target="_blank" rel="external">tty_driver</a>，它被用来向tty core注册和注销驱动程序。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* the source code is based on linux kernel 3.19 */</span></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">tty_driver</span> &#123;</span></div><div class="line">	<span class="keyword">int</span>	magic;		<span class="comment">/* magic number for this structure */</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">kref</span> <span class="title">kref</span>;</span>	<span class="comment">/* Reference management */</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">cdev</span> *<span class="title">cdevs</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">module</span>	*<span class="title">owner</span>;</span></div><div class="line">	<span class="keyword">const</span> <span class="keyword">char</span>	*driver_name;</div><div class="line">	<span class="keyword">const</span> <span class="keyword">char</span>	*name;</div><div class="line">	<span class="keyword">int</span>	name_base;	<span class="comment">/* offset of printed name */</span></div><div class="line">	<span class="keyword">int</span>	major;		<span class="comment">/* major device number */</span></div><div class="line">	<span class="keyword">int</span>	minor_start;	<span class="comment">/* start of minor device number */</span></div><div class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span>	num;	<span class="comment">/* number of devices allocated */</span></div><div class="line">	<span class="keyword">short</span>	type;		<span class="comment">/* type of tty driver */</span></div><div class="line">	<span class="keyword">short</span>	subtype;	<span class="comment">/* subtype of tty driver */</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">ktermios</span> <span class="title">init_termios</span>;</span> <span class="comment">/* Initial termios */</span></div><div class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span>	flags;		<span class="comment">/* tty driver flags */</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">proc_dir_entry</span> *<span class="title">proc_entry</span>;</span> <span class="comment">/* /proc fs entry */</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">tty_driver</span> *<span class="title">other</span>;</span> <span class="comment">/* only used for the PTY driver */</span></div><div class="line"></div><div class="line">	<span class="comment">/*</span></div><div class="line">	 * Pointer to the tty data structures</div><div class="line">	 */</div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">tty_struct</span> **<span class="title">ttys</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">tty_port</span> **<span class="title">ports</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">ktermios</span> **<span class="title">termios</span>;</span></div><div class="line">	<span class="keyword">void</span> *driver_state;</div><div class="line"></div><div class="line">	<span class="comment">/*</span></div><div class="line">	 * Driver methods</div><div class="line">	 */</div><div class="line"></div><div class="line">	<span class="keyword">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">tty_operations</span> *<span class="title">ops</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">list_head</span> <span class="title">tty_drivers</span>;</span></div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
+<p>其实实现驱动程序大部分情况下是填写相应的结构体，最主要的还是相关的函数指针，而在tty driver中我们需要重点关注的是<a href="http://elixir.free-electrons.com/linux/v3.19/source/include/linux/tty_driver.h#L251" target="_blank" rel="external">tty_operations</a>这个结构体，其中包含了tty driver的所有的回调函数，由tty driver设置，并被tty core调用。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">tty_operations</span> &#123;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">tty_struct</span> * (*<span class="title">lookup</span>)(<span class="title">struct</span> <span class="title">tty_driver</span> *<span class="title">driver</span>,</span></div><div class="line">			<span class="title">struct</span> <span class="title">inode</span> *<span class="title">inode</span>, <span class="title">int</span> <span class="title">idx</span>);</div><div class="line">	<span class="keyword">int</span>  (*install)(struct tty_driver *driver, struct tty_struct *tty);</div><div class="line">	<span class="keyword">void</span> (*remove)(struct tty_driver *driver, struct tty_struct *tty);</div><div class="line">	<span class="keyword">int</span>  (*open)(struct tty_struct * tty, struct file * filp);</div><div class="line">	<span class="keyword">void</span> (*close)(struct tty_struct * tty, struct file * filp);</div><div class="line">	<span class="keyword">void</span> (*shutdown)(struct tty_struct *tty);</div><div class="line">	<span class="keyword">void</span> (*cleanup)(struct tty_struct *tty);</div><div class="line">	<span class="keyword">int</span>  (*write)(struct tty_struct * tty,</div><div class="line">		      <span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="keyword">char</span> *buf, <span class="keyword">int</span> count);</div><div class="line">	<span class="keyword">int</span>  (*put_char)(struct tty_struct *tty, <span class="keyword">unsigned</span> <span class="keyword">char</span> ch);</div><div class="line">	<span class="keyword">void</span> (*flush_chars)(struct tty_struct *tty);</div><div class="line">	<span class="keyword">int</span>  (*write_room)(struct tty_struct *tty);</div><div class="line">	<span class="keyword">int</span>  (*chars_in_buffer)(struct tty_struct *tty);</div><div class="line">	<span class="keyword">int</span>  (*ioctl)(struct tty_struct *tty,</div><div class="line">		    <span class="keyword">unsigned</span> <span class="keyword">int</span> cmd, <span class="keyword">unsigned</span> <span class="keyword">long</span> arg);</div><div class="line">	<span class="keyword">long</span> (*compat_ioctl)(struct tty_struct *tty,</div><div class="line">			     <span class="keyword">unsigned</span> <span class="keyword">int</span> cmd, <span class="keyword">unsigned</span> <span class="keyword">long</span> arg);</div><div class="line">	<span class="keyword">void</span> (*set_termios)(struct tty_struct *tty, struct ktermios * old);</div><div class="line">	<span class="keyword">void</span> (*throttle)(struct tty_struct * tty);</div><div class="line">	<span class="keyword">void</span> (*unthrottle)(struct tty_struct * tty);</div><div class="line">	<span class="keyword">void</span> (*stop)(struct tty_struct *tty);</div><div class="line">	<span class="keyword">void</span> (*start)(struct tty_struct *tty);</div><div class="line">	<span class="keyword">void</span> (*hangup)(struct tty_struct *tty);</div><div class="line">	<span class="keyword">int</span> (*break_ctl)(struct tty_struct *tty, <span class="keyword">int</span> state);</div><div class="line">	<span class="keyword">void</span> (*flush_buffer)(struct tty_struct *tty);</div><div class="line">	<span class="keyword">void</span> (*set_ldisc)(struct tty_struct *tty);</div><div class="line">	<span class="keyword">void</span> (*wait_until_sent)(struct tty_struct *tty, <span class="keyword">int</span> timeout);</div><div class="line">	<span class="keyword">void</span> (*send_xchar)(struct tty_struct *tty, <span class="keyword">char</span> ch);</div><div class="line">	<span class="keyword">int</span> (*tiocmget)(struct tty_struct *tty);</div><div class="line">	<span class="keyword">int</span> (*tiocmset)(struct tty_struct *tty,</div><div class="line">			<span class="keyword">unsigned</span> <span class="keyword">int</span> <span class="built_in">set</span>, <span class="keyword">unsigned</span> <span class="keyword">int</span> clear);</div><div class="line">	<span class="keyword">int</span> (*resize)(struct tty_struct *tty, struct winsize *ws);</div><div class="line">	<span class="keyword">int</span> (*set_termiox)(struct tty_struct *tty, struct termiox *tnew);</div><div class="line">	<span class="keyword">int</span> (*get_icount)(struct tty_struct *tty,</div><div class="line">				struct serial_icounter_struct *icount);</div><div class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_CONSOLE_POLL</span></div><div class="line">	<span class="keyword">int</span> (*poll_init)(struct tty_driver *driver, <span class="keyword">int</span> line, <span class="keyword">char</span> *options);</div><div class="line">	<span class="keyword">int</span> (*poll_get_char)(struct tty_driver *driver, <span class="keyword">int</span> line);</div><div class="line">	<span class="keyword">void</span> (*poll_put_char)(struct tty_driver *driver, <span class="keyword">int</span> line, <span class="keyword">char</span> ch);</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">	<span class="keyword">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">file_operations</span> *<span class="title">proc_fops</span>;</span></div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
+<p>还有个结构体我们需要了解以下，<a href="http://elixir.free-electrons.com/linux/v3.19/source/include/linux/tty.h#L237" target="_blank" rel="external">tty-struct</a>:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">tty_struct</span> &#123;</span></div><div class="line">	<span class="keyword">int</span>	magic;</div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">kref</span> <span class="title">kref</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">device</span> *<span class="title">dev</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">tty_driver</span> *<span class="title">driver</span>;</span></div><div class="line">	<span class="keyword">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">tty_operations</span> *<span class="title">ops</span>;</span></div><div class="line">	<span class="keyword">int</span> index;</div><div class="line"></div><div class="line">	<span class="comment">/* Protects ldisc changes: Lock tty not pty */</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">ld_semaphore</span> <span class="title">ldisc_sem</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">tty_ldisc</span> *<span class="title">ldisc</span>;</span></div><div class="line"></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">mutex</span> <span class="title">atomic_write_lock</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">mutex</span> <span class="title">legacy_mutex</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">mutex</span> <span class="title">throttle_mutex</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">rw_semaphore</span> <span class="title">termios_rwsem</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">mutex</span> <span class="title">winsize_mutex</span>;</span></div><div class="line">	<span class="keyword">spinlock_t</span> ctrl_lock;</div><div class="line">	<span class="keyword">spinlock_t</span> flow_lock;</div><div class="line">	<span class="comment">/* Termios values are protected by the termios rwsem */</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">ktermios</span> <span class="title">termios</span>, <span class="title">termios_locked</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">termiox</span> *<span class="title">termiox</span>;</span>	<span class="comment">/* May be NULL for unsupported */</span></div><div class="line">	<span class="keyword">char</span> name[<span class="number">64</span>];</div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">pid</span> *<span class="title">pgrp</span>;</span>		<span class="comment">/* Protected by ctrl lock */</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">pid</span> *<span class="title">session</span>;</span></div><div class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> flags;</div><div class="line">	<span class="keyword">int</span> count;</div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">winsize</span> <span class="title">winsize</span>;</span>		<span class="comment">/* winsize_mutex */</span></div><div class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> stopped:<span class="number">1</span>,	<span class="comment">/* flow_lock */</span></div><div class="line">		      flow_stopped:<span class="number">1</span>,</div><div class="line">		      unused:BITS_PER_LONG - <span class="number">2</span>;</div><div class="line">	<span class="keyword">int</span> hw_stopped;</div><div class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> ctrl_status:<span class="number">8</span>,	<span class="comment">/* ctrl_lock */</span></div><div class="line">		      packet:<span class="number">1</span>,</div><div class="line">		      unused_ctrl:BITS_PER_LONG - <span class="number">9</span>;</div><div class="line">	<span class="keyword">unsigned</span> <span class="keyword">int</span> receive_room;	<span class="comment">/* Bytes free for queue */</span></div><div class="line">	<span class="keyword">int</span> flow_change;</div><div class="line"></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">tty_struct</span> *<span class="title">link</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">fasync_struct</span> *<span class="title">fasync</span>;</span></div><div class="line">	<span class="keyword">int</span> alt_speed;		<span class="comment">/* For magic substitution of 38400 bps */</span></div><div class="line">	<span class="keyword">wait_queue_head_t</span> write_wait;</div><div class="line">	<span class="keyword">wait_queue_head_t</span> read_wait;</div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">work_struct</span> <span class="title">hangup_work</span>;</span></div><div class="line">	<span class="keyword">void</span> *disc_data;</div><div class="line">	<span class="keyword">void</span> *driver_data;</div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">list_head</span> <span class="title">tty_files</span>;</span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> N_TTY_BUF_SIZE 4096</span></div><div class="line"></div><div class="line">	<span class="keyword">int</span> closing;</div><div class="line">	<span class="keyword">unsigned</span> <span class="keyword">char</span> *write_buf;</div><div class="line">	<span class="keyword">int</span> write_cnt;</div><div class="line">	<span class="comment">/* If the tty has a pending do_SAK, queue it here - akpm */</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">work_struct</span> <span class="title">SAK_work</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">tty_port</span> *<span class="title">port</span>;</span></div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
+<p>tty core使用tty_struct保存当前特定的tty端口的状态，除了少数例外，该结构的几乎所有的成员只能被tty core使用。</p>
+<p>在介绍如何工作之前，首先把line discipline简单的熟悉一下，虽然这个东西是真的复杂，但是只需了解一下大概原理就行了。<br>tty core从用户那得到将发往tty设备的数据，然后把数据发送给tty线路规程驱动程序，该驱动程序负责把数据传递给tty driver。从tty硬件那接受的数据将回溯到tty驱动程序，然后流入tty线路规程驱动程序，接着是tty core，最后用户从tty core那里得到数据。tty驱动程序是不能直接与tty discipline通信的，甚至不知道它的存在，tty discipline的作用是使用特殊的方法，把从用户或者硬件那里接受的数据格式化。<br>再来看一个结构体<a href="http://elixir.free-electrons.com/linux/v3.19/source/include/linux/tty_ldisc.h#L221" target="_blank" rel="external">tty_ldisc</a>:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">tty_ldisc</span> &#123;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">tty_ldisc_ops</span> *<span class="title">ops</span>;</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">tty_struct</span> *<span class="title">tty</span>;</span></div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">tty_ldisc_ops</span> &#123;</span></div><div class="line">	<span class="keyword">int</span>	magic;</div><div class="line">	<span class="keyword">char</span>	*name;</div><div class="line">	<span class="keyword">int</span>	num;</div><div class="line">	<span class="keyword">int</span>	flags;</div><div class="line"></div><div class="line">	<span class="comment">/*</span></div><div class="line">	 * The following routines are called from above.  &lt;== for tty core</div><div class="line">	 */</div><div class="line">	<span class="keyword">int</span>	(*open)(struct tty_struct *);</div><div class="line">	<span class="keyword">void</span>	(*close)(struct tty_struct *);</div><div class="line">	<span class="keyword">void</span>	(*flush_buffer)(struct tty_struct *tty);</div><div class="line">	<span class="keyword">ssize_t</span>	(*chars_in_buffer)(struct tty_struct *tty);</div><div class="line">	<span class="keyword">ssize_t</span>	(*read)(struct tty_struct *tty, struct file *file,</div><div class="line">			<span class="keyword">unsigned</span> <span class="keyword">char</span> __user *buf, <span class="keyword">size_t</span> nr);</div><div class="line">	<span class="keyword">ssize_t</span>	(*write)(struct tty_struct *tty, struct file *file,</div><div class="line">			 <span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="keyword">char</span> *buf, <span class="keyword">size_t</span> nr);</div><div class="line">	<span class="keyword">int</span>	(*ioctl)(struct tty_struct *tty, struct file *file,</div><div class="line">			 <span class="keyword">unsigned</span> <span class="keyword">int</span> cmd, <span class="keyword">unsigned</span> <span class="keyword">long</span> arg);</div><div class="line">	<span class="keyword">long</span>	(*compat_ioctl)(struct tty_struct *tty, struct file *file,</div><div class="line">				<span class="keyword">unsigned</span> <span class="keyword">int</span> cmd, <span class="keyword">unsigned</span> <span class="keyword">long</span> arg);</div><div class="line">	<span class="keyword">void</span>	(*set_termios)(struct tty_struct *tty, struct ktermios *old);</div><div class="line">	<span class="function"><span class="keyword">unsigned</span> <span class="title">int</span> <span class="params">(*poll)</span><span class="params">(struct tty_struct *, struct file *,</span></span></div><div class="line">			     struct poll_table_struct *);</div><div class="line">	<span class="keyword">int</span>	(*hangup)(struct tty_struct *tty);</div><div class="line"></div><div class="line">	<span class="comment">/*</span></div><div class="line">	 * The following routines are called from below.  &lt;== for tty driver</div><div class="line">	 */</div><div class="line">	<span class="keyword">void</span>	(*receive_buf)(struct tty_struct *, <span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="keyword">char</span> *cp,</div><div class="line">			       <span class="keyword">char</span> *fp, <span class="keyword">int</span> count);</div><div class="line">	<span class="keyword">void</span>	(*write_wakeup)(struct tty_struct *);</div><div class="line">	<span class="keyword">void</span>	(*dcd_change)(struct tty_struct *, <span class="keyword">unsigned</span> <span class="keyword">int</span>);</div><div class="line">	<span class="keyword">void</span>	(*fasync)(struct tty_struct *tty, <span class="keyword">int</span> on);</div><div class="line">	<span class="keyword">int</span>	(*receive_buf2)(struct tty_struct *, <span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="keyword">char</span> *cp,</div><div class="line">				<span class="keyword">char</span> *fp, <span class="keyword">int</span> count);</div><div class="line"></div><div class="line">	<span class="class"><span class="keyword">struct</span>  <span class="title">module</span> *<span class="title">owner</span>;</span></div><div class="line"></div><div class="line">	<span class="keyword">int</span> refcount;</div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
+<p>这个结构体主要是line discipline层用的，因为其工作在tty core与tty driver之间，所以它需要为二者提供相应的接口函数。正如结构体中注释描述的那样，可以看到哪些函数提供给哪一层作为接口使用。</p>
+<h2 id="How-to-work"><a href="#How-to-work" class="headerlink" title="How to work"></a>How to work</h2><p>之前我困惑的原因是搞不懂那几个operations结构体的函数之间的调用关系，例如基本每个结构体都会有open，write等函数指针，实在搞得我有点懵。最后历经千辛万苦，终于看懂了。(能看懂内核源码是一件很幸福的事)<br>感谢<a href="http://blog.csdn.net/lizuobin2/article/details/51773305" target="_blank" rel="external">tty初探—uart驱动框架分析</a>这篇博文的作者！！</p>
+<p>首先因为终端是一种字符设备，那我们先从file_operations(内核已经实现大部分该结构体的大部分函数)开始研究。拿<a href="http://elixir.free-electrons.com/linux/v3.19/source/drivers/tty/tty_io.c#L456" target="_blank" rel="external">tty_fops</a>做例子说一下，其初始化如下：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">static</span> <span class="keyword">const</span> <span class="class"><span class="keyword">struct</span> <span class="title">file_operations</span> <span class="title">tty_fops</span> = &#123;</span></div><div class="line">	.llseek		= no_llseek,</div><div class="line">	.read		= tty_read,</div><div class="line">	.write		= tty_write,</div><div class="line">	.poll		= tty_poll,</div><div class="line">	.unlocked_ioctl	= tty_ioctl,</div><div class="line">	.compat_ioctl	= tty_compat_ioctl,</div><div class="line">	.open		= tty_open,</div><div class="line">	.release	= tty_release,</div><div class="line">	.fasync		= tty_fasync,</div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
+<p>假设我们再用户空间调用了open打开了一个设备节点文件，我们来看下内核函数的调用顺序。<br>如上，第一应该是调用tty_fops中的tty_open函数，因为打开的是字符设备。tty_open函数会在tty_driver的全局链表中找到相应的tty_driver，然后根据tty_driver分配并初始化一个tty_struct结构体。因为tty core用的是tty_struct结构体，当其要调用tty driver层的相关函数时必须要要从某个地方找到tty_operations，所以tty_struct中有个tty_operations结构体来保存tty_driver实现的回调函数。所以tty_open在初始化tty_struct时会设置tty_struct-&gt;ops = tty_driver-&gt;ops。有个细节注意一下(when reading source code)，在linux内核源码中tty核心层的实现是tty_io.c，tty discipline一般由n_tty(N_TTY).c实现。<br>tty_open会调用tty_init_dev函数：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="function">struct tty_struct *<span class="title">tty_init_dev</span><span class="params">(struct tty_driver *driver, <span class="keyword">int</span> idx)</span></span></div><div class="line">&#123;</div><div class="line">	......</div><div class="line">	<span class="comment">/*</span></div><div class="line">	 * Structures all installed ... call the ldisc open routines.</div><div class="line">	 * If we fail here just call release_tty to clean up.  No need</div><div class="line">	 * to decrement the use counts, as release_tty doesn't care.</div><div class="line">	 */</div><div class="line">	retval = tty_ldisc_setup(tty, tty-&gt;link);</div><div class="line">	<span class="keyword">if</span> (retval)</div><div class="line">		<span class="keyword">goto</span> err_release_tty;</div><div class="line">	<span class="comment">/* Return the tty locked so that it cannot vanish under the caller */</span></div><div class="line">	<span class="keyword">return</span> tty;</div><div class="line">	......</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>然后调用tty_ldisc_setup函数：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">tty_ldisc_setup</span><span class="params">(struct tty_struct *tty, struct tty_struct *o_tty)</span></span></div><div class="line">&#123;</div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">tty_ldisc</span> *<span class="title">ld</span> = <span class="title">tty</span>-&gt;<span class="title">ldisc</span>;</span></div><div class="line">	<span class="keyword">int</span> retval;</div><div class="line"></div><div class="line">	retval = tty_ldisc_open(tty, ld);</div><div class="line">	<span class="keyword">if</span> (retval)</div><div class="line">		<span class="keyword">return</span> retval;</div><div class="line"></div><div class="line">	<span class="keyword">if</span> (o_tty) &#123;</div><div class="line">		retval = tty_ldisc_open(o_tty, o_tty-&gt;ldisc);</div><div class="line">		<span class="keyword">if</span> (retval) &#123;</div><div class="line">			tty_ldisc_close(tty, ld);</div><div class="line">			<span class="keyword">return</span> retval;</div><div class="line">		&#125;</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>我们再来看tty_ldisc_open函数：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">tty_ldisc_open</span><span class="params">(struct tty_struct *tty, struct tty_ldisc *ld)</span></span></div><div class="line">&#123;</div><div class="line">	WARN_ON(test_and_set_bit(TTY_LDISC_OPEN, &amp;tty-&gt;flags));</div><div class="line">	<span class="keyword">if</span> (ld-&gt;ops-&gt;open) &#123;</div><div class="line">		<span class="keyword">int</span> ret;</div><div class="line">                <span class="comment">/* BTM here locks versus a hangup event */</span></div><div class="line">		ret = ld-&gt;ops-&gt;open(tty);</div><div class="line">		<span class="keyword">if</span> (ret)</div><div class="line">			clear_bit(TTY_LDISC_OPEN, &amp;tty-&gt;flags);</div><div class="line">		<span class="keyword">return</span> ret;</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>在这个函数里会调用tty discipline的open函数。但是这个函数不会调用tty driver的open函数，看下面代码：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">tty_open</span><span class="params">(struct inode *inode, struct file *filp)</span></span></div><div class="line">&#123;</div><div class="line">	tty = tty_init_dev(driver, index);</div><div class="line">	......</div><div class="line">	<span class="keyword">if</span> (tty-&gt;ops-&gt;open)</div><div class="line">		retval = tty-&gt;ops-&gt;open(tty, filp);</div><div class="line">	<span class="keyword">else</span></div><div class="line">		retval = -ENODEV;</div><div class="line">	......</div></pre></td></tr></table></figure></p>
+<p>所以如果tty_operations定义了open函数就会调用，一般是必须要实现open函数。</p>
+<p>对于write和read，调用层次更加清晰，如下图：<br><img src="http://of38fq57s.bkt.clouddn.com/tty.png"><br>分析貌似太复杂，懒得分析了，不过最后大概原理算是搞懂了~</p>
+<p>还有个重要的点是tty driver的ioctl：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">long</span> <span class="title">tty_ioctl</span><span class="params">(struct file *file, <span class="keyword">unsigned</span> <span class="keyword">int</span> cmd, <span class="keyword">unsigned</span> <span class="keyword">long</span> arg)</span></span></div><div class="line">&#123;</div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">tty_struct</span> *<span class="title">tty</span> = <span class="title">file_tty</span>(<span class="title">file</span>);</span></div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">tty_struct</span> *<span class="title">real_tty</span>;</span></div><div class="line">	<span class="keyword">void</span> __user *p = (<span class="keyword">void</span> __user *)arg;</div><div class="line">	<span class="keyword">int</span> retval;</div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">tty_ldisc</span> *<span class="title">ld</span>;</span></div><div class="line"></div><div class="line">	<span class="comment">/* the ioctls kernel implements */</span></div><div class="line">	......</div><div class="line">	<span class="keyword">case</span> TIOCSSERIAL:</div><div class="line">		tty_warn_deprecated_flags(p);</div><div class="line">		<span class="keyword">break</span>;</div><div class="line">	&#125;</div><div class="line">	<span class="keyword">if</span> (tty-&gt;ops-&gt;ioctl) &#123;</div><div class="line">		retval = tty-&gt;ops-&gt;ioctl(tty, cmd, arg);</div><div class="line">		<span class="keyword">if</span> (retval != -ENOIOCTLCMD)</div><div class="line">			<span class="keyword">return</span> retval;</div><div class="line">	&#125;</div><div class="line">	ld = tty_ldisc_ref_wait(tty);</div><div class="line">	retval = -EINVAL;</div><div class="line">	<span class="keyword">if</span> (ld-&gt;ops-&gt;ioctl) &#123;   &lt;=== here</div><div class="line">		retval = ld-&gt;ops-&gt;ioctl(tty, file, cmd, arg);</div><div class="line">		<span class="keyword">if</span> (retval == -ENOIOCTLCMD)</div><div class="line">			retval = -ENOTTY;</div><div class="line">	&#125;</div><div class="line">	tty_ldisc_deref(ld);</div><div class="line">	<span class="keyword">return</span> retval;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>当ioctl在用户态被调用时(对应设备节点是相应tty终端)，tty core将根据cmd命令或者调用内核内置的ioctl，或者调用tty driver的ioctl。</p>
+<p>其实理清tty core，tty driver，tty disciline之间的调用关系就差不多基本搞清了tty的原理。总的来说，tty core处理数据时会调用tty driver设置的相应的tty_operations里面的函数，中间数据可能要经过tty discipline被格式化。其实就是系统给封装了一下，tty_driver不要去实现file_operations结构体的函数成员，而是去实现tty_operations的函数成员，用户通过跟tty core直接交互，而tty core可以直接跟tty driver交互，用户间接地通过tty core跟tty driver交互。</p>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><p>Linux设备驱动开发详解：基于最新的Linux 4.0内核——13.3.65：终端设备驱动<br><a href="http://blog.csdn.net/lizuobin2/article/details/51773305" target="_blank" rel="external">tty初探—uart驱动框架分析</a><br><a href="http://blog.csdn.net/kickxxx/article/details/8512309" target="_blank" rel="external">linux 终端设备 - 线路规程</a><br><a href="https://yannik520.github.io/tty/tty_driver.html#sec-3" target="_blank" rel="external">Linux TTY Driver</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/tty-driver/" rel="tag">#tty driver</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/27/WTF-is-Stackjacking/" rel="next" title="WTF is Stackjacking?">
+                <i class="fa fa-chevron-left"></i> WTF is Stackjacking?
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/09/07/Linux-Slub-Overflow-Exploit/" rel="prev" title="Linux-Slub-Overflow-Exploit">
+                Linux-Slub-Overflow-Exploit <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="//schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/wolf.jpg"
+               alt="w0lfzhang" />
+          <p class="site-author-name" itemprop="name">w0lfzhang</p>
+          <p class="site-description motion-element" itemprop="description">Go slowly! Just slowly!</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">54</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">12</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">87</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+          <div class="links-of-blogroll motion-element links-of-blogroll-inline">
+            <div class="links-of-blogroll-title">
+              <i class="fa  fa-fw fa-globe"></i>
+              Links
+            </div>
+            <ul class="links-of-blogroll-list">
+              
+                <li class="links-of-blogroll-item">
+                  <a href="http://y0ung.tech" title="y0ung" target="_blank">y0ung</a>
+                </li>
+              
+            </ul>
+          </div>
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#WTF-is-tty"><span class="nav-number">1.</span> <span class="nav-text">WTF is tty?</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Some-Structures"><span class="nav-number">2.</span> <span class="nav-text">Some Structures</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-to-work"><span class="nav-number">3.</span> <span class="nav-text">How to work</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#References"><span class="nav-number">4.</span> <span class="nav-text">References</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2017</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w0lfzhang</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+<span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;Visited <span id="busuanzi_value_site_pv"></span> times
+</span>
+
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.2"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'w0lfzhang';
+      var disqus_identifier = '2017/08/31/Linux-TTY-Driver/';
+      var disqus_title = "Linux TTY Driver";
+      var disqus_url = 'http://yoursite.com/2017/08/31/Linux-TTY-Driver/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = false;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = decodeURIComponent(data.url);
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title >= 0 || index_content >= 0 ){
+                                isMatch = true;
+								if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            } 
+							
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>
