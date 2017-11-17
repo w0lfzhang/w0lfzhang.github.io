@@ -90,7 +90,7 @@
 <meta property="og:site_name" content="w0lfzhang&#39;s blog">
 <meta property="og:description" content="Recnetly, I want to learn the pwn of arm, so I find some docs to read. Registerbelow are the points about the register:  37 registers, but most using 16 registers each time(not including status regist">
 <meta property="og:image" content="http://of38fq57s.bkt.clouddn.com/ArmRegister.PNG">
-<meta property="og:updated_time" content="2017-11-16T13:43:33.000Z">
+<meta property="og:updated_time" content="2017-11-17T06:06:40.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="arm instructions learning">
 <meta name="twitter:description" content="Recnetly, I want to learn the pwn of arm, so I find some docs to read. Registerbelow are the points about the register:  37 registers, but most using 16 registers each time(not including status regist">
@@ -412,9 +412,9 @@ OK, here is the picture:<br><img src="http://of38fq57s.bkt.clouddn.com/ArmRegist
 </li>
 </ol>
 <h2 id="Procedure"><a href="#Procedure" class="headerlink" title="Procedure"></a>Procedure</h2><ol>
-<li>Argument: when less than 4 args, using R0-R4, when over 4, the rest using stack</li>
+<li>Argument: when less than 4 args, using R0-R3, when over 4, the rest using stack</li>
 <li>Using BL to call the procedure</li>
-<li>Pusing R14 and when returing pop to R15</li>
+<li>Saving R14 and when call ending, moving r14 to R15</li>
 <li>Using R0 to save the return value</li>
 </ol>
 <h2 id="APCS"><a href="#APCS" class="headerlink" title="APCS"></a>APCS</h2><p>OK, about APCS, I just find a blog page and pdf to read, hers is the link:<br><a href="http://infocenter.arm.com/help/topic/com.arm.doc.ihi0042f/IHI0042F_aapcs.pdf" target="_blank" rel="external">APCS</a><br><a href="http://blog.csdn.net/skyflying2012/article/details/37510171" target="_blank" rel="external">bolg</a></p>
