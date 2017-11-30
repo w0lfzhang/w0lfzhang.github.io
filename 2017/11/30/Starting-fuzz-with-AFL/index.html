@@ -90,7 +90,7 @@
 <meta property="og:site_name" content="w0lfzhang&#39;s blog">
 <meta property="og:description" content="It’s really hard to pwn the switches…So I decide to pick some time to learn fuzzing.The first problem is to choose a fuzzing tool. And I think AFL(American fuzzy lop) is a good tool to start fuzzing.">
 <meta property="og:image" content="http://of38fq57s.bkt.clouddn.com/afl-fuzz-readelf.PNG">
-<meta property="og:updated_time" content="2017-11-30T16:18:20.000Z">
+<meta property="og:updated_time" content="2017-11-30T16:20:37.000Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Starting fuzz with AFL">
 <meta name="twitter:description" content="It’s really hard to pwn the switches…So I decide to pick some time to learn fuzzing.The first problem is to choose a fuzzing tool. And I think AFL(American fuzzy lop) is a good tool to start fuzzing.">
@@ -355,7 +355,7 @@
       
 
       
-        <p>It’s really hard to pwn the switches…So I decide to pick some time to learn fuzzing.<br>The first problem is to choose a fuzzing tool. And I think AFL(American fuzzy lop) is a good tool to start fuzzing. The second problem is to choose a target to fuzz. That’s easy, there are many programs to choose. And I choose <a href="http://ftp.gnu.org/" target="_blank" rel="external">the GNU project</a>‘binutils according to the blog I read. Then start my fist fuzzing.<br><a id="more"></a></p>
+        <p>It’s really hard to pwn the switches…So I decide to pick some time to learn fuzzing.<br>The first problem is to choose a fuzzing tool. And I think AFL(American fuzzy lop) is a good tool to start fuzzing. The second problem is to choose a target to fuzz. That’s easy, there are many programs to choose. And I choose <a href="http://ftp.gnu.org/" target="_blank" rel="external">the GNU project</a>‘s binutils according to the blog I read. Then start my fist fuzzing.<br><a id="more"></a></p>
 <h2 id="Install-AFL"><a href="#Install-AFL" class="headerlink" title="Install AFL"></a>Install AFL</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">wget http://lcamtuf.coredump.cx/afl/releases/afl-latest.tgz</div><div class="line">tar -xzvf afl-latest.tgz</div><div class="line">cd afl-2.52b/</div><div class="line">make</div><div class="line">sudo make install</div></pre></td></tr></table></figure>
 <h2 id="Fuzzing-with-AFL"><a href="#Fuzzing-with-AFL" class="headerlink" title="Fuzzing with AFL"></a>Fuzzing with AFL</h2><p>First download the binutils source code of the GNU project.<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">wget http://ftp.gnu.org/gnu/binutils/binutils-2.25.tar.gz</div></pre></td></tr></table></figure></p>
 <p>Unzip it and compile it.<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">cd ~/binutils-2.25</div><div class="line">CC=afl-gcc ./configure</div><div class="line">make</div></pre></td></tr></table></figure></p>
