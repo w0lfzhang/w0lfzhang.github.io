@@ -287,6 +287,129 @@
             
               
                 
+                <a class="post-title-link" href="/2017/08/25/Linux-Kernel-Rootkit-Learning/" itemprop="url">
+                  Linux Kernel Rootkit Learning
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2017-08-25T12:27:29+08:00" content="2017-08-25">
+              2017-08-25
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/kernel-exploit/" itemprop="url" rel="index">
+                    <span itemprop="name">kernel_exploit</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/08/25/Linux-Kernel-Rootkit-Learning/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/08/25/Linux-Kernel-Rootkit-Learning/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>昨天做csaw 2014 ctf的kernel exploit，突然发现代码有点看不懂，但好像又似曾相识的感觉~后来想起来是在freebuf上看了linux rootkit的教程，但是那时看的不是很懂…，现在看，有种豁然开朗的感觉，所以就干脆学习一番。<br>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2017/08/25/Linux-Kernel-Rootkit-Learning/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2017/08/22/2013-CSAW-CTF-Kernel-Exploit/" itemprop="url">
                   2013 CSAW CTF Kernel Exploit
                 </a>
@@ -760,130 +883,6 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2017/08/06/Linux-Kernel-ROP/" itemprop="url">
-                  Linux Kernel ROP
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">Posted on</span>
-            <time itemprop="dateCreated" datetime="2017-08-06T19:47:38+08:00" content="2017-08-06">
-              2017-08-06
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/kernel-exploit/" itemprop="url" rel="index">
-                    <span itemprop="name">kernel_exploit</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2017/08/06/Linux-Kernel-ROP/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/08/06/Linux-Kernel-ROP/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-	 
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>SMEP(Supervisor Mode Execution Protection)的绕过方法一是直接修改CR4的值，二是直接在内核ROP(有点难)。修改CR4最终还是会用到ROP，所以还是先研究下内核ROP。</p>
-<h2 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h2><p>内核的ROP跟用户空间的ROP没太大区别，差别很小，需要注意的是内核传参一般是通过寄存器而不是栈。我们在实验中通过ROP在内核中执行下面的函数(privilege escalation)。虽然实际中不会有这么简单，但是我们首先可以通过ROP来改变CR4的值来关闭SMEP，然后就可以在用户空间执行payload提权了。<br>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/2017/08/06/Linux-Kernel-ROP/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -929,7 +928,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">57</span>
+              <span class="site-state-item-count">58</span>
               <span class="site-state-item-name">posts</span>
             </a>
           </div>
@@ -937,7 +936,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/categories">
-                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-count">16</span>
                 <span class="site-state-item-name">categories</span>
               </a>
             </div>
@@ -946,7 +945,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">91</span>
+                <span class="site-state-item-count">93</span>
                 <span class="site-state-item-name">tags</span>
               </a>
             </div>

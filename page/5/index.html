@@ -287,6 +287,130 @@
             
               
                 
+                <a class="post-title-link" href="/2017/08/06/Linux-Kernel-ROP/" itemprop="url">
+                  Linux Kernel ROP
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2017-08-06T19:47:38+08:00" content="2017-08-06">
+              2017-08-06
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/kernel-exploit/" itemprop="url" rel="index">
+                    <span itemprop="name">kernel_exploit</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/08/06/Linux-Kernel-ROP/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/08/06/Linux-Kernel-ROP/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>SMEP(Supervisor Mode Execution Protection)的绕过方法一是直接修改CR4的值，二是直接在内核ROP(有点难)。修改CR4最终还是会用到ROP，所以还是先研究下内核ROP。</p>
+<h2 id="Intro"><a href="#Intro" class="headerlink" title="Intro"></a>Intro</h2><p>内核的ROP跟用户空间的ROP没太大区别，差别很小，需要注意的是内核传参一般是通过寄存器而不是栈。我们在实验中通过ROP在内核中执行下面的函数(privilege escalation)。虽然实际中不会有这么简单，但是我们首先可以通过ROP来改变CR4的值来关闭SMEP，然后就可以在用户空间执行payload提权了。<br>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2017/08/06/Linux-Kernel-ROP/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2017/08/03/Linux-Slab-Allocator/" itemprop="url">
                   Linux Slab Allocator
                 </a>
@@ -759,129 +883,6 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2017/06/12/Attention-about-FSPO/" itemprop="url">
-                  Attention about FSPO
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">Posted on</span>
-            <time itemprop="dateCreated" datetime="2017-06-12T00:12:54+08:00" content="2017-06-12">
-              2017-06-12
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/misc-exploit/" itemprop="url" rel="index">
-                    <span itemprop="name">misc_exploit</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2017/06/12/Attention-about-FSPO/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/06/12/Attention-about-FSPO/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-	 
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>我一直以为单纯的伪造fake FILE结构体就行，然后把vtable设置为shellcode的地址或者类似的gadget的地址。但是今天做的那个FSPO那个题按照这思路还是有点问题的。不知道为啥我明明调试调到了fflush内部我居然没仔细看出错的原因….不稳~<br>需要注意的是文件操作函数内部的条件判断。<br>例如：fflush函数内部开始有如下判断：<br>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/2017/06/12/Attention-about-FSPO/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -927,7 +928,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">57</span>
+              <span class="site-state-item-count">58</span>
               <span class="site-state-item-name">posts</span>
             </a>
           </div>
@@ -935,7 +936,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/categories">
-                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-count">16</span>
                 <span class="site-state-item-name">categories</span>
               </a>
             </div>
@@ -944,7 +945,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">91</span>
+                <span class="site-state-item-count">93</span>
                 <span class="site-state-item-name">tags</span>
               </a>
             </div>

@@ -287,6 +287,129 @@
             
               
                 
+                <a class="post-title-link" href="/2016/10/30/2016-HITCON-CTF-Secret-Holder/" itemprop="url">
+                  2016 HITCON CTF Secret-Holder
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2016-10-30T06:15:01+08:00" content="2016-10-30">
+              2016-10-30
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/ctf-practice/" itemprop="url" rel="index">
+                    <span itemprop="name">ctf_practice</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/10/30/2016-HITCON-CTF-Secret-Holder/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2016/10/30/2016-HITCON-CTF-Secret-Holder/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <h2 id="Challenge"><a href="#Challenge" class="headerlink" title="Challenge"></a>Challenge</h2><p><a href="https://github.com/ctfs/write-ups-2016/tree/master/hitcon-ctf-2016/pwn/secret-holder-100" target="_blank" rel="external">程序</a>的wipe功能有漏洞，可以造成double free。<br>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2016/10/30/2016-HITCON-CTF-Secret-Holder/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/10/28/2015-32C3-CTF-smashes/" itemprop="url">
                   2015 32C3 CTF smashes
                 </a>
@@ -767,137 +890,6 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2016/10/19/house-of-lore/" itemprop="url">
-                  house of lore
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">Posted on</span>
-            <time itemprop="dateCreated" datetime="2016-10-19T04:41:22+08:00" content="2016-10-19">
-              2016-10-19
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/heap-exploit/" itemprop="url" rel="index">
-                    <span itemprop="name">heap_exploit</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2016/10/19/house-of-lore/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2016/10/19/house-of-lore/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-	 
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>house of lore，我认为是house of *利用方式中利用条件比较难满足的吧，个人觉得实际很难遇到这种情况。所以就简单记录一下，不想浪费太多时间在这。还有house of mind和house of prime就以后碰到相关的题再记录了，因为平时好像几乎没怎么碰到过。</p>
-<h2 id="利用条件"><a href="#利用条件" class="headerlink" title="利用条件"></a>利用条件</h2><ol>
-<li>Two chunks are allocated and the first one is overflowable。</li>
-<li>The second chunk is freed。</li>
-<li>Another (potentially more) chunk, bigger than the second one, is allocated。</li>
-<li>A new chunk with the same size of the second one is allocated。</li>
-<li>Another chunk with the same size of the second one is allocated。</li>
-</ol>
-<p>觉得这描述的很好，所以就无耻的照搬了~~~我用中文也是翻译一下，倒还不如用参考的英文描述。<br>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/2016/10/19/house-of-lore/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -943,7 +935,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">57</span>
+              <span class="site-state-item-count">58</span>
               <span class="site-state-item-name">posts</span>
             </a>
           </div>
@@ -951,7 +943,7 @@
           
             <div class="site-state-item site-state-categories">
               <a href="/categories">
-                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-count">16</span>
                 <span class="site-state-item-name">categories</span>
               </a>
             </div>
@@ -960,7 +952,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">91</span>
+                <span class="site-state-item-count">93</span>
                 <span class="site-state-item-name">tags</span>
               </a>
             </div>
