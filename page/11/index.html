@@ -287,6 +287,137 @@
             
               
                 
+                <a class="post-title-link" href="/2016/11/02/arm-instructions-learning/" itemprop="url">
+                  arm instructions learning
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2016-11-02T11:48:54+08:00" content="2016-11-02">
+              2016-11-02
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/arm/" itemprop="url" rel="index">
+                    <span itemprop="name">arm</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/11/02/arm-instructions-learning/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2016/11/02/arm-instructions-learning/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>Recnetly, I want to learn the pwn of arm, so I find some docs to read.</p>
+<h2 id="Register"><a href="#Register" class="headerlink" title="Register"></a>Register</h2><p>below are the points about the register:</p>
+<ol>
+<li>37 registers, but most using 16 registers each time(not including status register)</li>
+<li>R0-7 for everything</li>
+<li>R8-12 are general registers and when changing to FIQ model, use their shadow register</li>
+<li>R13 for stack pointer, but it’s optional</li>
+<li>R14 for keeping the return address specially</li>
+<li>R15 for PC pointer
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2016/11/02/arm-instructions-learning/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/10/30/2016-HITCON-CTF-Secret-Holder/" itemprop="url">
                   2016 HITCON CTF Secret-Holder
                 </a>
@@ -766,130 +897,6 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2016/10/20/pwning-in-c++/" itemprop="url">
-                  pwning in c++
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">Posted on</span>
-            <time itemprop="dateCreated" datetime="2016-10-20T08:16:26+08:00" content="2016-10-20">
-              2016-10-20
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/misc-exploit/" itemprop="url" rel="index">
-                    <span itemprop="name">misc_exploit</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2016/10/20/pwning-in-c++/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2016/10/20/pwning-in-c++/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-	 
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>自从学了c++以来就几乎没有接触过了，除了在一年前看0day那本书时看过c++虚函数的攻击，但现在几乎不怎么记得了。<br>所以就记录一下pwning in c++吧。(不定时更新)</p>
-<h2 id="virtual-function-table"><a href="#virtual-function-table" class="headerlink" title="virtual function table"></a>virtual function table</h2><p>关于<a href="http://blog.csdn.net/haoel/article/details/1948051/" target="_blank" rel="external">c++虚表</a>:<br>1.实现多态。<br>1.虚表位于对象存储区域的开始处，所以可以很容易得到其地址。<br>2.只有使用对象指针或引用来调用虚函数时才会使用虚表调用的方式。<br>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/2016/10/20/pwning-in-c++/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -935,7 +942,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">58</span>
+              <span class="site-state-item-count">59</span>
               <span class="site-state-item-name">posts</span>
             </a>
           </div>
@@ -952,7 +959,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">93</span>
+                <span class="site-state-item-count">97</span>
                 <span class="site-state-item-name">tags</span>
               </a>
             </div>

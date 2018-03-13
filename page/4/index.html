@@ -287,6 +287,130 @@
             
               
                 
+                <a class="post-title-link" href="/2017/08/26/2014-CSAW-CTF-Kernel-Exploit/" itemprop="url">
+                  2014 CSAW CTF Kernel Exploit
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2017-08-26T13:06:37+08:00" content="2017-08-26">
+              2017-08-26
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/kernel-exploit-practice/" itemprop="url" rel="index">
+                    <span itemprop="name">kernel_exploit_practice</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/08/26/2014-CSAW-CTF-Kernel-Exploit/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/08/26/2014-CSAW-CTF-Kernel-Exploit/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>这个题我看了半天，可能眼睛近视了~审计源代码一定得细心细心再细心，不然你看啥都觉得没问题~</p>
+<h2 id="Challenge"><a href="#Challenge" class="headerlink" title="Challenge"></a>Challenge</h2><p><a href="https://github.com/mncoppola/suckerusu/blob/master/main.c" target="_blank" rel="external">源码</a>不长，而且很有学习意义，跟上一篇的rootkit有关，很值得阅读阅读。<br>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2017/08/26/2014-CSAW-CTF-Kernel-Exploit/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2017/08/25/Linux-Kernel-Rootkit-Learning/" itemprop="url">
                   Linux Kernel Rootkit Learning
                 </a>
@@ -759,130 +883,6 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2017/08/09/Debugging-Linux-Loadable-Kernel-Module/" itemprop="url">
-                  Debugging Linux Loadable Kernel Module
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">Posted on</span>
-            <time itemprop="dateCreated" datetime="2017-08-09T00:41:28+08:00" content="2017-08-09">
-              2017-08-09
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/kernel-exploit/" itemprop="url" rel="index">
-                    <span itemprop="name">kernel_exploit</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2017/08/09/Debugging-Linux-Loadable-Kernel-Module/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/08/09/Debugging-Linux-Loadable-Kernel-Module/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-	 
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>鉴于kernel rop实验没有成功，所以就把linux内核可加载模块的调试看了看，顺便记录一下下。</p>
-<h2 id="Env"><a href="#Env" class="headerlink" title="Env"></a>Env</h2><p>首先得重新编译内核，打开某些调试选项。因为我以前编译过了2.6.32的内核，所以就直接跳过这部分。<br>内核调试大部分情况下需要双机，我使用ubuntu14调试ubuntu10：<br>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/2017/08/09/Debugging-Linux-Loadable-Kernel-Module/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -928,7 +928,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">58</span>
+              <span class="site-state-item-count">59</span>
               <span class="site-state-item-name">posts</span>
             </a>
           </div>
@@ -945,7 +945,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">93</span>
+                <span class="site-state-item-count">97</span>
                 <span class="site-state-item-name">tags</span>
               </a>
             </div>
