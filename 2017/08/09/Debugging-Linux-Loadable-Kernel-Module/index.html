@@ -1,0 +1,857 @@
+<!doctype html>
+
+
+
+
+<html class="theme-next pisces">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="kernel debug,LKM," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/w0lfzhang.ico?v=5.0.2" />
+
+
+
+
+
+
+<meta name="description" content="鉴于kernel rop实验没有成功，所以就把linux内核可加载模块的调试看了看，顺便记录一下下。 Env首先得重新编译内核，打开某些调试选项。因为我以前编译过了2.6.32的内核，所以就直接跳过这部分。内核调试大部分情况下需要双机，我使用ubuntu14调试ubuntu10：">
+<meta name="keywords" content="kernel debug,LKM">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Debugging Linux Loadable Kernel Module">
+<meta property="og:url" content="http://yoursite.com/2017/08/09/Debugging-Linux-Loadable-Kernel-Module/index.html">
+<meta property="og:site_name" content="w0lfzhang&#39;s blog">
+<meta property="og:description" content="鉴于kernel rop实验没有成功，所以就把linux内核可加载模块的调试看了看，顺便记录一下下。 Env首先得重新编译内核，打开某些调试选项。因为我以前编译过了2.6.32的内核，所以就直接跳过这部分。内核调试大部分情况下需要双机，我使用ubuntu14调试ubuntu10：">
+<meta property="og:image" content="http://of38fq57s.bkt.clouddn.com/u10.PNG">
+<meta property="og:image" content="http://of38fq57s.bkt.clouddn.com/u14.PNG">
+<meta property="og:updated_time" content="2017-11-16T13:43:33.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Debugging Linux Loadable Kernel Module">
+<meta name="twitter:description" content="鉴于kernel rop实验没有成功，所以就把linux内核可加载模块的调试看了看，顺便记录一下下。 Env首先得重新编译内核，打开某些调试选项。因为我以前编译过了2.6.32的内核，所以就直接跳过这部分。内核调试大部分情况下需要双机，我使用ubuntu14调试ubuntu10：">
+<meta name="twitter:image" content="http://of38fq57s.bkt.clouddn.com/u10.PNG">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"always"},
+    fancybox: true,
+    motion: false,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/08/09/Debugging-Linux-Loadable-Kernel-Module/"/>
+
+
+  <title> Debugging Linux Loadable Kernel Module | w0lfzhang's blog </title>
+</head>
+
+<body itemscope itemtype="//schema.org/WebPage" lang="en">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-86514506-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?c3be9cb478c70b5f3b819ddd0ba381b6";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="//schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">w0lfzhang's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">pwn, pwn, pwn!!!</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Debugging Linux Loadable Kernel Module
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2017-08-09T00:41:28+08:00" content="2017-08-09">
+              2017-08-09
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/kernel-exploit/" itemprop="url" rel="index">
+                    <span itemprop="name">kernel_exploit</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/08/09/Debugging-Linux-Loadable-Kernel-Module/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/08/09/Debugging-Linux-Loadable-Kernel-Module/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>鉴于kernel rop实验没有成功，所以就把linux内核可加载模块的调试看了看，顺便记录一下下。</p>
+<h2 id="Env"><a href="#Env" class="headerlink" title="Env"></a>Env</h2><p>首先得重新编译内核，打开某些调试选项。因为我以前编译过了2.6.32的内核，所以就直接跳过这部分。<br>内核调试大部分情况下需要双机，我使用ubuntu14调试ubuntu10：<br><a id="more"></a><br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">root@w0lfzhang666:/home/w0lfzhang/Desktop/kernel_debug/linux-2.6.32.21# uname -a</div><div class="line">Linux w0lfzhang666 3.13.0-119-generic #166-Ubuntu SMP Wed May 3 12:18:55 UTC 2017 x86_64 x86_64 x86_64 GNU/Linux</div><div class="line"></div><div class="line">w0lfzhang@w0lfzhang666:~$ uname -a</div><div class="line">Linux w0lfzhang666 2.6.32.21 #1 SMP Fri May 19 13:40:41 CST 2017 i686 GNU/Linux</div></pre></td></tr></table></figure></p>
+<p>然后配置串口通信：<br><img src="http://of38fq57s.bkt.clouddn.com/u10.PNG"><br><img src="http://of38fq57s.bkt.clouddn.com/u14.PNG"></p>
+<p>然后验证一下双机之间是否可正常通信：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">ubuntu10</div><div class="line">root@w0lfzhang666:/home/w0lfzhang# echo hello &gt; /dev/ttyS1</div><div class="line"></div><div class="line">ubuntu14</div><div class="line">root@w0lfzhang666:/home/w0lfzhang/Desktop/kernel_debug/linux-2.6.32.21# cat /dev/ttyS1</div><div class="line">hello</div></pre></td></tr></table></figure></p>
+<p>然后编辑ubuntu14的/etc/default/grub文件，在GRUB_CMDLINE_LINUX_DEFAULT=”quiet splash”这行添加’kgdboc=ttyS1,115200’，然后跟新grub：update-grub。<br>ubuntu10也差不多，只不过在那行增加’text kgdboc=ttyS1,115200’(增加text表示系统启动后是命令行界面而不是图形化)，然后更新grub。<br>更新后ubuntu10中没有像我参考的那篇博文一样有两个选项，我们可以自己修改一下/boot/grub/grub.cfg文件。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div></pre></td><td class="code"><pre><div class="line">menuentry 'Ubuntu, with Linux 2.6.32.21' --class ubuntu --class gnu-linux --class gnu --class os &#123;</div><div class="line">	recordfail</div><div class="line">	insmod ext2</div><div class="line">	set root='(hd0,1)'</div><div class="line">	search --no-floppy --fs-uuid --set 89a3d212-dc2a-4150-ada3-2dc7326cf585</div><div class="line">	linux	/boot/vmlinuz-2.6.32.21 root=UUID=89a3d212-dc2a-4150-ada3-2dc7326cf585 ro   quiet splash text kgdboc=ttyS1,115200</div><div class="line">	initrd	/boot/initrd.img-2.6.32.21</div><div class="line">&#125;</div><div class="line">menuentry 'Ubuntu, with Linux 2.6.32.21---wait' --class ubuntu --class gnu-linux --class gnu --class os &#123;</div><div class="line">	recordfail</div><div class="line">	insmod ext2</div><div class="line">	set root='(hd0,1)'</div><div class="line">	search --no-floppy --fs-uuid --set 89a3d212-dc2a-4150-ada3-2dc7326cf585</div><div class="line">	echo	'Loading Linux 2.6.32.21 ...'</div><div class="line">	linux	/boot/vmlinuz-2.6.32.21 root=UUID=89a3d212-dc2a-4150-ada3-2dc7326cf585 ro  quiet splash text kgdbwait kgdboc=ttyS1,115200</div><div class="line">	echo	'Loading initial ramdisk ...'</div><div class="line">	initrd	/boot/initrd.img-2.6.32.21</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>其中加了kgdbwait的表示系统刚启动就可以进入调试模式，没有的表示可在系统启动后调试内核。</p>
+<h2 id="Debug"><a href="#Debug" class="headerlink" title="Debug"></a>Debug</h2><p>首先我们需要把我们ubuntu10内核源码编译的全部文件拷贝到ubuntu14中。启动ubuntu10，选择wait选项。然后在ubuntu14中执行下述命令：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">root@w0lfzhang666:/home/w0lfzhang/Desktop/kernel_debug/linux-2.6.32.21# gdb vmlinux</div><div class="line">......</div><div class="line">......</div><div class="line">Type "apropos word" to search for commands related to "word"...</div><div class="line">Reading symbols from vmlinux...done.</div><div class="line"><span class="meta">gdb-peda$</span> set serial baud 115200</div><div class="line"><span class="meta">gdb-peda$</span> target remote /dev/ttyS1</div><div class="line">Remote debugging using /dev/ttyS1</div><div class="line">qTStatus: Target returns error code '22'.</div><div class="line">Warning: not running or target is remote</div><div class="line">kgdb_breakpoint () at kernel/kgdb.c:1721</div><div class="line">1721		wmb(); /* Sync point after breakpoint */</div><div class="line">qTStatus: Target returns error code '22'.</div><div class="line"><span class="meta">gdb-peda$</span> c</div><div class="line">Continuing.</div><div class="line">qTStatus: Target returns error code '22'.</div></pre></td></tr></table></figure></p>
+<p>此时ubuntu10处于运行状态，想让它断下来处于调试状态，可运行如下命令：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">echo g &gt; /proc/sysrq-trigger</div></pre></td></tr></table></figure></p>
+<p>此时ubuntu14可再次调试其内核：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">gdb-peda$ c</div><div class="line">Continuing.</div><div class="line">qTStatus: Target returns error code &apos;22&apos;.</div><div class="line">[New Thread 1774]</div><div class="line"></div><div class="line">Program received signal SIGTRAP, Trace/breakpoint trap.</div><div class="line">[Switching to Thread 1774]</div><div class="line">Warning: not running or target is remote</div><div class="line">kgdb_breakpoint () at kernel/kgdb.c:1721</div><div class="line">1721		wmb(); /* Sync point after breakpoint */</div><div class="line">gdb-peda$</div></pre></td></tr></table></figure></p>
+<p>接下来调试LKM，我把上次kernel rop的模块拿到ubuntu10编译一下，然后安装，用如下命令查看下加载基址；<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">cat /proc/modules | grep drv</div><div class="line">drv 1688 0 - Live 0xf916f000</div></pre></td></tr></table></figure></p>
+<p>然后让ubuntu10处于调试模式，ubuntu14加载符号表并且下断点：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">gdb-peda$ add-symbol-file /home/w0lfzhang/Desktop/kernel_rop/drv.ko 0xf916f000</div><div class="line">add symbol table from file &quot;/home/w0lfzhang/Desktop/kernel_rop/drv.ko&quot; at</div><div class="line">	.text_addr = 0xf916f000</div><div class="line">Reading symbols from /home/w0lfzhang/Desktop/kernel_rop/drv.ko...done.</div><div class="line">gdb-peda$ b device_ioctl </div><div class="line">Breakpoint 1 at 0xf916f0bc: file /home/w0lfzhang/Desktop/kernel_exp/kernel_rop/drv.c, line 55.</div></pre></td></tr></table></figure></p>
+<p>我们用kernel_rop中的trigger程序来调用内核模块的device_ioctl函数。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">define</span> _GNU_SOURCE</span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/types.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/stat.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;fcntl.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">"drv.h"</span></span></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> DEVICE_PATH <span class="meta-string">"/dev/vulndrv"</span></span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv)</span> </span>&#123;</div><div class="line">	<span class="keyword">int</span> fd;</div><div class="line">	<span class="class"><span class="keyword">struct</span> <span class="title">drv_req</span> <span class="title">req</span>;</span></div><div class="line"></div><div class="line">	req.offset = atoll(argv[<span class="number">1</span>]);</div><div class="line"></div><div class="line">	<span class="comment">//map = mmap((void *)..., ..., 3, 0x32, 0, 0);</span></div><div class="line"></div><div class="line">	fd = open(DEVICE_PATH, O_RDONLY); </div><div class="line"></div><div class="line">	<span class="keyword">if</span> (fd == <span class="number">-1</span>) &#123;</div><div class="line">		perror(<span class="string">"open"</span>);</div><div class="line">	&#125;</div><div class="line"></div><div class="line">	ioctl(fd, <span class="number">0</span>, &amp;req);</div><div class="line"></div><div class="line">	<span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>触发后我们可以在ubuntu14中看到已经断下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">gdb-peda$ c</div><div class="line">Continuing.</div><div class="line">qTStatus: Target returns error code &apos;22&apos;.</div><div class="line">[New Thread 1808]</div><div class="line">[Switching to Thread 1808]</div><div class="line">Warning: not running or target is remote</div><div class="line"></div><div class="line">Breakpoint 1, device_ioctl (file=0xc2791300, cmd=0x0, args=0xbff9089c)</div><div class="line">    at /home/w0lfzhang/Desktop/kernel_exp/kernel_rop/drv.c:55</div><div class="line">55	/home/w0lfzhang/Desktop/kernel_exp/kernel_rop/drv.c: No such file or directory.</div><div class="line">gdb-peda$ p device_ioctl </div><div class="line">$1 = &#123;long (struct file *, unsigned int, </div><div class="line">    unsigned long)&#125; 0xf916f0a8 &lt;device_ioctl&gt;</div><div class="line">gdb-peda$ ni</div><div class="line">qTStatus: Target returns error code &apos;22&apos;.</div><div class="line">Warning: not running or target is remote</div><div class="line">0xf916f0bf	55	in /home/w0lfzhang/Desktop/kernel_exp/kernel_rop/drv.c</div></pre></td></tr></table></figure></p>
+<p>唯一的缺点是没有gdb调试用户态那样方便，无法直接显示汇编代码及寄存器的值。不过影响不是很大，可以看ida…</p>
+<p>如果在ubuntu10启动时选择的是没有wait的选项，那么在调试需要注意的是当再ubuntu14中输入target remote /dev/ttyS1命令时，然后我们还需要在ubuntu10中输入echo g &gt; /proc/sysrq-trigger命令。这时像前面那样调试即可。</p>
+<p>本来想直接克隆ubuntu14来调一下那个kernel rop的实验，但是因为没重新编译内核，所以行不通~还是得编译一下64位的内核，下次反正得用的..</p>
+<h2 id="Links"><a href="#Links" class="headerlink" title="Links"></a>Links</h2><p><a href="http://blog.nsfocus.net/gdb-kgdb-debug-application" target="_blank" rel="external">利用GDB、KGDB调试应用程序及内核驱动模块</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/kernel-debug/" rel="tag">#kernel debug</a>
+          
+            <a href="/tags/LKM/" rel="tag">#LKM</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/08/06/Linux-Kernel-ROP/" rel="next" title="Linux Kernel ROP">
+                <i class="fa fa-chevron-left"></i> Linux Kernel ROP
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/08/11/Cryptography-Basis/" rel="prev" title="Cryptography Basis">
+                Cryptography Basis <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="//schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/wolf.jpg"
+               alt="w0lfzhang" />
+          <p class="site-author-name" itemprop="name">w0lfzhang</p>
+          <p class="site-description motion-element" itemprop="description">Go slowly! Just slowly!</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">58</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">93</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Env"><span class="nav-number">1.</span> <span class="nav-text">Env</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Debug"><span class="nav-number">2.</span> <span class="nav-text">Debug</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Links"><span class="nav-number">3.</span> <span class="nav-text">Links</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w0lfzhang</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+<span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;Visited <span id="busuanzi_value_site_pv"></span> times
+</span>
+
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.2"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'w0lfzhang';
+      var disqus_identifier = '2017/08/09/Debugging-Linux-Loadable-Kernel-Module/';
+      var disqus_title = "Debugging Linux Loadable Kernel Module";
+      var disqus_url = 'http://yoursite.com/2017/08/09/Debugging-Linux-Loadable-Kernel-Module/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = false;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = decodeURIComponent(data.url);
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title >= 0 || index_content >= 0 ){
+                                isMatch = true;
+								if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            } 
+							
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

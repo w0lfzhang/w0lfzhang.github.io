@@ -1,0 +1,859 @@
+<!doctype html>
+
+
+
+
+<html class="theme-next pisces">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="syscall,seccomp," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/w0lfzhang.ico?v=5.0.2" />
+
+
+
+
+
+
+<meta name="description" content="It’s been a long time since I wrote my last blog. Lazy and busy!  What is seccompseccomp (short for secure computing mode) is a computer security facility in the Linux kernel which was merged into the">
+<meta name="keywords" content="syscall,seccomp">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux Seccomp Learning">
+<meta property="og:url" content="http://yoursite.com/2017/11/29/Linux-Seccomp-Learning/index.html">
+<meta property="og:site_name" content="w0lfzhang&#39;s blog">
+<meta property="og:description" content="It’s been a long time since I wrote my last blog. Lazy and busy!  What is seccompseccomp (short for secure computing mode) is a computer security facility in the Linux kernel which was merged into the">
+<meta property="og:updated_time" content="2017-11-30T04:40:36.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux Seccomp Learning">
+<meta name="twitter:description" content="It’s been a long time since I wrote my last blog. Lazy and busy!  What is seccompseccomp (short for secure computing mode) is a computer security facility in the Linux kernel which was merged into the">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"always"},
+    fancybox: true,
+    motion: false,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/11/29/Linux-Seccomp-Learning/"/>
+
+
+  <title> Linux Seccomp Learning | w0lfzhang's blog </title>
+</head>
+
+<body itemscope itemtype="//schema.org/WebPage" lang="en">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-86514506-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?c3be9cb478c70b5f3b819ddd0ba381b6";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="//schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">w0lfzhang's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">pwn, pwn, pwn!!!</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Linux Seccomp Learning
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2017-11-29T17:22:26+08:00" content="2017-11-29">
+              2017-11-29
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/linux-security/" itemprop="url" rel="index">
+                    <span itemprop="name">linux security</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/11/29/Linux-Seccomp-Learning/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/11/29/Linux-Seccomp-Learning/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>It’s been a long time since I wrote my last blog. Lazy and busy! </p>
+<h2 id="What-is-seccomp"><a href="#What-is-seccomp" class="headerlink" title="What is seccomp"></a>What is seccomp</h2><p>seccomp (short for secure computing mode) is a computer security facility in the Linux kernel which was merged into the Linux kernel mainline in kernel version 2.6.12. As we all know, plenty of system calls are exposed to the programs directly, but not all system calls are needed to the users, which will be dangerous if someone abuses the system calls. By using seccomp, we can limit the program to use the specific system calls, which can make the system more secure.<br><a id="more"></a></p>
+<h2 id="How-to-use-it"><a href="#How-to-use-it" class="headerlink" title="How to use it"></a>How to use it</h2><p>seccomp mode can be enabled via the prctl(2) system call using the PR_SET_SECCOMP argument, or (since Linux kernel 3.17[4]) via the seccomp(2) system call and the prerequisite is the kernel is configured with CONFIG_SECCOMP and CONFIG_SECCOMP_FILTER. seccomp mode used to be enabled by writing to a file, /proc/self/seccomp, but this method was removed in favor of prctl().<br>seccomp supports two modes: SECCOMP_MODE_STRICT and SECCOMP_MODE_FILTER. In SECCOMP_MODE_STRICT, it cannot use any system calls except exit(), sigreturn(), read() and write().<br>Have a look at the <a href="http://elixir.free-electrons.com/linux/v3.13.1/source/kernel/seccomp.c#L377" target="_blank" rel="external">kernel source code</a>:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> __secure_computing(<span class="keyword">int</span> this_syscall)</div><div class="line">&#123;</div><div class="line">	<span class="keyword">int</span> mode = current-&gt;seccomp.mode;</div><div class="line">	<span class="keyword">int</span> exit_sig = <span class="number">0</span>;</div><div class="line">	<span class="keyword">int</span> *syscall;</div><div class="line">	u32 ret;</div><div class="line"></div><div class="line">	<span class="keyword">switch</span> (mode) &#123;</div><div class="line">	<span class="keyword">case</span> SECCOMP_MODE_STRICT:</div><div class="line">		syscall = mode1_syscalls;</div><div class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_COMPAT</span></div><div class="line">		<span class="keyword">if</span> (is_compat_task())</div><div class="line">			syscall = mode1_syscalls_32;</div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line">		<span class="keyword">do</span> &#123;</div><div class="line">			<span class="keyword">if</span> (*syscall == this_syscall)</div><div class="line">				<span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">		&#125; <span class="keyword">while</span> (*++syscall);</div><div class="line">		exit_sig = SIGKILL;</div><div class="line">		ret = SECCOMP_RET_KILL;</div><div class="line">		<span class="keyword">break</span>;</div><div class="line"><span class="meta">#<span class="meta-keyword">ifdef</span> CONFIG_SECCOMP_FILTER</span></div><div class="line">	<span class="keyword">case</span> SECCOMP_MODE_FILTER: &#123;</div><div class="line">		......</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>model_syscalls is the array including the syscall numbers of exit(), sigreturn(), read() and write().<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">static</span> <span class="keyword">int</span> mode1_syscalls[] = &#123;</div><div class="line">	__NR_seccomp_read, __NR_seccomp_write, __NR_seccomp_exit, __NR_seccomp_sigreturn,</div><div class="line">	<span class="number">0</span>, <span class="comment">/* null terminated */</span></div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
+<p>In SECCOMP_MODE_FILTER, since linux 3.5, it is possible to define advanced custom filters based on the BPF (Berkley Packet Filters) to limit what system calls and their arguments can be used by the process. In this mode, the caller must have the CAP_SYS_ADMIN ability or the thread must have been set <a href="https://www.kernel.org/doc/Documentation/prctl/no_new_privs.txt" target="_blank" rel="external">no_new_privs</a>.<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">case</span> SECCOMP_MODE_FILTER: &#123;</div><div class="line">		<span class="keyword">int</span> data;</div><div class="line">		<span class="class"><span class="keyword">struct</span> <span class="title">pt_regs</span> *<span class="title">regs</span> = <span class="title">task_pt_regs</span>(<span class="title">current</span>);</span></div><div class="line">		ret = seccomp_run_filters(this_syscall);</div><div class="line">		data = ret &amp; SECCOMP_RET_DATA;</div><div class="line">		ret &amp;= SECCOMP_RET_ACTION;</div><div class="line">		<span class="keyword">switch</span> (ret) &#123;</div><div class="line">		<span class="keyword">case</span> SECCOMP_RET_ERRNO:</div><div class="line">			<span class="comment">/* Set the low-order 16-bits as a errno. */</span></div><div class="line">			syscall_set_return_value(current, regs,</div><div class="line">						 -data, <span class="number">0</span>);</div><div class="line">			<span class="keyword">goto</span> skip;</div><div class="line">		<span class="keyword">case</span> SECCOMP_RET_TRAP:</div><div class="line">			<span class="comment">/* Show the handler the original registers. */</span></div><div class="line">			syscall_rollback(current, regs);</div><div class="line">			<span class="comment">/* Let the filter pass back 16 bits of data. */</span></div><div class="line">			seccomp_send_sigsys(this_syscall, data);</div><div class="line">			<span class="keyword">goto</span> skip;</div><div class="line">		<span class="keyword">case</span> SECCOMP_RET_TRACE:</div><div class="line">			<span class="comment">/* Skip these calls if there is no tracer. */</span></div><div class="line">			<span class="keyword">if</span> (!ptrace_event_enabled(current, PTRACE_EVENT_SECCOMP)) &#123;</div><div class="line">				syscall_set_return_value(current, regs,</div><div class="line">							 -ENOSYS, <span class="number">0</span>);</div><div class="line">				<span class="keyword">goto</span> skip;</div><div class="line">			&#125;</div><div class="line">			<span class="comment">/* Allow the BPF to provide the event message */</span></div><div class="line">			ptrace_event(PTRACE_EVENT_SECCOMP, data);</div><div class="line">			<span class="comment">/*</span></div><div class="line">			 * The delivery of a fatal signal during event</div><div class="line">			 * notification may silently skip tracer notification.</div><div class="line">			 * Terminating the task now avoids executing a system</div><div class="line">			 * call that may not be intended.</div><div class="line">			 */</div><div class="line">			<span class="keyword">if</span> (fatal_signal_pending(current))</div><div class="line">				<span class="keyword">break</span>;</div><div class="line">			<span class="keyword">if</span> (syscall_get_nr(current, regs) &lt; <span class="number">0</span>)</div><div class="line">				<span class="keyword">goto</span> skip;  <span class="comment">/* Explicit request to skip. */</span></div><div class="line"></div><div class="line">			<span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">		<span class="keyword">case</span> SECCOMP_RET_ALLOW:</div><div class="line">			<span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">		<span class="keyword">case</span> SECCOMP_RET_KILL:</div><div class="line">		<span class="keyword">default</span>:</div><div class="line">			<span class="keyword">break</span>;</div><div class="line">		&#125;</div><div class="line">		exit_sig = SIGSYS;</div><div class="line">		<span class="keyword">break</span>;</div><div class="line">	&#125;</div><div class="line"></div><div class="line"><span class="comment">/* Masks for the return value sections. */</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> SECCOMP_RET_ACTION	0x7fff0000U</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> SECCOMP_RET_DATA	0x0000ffffU</span></div></pre></td></tr></table></figure></p>
+<p>Each syscall is sent to the filter which tells what action to take:</p>
+<ol>
+<li>SECCOMP_RET_KILL: Immediate kill with SIGSYS</li>
+<li>SECCOMP_RET_TRAP: Send a catchable SIGSYS, giving a chance to emulate the syscall</li>
+<li>SECCOMP_RET_ERRNO: Force errno value</li>
+<li>SECCOMP_RET_TRACE: Yield decision to ptracer or set errno to -ENOSYS</li>
+<li>SECCOMP_RET_ALLOW: Allow</li>
+</ol>
+<p>In the code, seccomp_run_filters returns valid seccomp BPF response codes. And then choose what to do according to ‘ret’. Of course we can control the ‘response codes’ in user space through seecomp or prctl syscall.</p>
+<p>Last, we can see if seccomp is set via read the file /proc/<pid>/status:<br>0: closed.<br>1: in STRICT mode.<br>2: in FILTER mode.<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">w0lfzhang@w0lfzhang666:~/Desktop/linux-security$ cat /proc/1/status | grep Seccomp</div><div class="line">Seccomp:	0</div></pre></td></tr></table></figure></pid></p>
+<h2 id="Demos-to-show"><a href="#Demos-to-show" class="headerlink" title="Demos to show"></a>Demos to show</h2><h3 id="SECCOMP-MODE-STRICT"><a href="#SECCOMP-MODE-STRICT" class="headerlink" title="SECCOMP_MODE_STRICT"></a>SECCOMP_MODE_STRICT</h3><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;         /* printf */</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/prctl.h&gt;     /* prctl */</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;linux/seccomp.h&gt; /* seccomp's constants */</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;        /* dup2: just for test */</span></span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"step 1: unrestricted\n"</span>);</div><div class="line"></div><div class="line">  <span class="comment">// Enable filtering</span></div><div class="line">  prctl(PR_SET_SECCOMP, SECCOMP_MODE_STRICT);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"step 2: only 'read', 'write', 'exit' and 'sigreturn' syscalls\n"</span>);</div><div class="line">  </div><div class="line">  <span class="comment">// Redirect stderr to stdout</span></div><div class="line">  dup2(<span class="number">1</span>, <span class="number">2</span>);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"step 3: !! YOU SHOULD NOT SEE ME !!\n"</span>);</div><div class="line"></div><div class="line">  <span class="comment">// Success (well, not so in this case...)</span></div><div class="line">  <span class="keyword">return</span> <span class="number">0</span>; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>When running the program:<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">w0lfzhang@w0lfzhang666:~/Desktop/linux-security$ ./seccomp1 </div><div class="line">step 1: unrestricted</div><div class="line">step 2: only 'read', 'write', '_exit' and 'sigreturn' syscalls</div><div class="line">Killed</div></pre></td></tr></table></figure></p>
+<p>So it’s apparent when a forbidden syscall is issued, the program is immediately killed.</p>
+<h3 id="SECCOMP-MODE-FILTER"><a href="#SECCOMP-MODE-FILTER" class="headerlink" title="SECCOMP_MODE_FILTER"></a>SECCOMP_MODE_FILTER</h3><p>We can use libseccomp to simplify our work:<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">sudo apt-get install libseccomp-dev</div></pre></td></tr></table></figure></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;   /* printf */</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;  /* dup2: just for test */</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;seccomp.h&gt; /* libseccomp */</span></span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"step 1: unrestricted\n"</span>);</div><div class="line"></div><div class="line">  <span class="comment">// ensure none of our children will ever be granted more priv</span></div><div class="line">  <span class="comment">// (via setuid, capabilities, ...)</span></div><div class="line">  prctl(PR_SET_NO_NEW_PRIVS, <span class="number">1</span>);</div><div class="line">  <span class="comment">// ensure no escape is possible via ptrace</span></div><div class="line">  prctl(PR_SET_DUMPABLE, <span class="number">0</span>);</div><div class="line">  </div><div class="line">  <span class="comment">// Init the filter</span></div><div class="line">  scmp_filter_ctx ctx;</div><div class="line">  ctx = seccomp_init(SCMP_ACT_KILL); <span class="comment">// default action: kill</span></div><div class="line"></div><div class="line">  <span class="comment">// setup basic whitelist</span></div><div class="line">  seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(rt_sigreturn), <span class="number">0</span>);</div><div class="line">  seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(<span class="built_in">exit</span>), <span class="number">0</span>);</div><div class="line">  seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(read), <span class="number">0</span>);</div><div class="line">  seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(write), <span class="number">0</span>);</div><div class="line">  </div><div class="line">  <span class="comment">// setup our rule</span></div><div class="line">  seccomp_rule_add(ctx, SCMP_ACT_ALLOW, SCMP_SYS(dup2), <span class="number">2</span>, </div><div class="line">                        SCMP_A0(SCMP_CMP_EQ, <span class="number">1</span>),</div><div class="line">                        SCMP_A1(SCMP_CMP_EQ, <span class="number">2</span>));</div><div class="line"></div><div class="line">  <span class="comment">// build and load the filter</span></div><div class="line">  seccomp_load(ctx);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"step 2: only the whitelist and dup2(1, 2) syscalls\n"</span>);</div><div class="line"> </div><div class="line">  <span class="comment">// Redirect stderr to stdout</span></div><div class="line">  dup2(<span class="number">1</span>, <span class="number">2</span>);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"step 3: stderr redirected to stdout\n"</span>);</div><div class="line"></div><div class="line">  <span class="comment">// Duplicate stderr to arbitrary fd</span></div><div class="line">  dup2(<span class="number">2</span>, <span class="number">42</span>);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"step 4: !! YOU SHOULD NOT SEE ME !!\n"</span>);</div><div class="line"></div><div class="line">  <span class="comment">// Success (well, not so in this case...)</span></div><div class="line">  <span class="keyword">return</span> <span class="number">0</span>; </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>Run the program:<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">w0lfzhang@w0lfzhang666:~/Desktop/linux-security$ ./seccomp2</div><div class="line">step 1: unrestricted</div><div class="line">step 2: only the whitelist and dup2(1, 2) syscalls</div><div class="line">step 3: stderr redirected to stdout</div><div class="line">Bad system call</div></pre></td></tr></table></figure></p>
+<h2 id="Links"><a href="#Links" class="headerlink" title="Links"></a>Links</h2><p><a href="https://blog.yadutaf.fr/2014/05/29/introduction-to-seccomp-bpf-linux-syscall-filter/" target="_blank" rel="external">Introduction to seccomp: BPF linux syscall filter</a><br><a href="https://szlin.me/2017/08/23/kernel_seccomp/" target="_blank" rel="external">seccomp 學習筆記</a><br><a href="http://man7.org/linux/man-pages/man2/seccomp.2.html" target="_blank" rel="external">SECCOMP(2) Linux Programmer’s Manual SECCOMP(2)</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/syscall/" rel="tag">#syscall</a>
+          
+            <a href="/tags/seccomp/" rel="tag">#seccomp</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/10/02/Splice-Syscall-Analysis-2/" rel="next" title="Splice Syscall Analysis(2)">
+                <i class="fa fa-chevron-left"></i> Splice Syscall Analysis(2)
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/11/30/Starting-fuzz-with-AFL/" rel="prev" title="Starting fuzz with AFL">
+                Starting fuzz with AFL <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="//schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/wolf.jpg"
+               alt="w0lfzhang" />
+          <p class="site-author-name" itemprop="name">w0lfzhang</p>
+          <p class="site-description motion-element" itemprop="description">Go slowly! Just slowly!</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">58</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">93</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#What-is-seccomp"><span class="nav-number">1.</span> <span class="nav-text">What is seccomp</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#How-to-use-it"><span class="nav-number">2.</span> <span class="nav-text">How to use it</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Demos-to-show"><span class="nav-number">3.</span> <span class="nav-text">Demos to show</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#SECCOMP-MODE-STRICT"><span class="nav-number">3.1.</span> <span class="nav-text">SECCOMP_MODE_STRICT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SECCOMP-MODE-FILTER"><span class="nav-number">3.2.</span> <span class="nav-text">SECCOMP_MODE_FILTER</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Links"><span class="nav-number">4.</span> <span class="nav-text">Links</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w0lfzhang</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+<span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;Visited <span id="busuanzi_value_site_pv"></span> times
+</span>
+
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.2"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'w0lfzhang';
+      var disqus_identifier = '2017/11/29/Linux-Seccomp-Learning/';
+      var disqus_title = "Linux Seccomp Learning";
+      var disqus_url = 'http://yoursite.com/2017/11/29/Linux-Seccomp-Learning/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = false;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = decodeURIComponent(data.url);
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title >= 0 || index_content >= 0 ){
+                                isMatch = true;
+								if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            } 
+							
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

