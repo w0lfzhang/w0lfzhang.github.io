@@ -287,6 +287,135 @@
             
               
                 
+                <a class="post-title-link" href="/2016/10/21/off-by-one/" itemprop="url">
+                  off by one
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2016-10-21T13:39:06+08:00" content="2016-10-21">
+              2016-10-21
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/heap-exploit/" itemprop="url" rel="index">
+                    <span itemprop="name">heap_exploit</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/10/21/off-by-one/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2016/10/21/off-by-one/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>最近看了一篇讲off-by-one的文章，觉得那文章总结的还是不错的。所以就在那基础上再根据自己的以前的理解写几个例子来记录一下。</p>
+<h2 id="利用姿势"><a href="#利用姿势" class="headerlink" title="利用姿势"></a>利用姿势</h2><p>off-by-one利用方式有chunk overlapping和unlink两种。</p>
+<h3 id="chunk-overlapping"><a href="#chunk-overlapping" class="headerlink" title="chunk overlapping"></a>chunk overlapping</h3><p>具体来讲，主要通过以下三种方式来overlapping chunks：</p>
+<ol>
+<li>off-by-one overwrite allocated</li>
+<li>off-by-one overwrite freed</li>
+<li>off-by-one null byte
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2016/10/21/off-by-one/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2016/10/20/pwning-in-c++/" itemprop="url">
                   pwning in c++
                 </a>
@@ -822,7 +951,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">59</span>
+              <span class="site-state-item-count">60</span>
               <span class="site-state-item-name">posts</span>
             </a>
           </div>
@@ -839,7 +968,7 @@
           
             <div class="site-state-item site-state-tags">
               <a href="/tags">
-                <span class="site-state-item-count">97</span>
+                <span class="site-state-item-count">100</span>
                 <span class="site-state-item-name">tags</span>
               </a>
             </div>
