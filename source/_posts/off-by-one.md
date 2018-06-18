@@ -31,7 +31,7 @@ off-by-one利用方式有chunk overlapping和unlink两种。
 
 方法3是这三种里面最难利用的，感觉也比较实用。这种方法是通过shrink chunks来达到目的的。其具体操作步骤如下：
 <img src="http://of38fq57s.bkt.clouddn.com/off-by-one-null-Byte.PNG">
-后面free(B1)是为了通过unlink检测，否则free(C)时会导致crash。这种方法主要是free操作没有比较当前free的chunk's pre_size字段是否跟前一个chunk's size相等。
+这种方法主要是free操作没有比较当前free的chunk's pre_size字段是否跟前一个chunk's size相等。
 
 
 ### unlink

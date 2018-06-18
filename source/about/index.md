@@ -10,7 +10,7 @@ Member of SU team.
 A confusing man.
 
 Contact:
-shuai.zhang@chaitin.com
+358029637@qq.com
 
 选择这条路凭的是兴趣，贵在坚持。
 人还是得有个梦想，虽然不一定能实现。
