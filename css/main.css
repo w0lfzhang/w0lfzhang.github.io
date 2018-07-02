@@ -1564,7 +1564,7 @@ pre .javascript .function {
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #ff0e0e;
+  background: #8b3274;
 }
 .links-of-blogroll {
   font-size: 13px;
@@ -2354,7 +2354,8 @@ body {
   padding: 0;
   width: 240px;
   background: #fff;
-  opacity: 0.7;
+  box-shadow: $box-shadow-inner;
+  border-radius: $border-radius-inner;
 }
 @media (min-width: 1600px) {
   .container .header-inner {
@@ -2365,12 +2366,14 @@ body {
   .header-inner {
     position: relative;
     width: auto;
+    border-radius: initial;
   }
 }
 @media (max-width: 767px) {
   .header-inner {
     position: relative;
     width: auto;
+    border-radius: initial;
   }
 }
 .main:before,
@@ -2409,14 +2412,16 @@ body {
   box-sizing: border-box;
   padding: 40px;
   width: 700px;
-  min-height: 700px;
   background: #fff;
-  opacity: 0.7;
+  min-height: 700px;
+  box-shadow: $box-shadow-inner;
+  border-radius: $border-radius-inner;
 }
 @media (min-width: 768px) and (max-width: 991px) {
   .content-wrap {
     width: 100%;
     padding: 20px;
+    border-radius: initial;
   }
 }
 @media (max-width: 767px) {
@@ -2424,6 +2429,7 @@ body {
     width: 100%;
     padding: 20px;
     min-height: auto;
+    border-radius: initial;
   }
 }
 .sidebar {
@@ -2433,7 +2439,6 @@ body {
   width: 240px;
   background: #fff;
   box-shadow: none;
-  opacity: 0.7;
 }
 @media (min-width: 768px) and (max-width: 991px) {
   .sidebar {
@@ -2450,27 +2455,20 @@ body {
 }
 .footer-inner {
   width: 960px;
-}
-.footer-inner:before {
-  content: " ";
-  float: left;
-  width: 260px;
-  min-height: 50px;
+  padding-left: 260px;
 }
 @media (min-width: 768px) and (max-width: 991px) {
   .footer-inner {
     width: auto;
-  }
-  .footer-inner:before {
-    display: none;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
   }
 }
 @media (max-width: 767px) {
   .footer-inner {
     width: auto;
-  }
-  .footer-inner:before {
-    display: none;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
   }
 }
 .sidebar-position-right .header-inner {
@@ -2482,8 +2480,9 @@ body {
 .sidebar-position-right .sidebar {
   float: right;
 }
-.sidebar-position-right .footer-inner:before {
-  float: right;
+.sidebar-position-right .footer-inner {
+  padding-left: 0;
+  padding-right: 260px;
 }
 .site-meta {
   padding: 20px 0;
