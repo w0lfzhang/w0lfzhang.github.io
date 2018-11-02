@@ -67,7 +67,7 @@ More details you can read the source code of qemu or you can find some introduct
 ## Device Emulation
 Before we talk about this, there are some points you must be clear, MMIO(Memory-Maped IO) and MPIO(Port-maped IO), bus system and more about kernel. I suggest you read the chapter 6 of the book *Professional Linux Kernel Architecture*. It's better if you are a linux kernel hacker. You should know that PCI bus is the most popular bus in any kind of architecture, and we just consider PCI bus. And the source code below is all from qemu-2.12.1.
 
-<img src="/images/PCIBUS.png" width="600" height="300">
+<img src="/images/pcibus.png" width="600" height="300">
 
 So everything is done, let's go.
 
