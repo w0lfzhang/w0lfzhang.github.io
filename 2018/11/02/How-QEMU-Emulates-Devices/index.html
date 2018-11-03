@@ -1,0 +1,867 @@
+<!doctype html>
+
+
+
+
+<html class="theme-next pisces">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="qemu,emulate device," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/w0lfzhang.ico?v=5.0.2" />
+
+
+
+
+
+
+<meta name="description" content="It’s been a long time since last blog. And recently, I’ve been focusing on VM escaping. I read lots of papers, brefings and also some writeups. VM escaping is kind of comprehensive challenge, you must">
+<meta name="keywords" content="qemu,emulate device">
+<meta property="og:type" content="article">
+<meta property="og:title" content="How QEMU Emulates Devices">
+<meta property="og:url" content="http://yoursite.com/2018/11/02/How-QEMU-Emulates-Devices/index.html">
+<meta property="og:site_name" content="w0lfzhang&#39;s blog">
+<meta property="og:description" content="It’s been a long time since last blog. And recently, I’ve been focusing on VM escaping. I read lots of papers, brefings and also some writeups. VM escaping is kind of comprehensive challenge, you must">
+<meta property="og:image" content="http://yoursite.com/images/qemumaps.PNG">
+<meta property="og:image" content="http://yoursite.com/images/pcibus.png">
+<meta property="og:image" content="http://yoursite.com/images/qemudevice.PNG">
+<meta property="og:updated_time" content="2018-11-03T01:01:47.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="How QEMU Emulates Devices">
+<meta name="twitter:description" content="It’s been a long time since last blog. And recently, I’ve been focusing on VM escaping. I read lots of papers, brefings and also some writeups. VM escaping is kind of comprehensive challenge, you must">
+<meta name="twitter:image" content="http://yoursite.com/images/qemumaps.PNG">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"always"},
+    fancybox: true,
+    motion: false,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/11/02/How-QEMU-Emulates-Devices/"/>
+
+
+  <title> How QEMU Emulates Devices | w0lfzhang's blog </title>
+</head>
+
+<body itemscope itemtype="//schema.org/WebPage" lang="en">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-86514506-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?c3be9cb478c70b5f3b819ddd0ba381b6";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="//schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">w0lfzhang's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">I love stories.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                How QEMU Emulates Devices
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2018-11-02T17:43:09+08:00" content="2018-11-02">
+              2018-11-02
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/vmescape/" itemprop="url" rel="index">
+                    <span itemprop="name">vmescape</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2018/11/02/How-QEMU-Emulates-Devices/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2018/11/02/How-QEMU-Emulates-Devices/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>It’s been a long time since last blog. And recently, I’ve been focusing on VM escaping. I read lots of papers, brefings and also some writeups. VM escaping is kind of comprehensive challenge, you must be familiar with kernel, equipped with ctf skills and other stuff. I gonna write some simple articles about vm-escape of qemu. After seeing some papers, I found device emulation is the biggest source of vulns. So here today, we talk about how qemu emulates devices, which is really important for the next exploiting.<br><a id="more"></a></p>
+<h2 id="How-qemu-works"><a href="#How-qemu-works" class="headerlink" title="How qemu works"></a>How qemu works</h2><p>First let us figure out how qemu works. We know qemu is a machine emulator and virtualizer which is meant to run programs for another Linux/BSD target and operating systems for any machine.<br>When you emulate your operating system, a qemu process is running. It’s clear every qemu process represents a guest. </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">		Qemu Running Guests</div><div class="line">-----------------------------------</div><div class="line">| ---------  ---------  --------- |       		  </div><div class="line">| |qemu   |  |qemu   |  |qemu   | |	  </div><div class="line">| |guest1 |  |guest2 |  |guest3 | |</div><div class="line">| ---------  ---------  --------- |</div><div class="line">| ------------------------------- |   </div><div class="line">| |    Linux Host Kernel        | |</div><div class="line">| |                             | |</div><div class="line">| ------------------------------- |</div><div class="line">-----------------------------------</div></pre></td></tr></table></figure>
+<p>And then you have to know is qemu’s memory layout. The physical memory allocated for the guest is actually a mmapp’ed private region in the virtual address space of QEMU. </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line">                        Guest&apos; processes</div><div class="line">                     +--------------------+</div><div class="line">Virtual addr space   |                    |</div><div class="line">                     +--------------------+</div><div class="line">                     |                    |</div><div class="line">                     \__   Page Table     \__</div><div class="line">                        \                    \</div><div class="line">                         |                    |  Guest kernel</div><div class="line">                    +----+--------------------+----------------+</div><div class="line">Guest&apos;s phy. memory |    |                    |                |</div><div class="line">                    +----+--------------------+----------------+</div><div class="line">                    |                                          |</div><div class="line">                    \__                                        \__</div><div class="line">                       \                                          \</div><div class="line">                        |             QEMU process                 |</div><div class="line">                   +----+------------------------------------------+</div><div class="line">Virtual addr space |    |                                          |</div><div class="line">                   +----+------------------------------------------+</div><div class="line">                   |                                               |</div><div class="line">                    \__                Page Table                   \__</div><div class="line">                       \                                               \</div><div class="line">                        |                                               |</div><div class="line">                   +----+-----------------------------------------------++</div><div class="line">Physical memory    |    |                                               ||</div><div class="line">                   +----+-----------------------------------------------++</div></pre></td></tr></table></figure>
+<p>When you exploit a vm-escape vulnerability, you deal with the memory any time and any where. So it’s a big part for you to make it. And below is the qemu process’s memory maps, we allocated 2G RAM for the guest.<br><img src="/images/qemumaps.PNG"></p>
+<p>More details you can read the source code of qemu or you can find some introductions about qemu. And next we’ll talk about the topic: device emulation.</p>
+<h2 id="Device-Emulation"><a href="#Device-Emulation" class="headerlink" title="Device Emulation"></a>Device Emulation</h2><p>Before we talk about this, there are some points you must be clear, MMIO(Memory-Maped IO) and MPIO(Port-maped IO), bus system and more about kernel. I suggest you read the chapter 6 of the book <em>Professional Linux Kernel Architecture</em>. It’s better if you are a linux kernel hacker. You should know that PCI bus is the most popular bus in any kind of architecture, and we just consider PCI bus. And the source code below is all from qemu-2.12.1.</p>
+<p><img src="/images/pcibus.png" width="600" height="300"></p>
+<p>So everything is done, let’s go.</p>
+<p>QEMU uses QOM(QEMU Object Module) to to implement almost all the devices emulation. It is involved with a few structures: TypeImpl(qom/object.c), ObjectClass, Object and TypeInfo(include/qom/object.h). The first thing we gonna do is to figure out the relationship among them.<br>It’s kind of like OOP. If you program with c plus plus or other OOP languages, it will be easy to understand. </p>
+<p>TypeInfo describes information about the type including what it inherits from, the instance and class size, and constructor/destructor hooks. We can simply think it includes everything about a type.<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">TypeInfo</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *name;</div><div class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *parent;</div><div class="line"></div><div class="line">    <span class="keyword">size_t</span> instance_size;</div><div class="line">    <span class="keyword">void</span> (*instance_init)(Object *obj);</div><div class="line">    <span class="keyword">void</span> (*instance_post_init)(Object *obj);</div><div class="line">    <span class="keyword">void</span> (*instance_finalize)(Object *obj);</div><div class="line"></div><div class="line">    <span class="keyword">bool</span> abstract;</div><div class="line">    <span class="keyword">size_t</span> class_size;</div><div class="line"></div><div class="line">    <span class="keyword">void</span> (*class_init)(ObjectClass *klass, <span class="keyword">void</span> *data);</div><div class="line">    <span class="keyword">void</span> (*class_base_init)(ObjectClass *klass, <span class="keyword">void</span> *data);</div><div class="line">    <span class="keyword">void</span> (*class_finalize)(ObjectClass *klass, <span class="keyword">void</span> *data);</div><div class="line">    <span class="keyword">void</span> *class_data;</div><div class="line"></div><div class="line">    InterfaceInfo *interfaces;</div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
+<p>We use type_register_static(TypeInfo) to register a type. It will allocate and initialize a struct TypeImpl instance with data from the struct TypeInfo. The fields of them is almost the same. And finally, the instance of TypeInfo will be added into the hash table. After all the type_register_static() functions for the QEMU machine’s buses, devices, etc have all been executed, qemu will initializes all the ObjectClasses in type_initialize().<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">static</span> <span class="keyword">const</span> TypeInfo pci_testdev_info = &#123;</div><div class="line">        .name          = TYPE_PCI_TEST_DEV,</div><div class="line">        .parent        = TYPE_PCI_DEVICE,</div><div class="line">        .instance_size = <span class="keyword">sizeof</span>(PCITestDevState),</div><div class="line">        .class_init    = pci_testdev_class_init,</div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="function">TypeImpl *<span class="title">type_register_static</span><span class="params">(<span class="keyword">const</span> TypeInfo *info)</span></span></div><div class="line">&#123;</div><div class="line">    <span class="keyword">return</span> type_register(info);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function">TypeImpl *<span class="title">type_register</span><span class="params">(<span class="keyword">const</span> TypeInfo *info)</span></span></div><div class="line">&#123;</div><div class="line">    assert(info-&gt;parent);</div><div class="line">    <span class="keyword">return</span> type_register_internal(info);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">static</span> TypeImpl *<span class="title">type_register_internal</span><span class="params">(<span class="keyword">const</span> TypeInfo *info)</span></span></div><div class="line">&#123;</div><div class="line">    TypeImpl *ti;</div><div class="line">    ti = type_new(info);</div><div class="line"></div><div class="line">    type_table_add(ti);</div><div class="line">    <span class="keyword">return</span> ti;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>Every type has an ObjectClass associated with it. ObjectClass derivatives are instantiated dynamically but there is only ever one instance for any given type. It holds a table of function pointers for the virtual methods implemented by this type.<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">ObjectClass</span></span></div><div class="line">&#123;</div><div class="line">    <span class="comment">/*&lt; private &gt;*/</span></div><div class="line">    Type type;  </div><div class="line">    GSList *interfaces;</div><div class="line"></div><div class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *object_cast_cache[OBJECT_CLASS_CAST_CACHE];</div><div class="line">    <span class="keyword">const</span> <span class="keyword">char</span> *class_cast_cache[OBJECT_CLASS_CAST_CACHE];</div><div class="line"></div><div class="line">    ObjectUnparent *unparent;</div><div class="line"></div><div class="line">    GHashTable *properties;</div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
+<p>We can define our own classes. Consider the following structures:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* include/qom/object.h */</span></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">TypeImpl</span> *<span class="title">Type</span>;</span></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">ObjectClass</span> <span class="title">ObjectClass</span>;</span></div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">ObjectClass</span></span></div><div class="line">&#123;</div><div class="line">        <span class="comment">/*&lt; private &gt;*/</span></div><div class="line">        Type type;       <span class="comment">/* points to the current Type's instance */</span></div><div class="line">        ...</div><div class="line"></div><div class="line"><span class="comment">/* include/hw/qdev-core.h */</span></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">DeviceClass</span> &#123;</span></div><div class="line">        <span class="comment">/*&lt; private &gt;*/</span></div><div class="line">        ObjectClass parent_class;</div><div class="line">        <span class="comment">/*&lt; public &gt;*/</span></div><div class="line">        ...</div><div class="line"></div><div class="line"><span class="comment">/* include/hw/pci/pci.h */</span></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">PCIDeviceClass</span> &#123;</span></div><div class="line">        DeviceClass parent_class;</div><div class="line">        ...</div></pre></td></tr></table></figure></p>
+<p>Since the C standard guarantees that the first field of a struct is always at byte 0, this arrangement makes it possible to directly cast a SubClass pointer to a pointer of type  BaseClass. And when initializing a class, its parent classes are initialized first. After the parent class object has initialized, it will be copied into the current class object and any additional storage in the class object is zero filled. The class automatically inherits any virtual function pointers that the parent class has already initialized. Once all of the parent classes have been initialized, TypeInfo::class_init(invoked in type_initialize()) is called to let the class being instantiated provide default initialize for its virtual functions. It’s no doubt it’s completely like c++.<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">pci_testdev_class_init</span><span class="params">(ObjectClass *klass, <span class="keyword">void</span> *data)</span></span></div><div class="line">&#123;</div><div class="line">        DeviceClass *dc = DEVICE_CLASS(klass);</div><div class="line">        PCIDeviceClass *k = PCI_DEVICE_CLASS(klass);</div><div class="line"></div><div class="line">        k-&gt;init = pci_testdev_init;</div><div class="line">        k-&gt;<span class="built_in">exit</span> = pci_testdev_uninit;</div><div class="line">        ...</div><div class="line">        dc-&gt;desc = <span class="string">"PCI Test Device"</span>;</div><div class="line">        ...</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>Now let’s see the Object:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Object</span></span></div><div class="line">&#123;</div><div class="line">    <span class="comment">/*&lt; private &gt;*/</span></div><div class="line">    ObjectClass *<span class="class"><span class="keyword">class</span>;</span></div><div class="line">    ObjectFree *<span class="built_in">free</span>;</div><div class="line">    GHashTable *properties;</div><div class="line">    <span class="keyword">uint32_t</span> ref;</div><div class="line">    Object *parent;</div><div class="line">&#125;;</div></pre></td></tr></table></figure></p>
+<p>As we can see, the first member of this object is a pointer to a ObjectClass. Why? This allows identification of the real type of the object at run time. And what is Object structure used to do? Type is just a type, not a device! From the TypeInfo structure, two functioni pointers are attracting our attention: instance_init and class_init. class_init is responsible for initializing the Type’s ObjectClass instance. instance_init function is mainly to initialize object’s own members. So what’s the difference between them? The Object’s constructor and destructor(in TypeInfo, like ObjectClass) functions only get called if the corresponding PCI device’s -device option was specified on the QEMU command line. In other words, you must emulate a device, otherwise qemu just allocates an Object instance, but you can’t get it and initialize it.<br>From the PCI bus picture, we see the relationship among the devices just like the <em>Tree</em>, so ike ObjectClass, we can use OOP to make it efficient to program.<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* include/qom/object.h */</span></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">Object</span> <span class="title">Object</span>;</span></div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">Object</span></span></div><div class="line">&#123;</div><div class="line">        <span class="comment">/*&lt; private &gt;*/</span></div><div class="line">        ObjectClass *<span class="class"><span class="keyword">class</span>;</span> <span class="comment">/* points to the Type's ObjectClass instance */</span></div><div class="line">        ...</div><div class="line"></div><div class="line"><span class="comment">/* include/qemu/typedefs.h */</span></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">DeviceState</span> <span class="title">DeviceState</span>;</span></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">PCIDevice</span> <span class="title">PCIDevice</span>;</span></div><div class="line"></div><div class="line"><span class="comment">/* include/hw/qdev-core.h */</span></div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">DeviceState</span> &#123;</span></div><div class="line">        <span class="comment">/*&lt; private &gt;*/</span></div><div class="line">        Object parent_obj;</div><div class="line">        <span class="comment">/*&lt; public &gt;*/</span></div><div class="line">        ...</div><div class="line"></div><div class="line"><span class="comment">/* include/hw/pci/pci.h */</span></div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">PCIDevice</span> &#123;</span></div><div class="line">        DeviceState qdev;</div><div class="line">    	...</div><div class="line"></div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">YourDeviceState</span>&#123;</span></div><div class="line">		PCIDevice pdev;</div><div class="line">		...</div></pre></td></tr></table></figure></p>
+<p>QOM will use instace_size as the size to allocate a Device Object, and then it invokes the instance_init to retrieve the allocated Object instance by the macro OBJECT_CHECK() and initialize it.<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">pci_testdev_init</span><span class="params">(PCIDevice *pci_dev)</span></span></div><div class="line">&#123;</div><div class="line">        PCITestDevState *d = PCI_TEST_DEV(pci_dev);</div><div class="line">        ...</div></pre></td></tr></table></figure></p>
+<p>Then the last thing to be done is set up PCI regions. It includes configuration space and the I/O ports and device memory. Just like the physical machine, the kernel accesses the I/O ports or deivce memory via BARs(Base Adress Register).<br><img src="/images/qemudevice.PNG" width="600" height="300"> </p>
+<p>QEMU uses MemoryRegion structure to handle the memory. The structure is kind of complicated… Just see include/exec/memory.h. It contains a MemoryRegionOps which is required for MMIO and PMIO.<br>It’s involved in two functions, first invoking memory_region_init_io() and then calling pci_register_bar(). It’s not difficult to use the api functions. The only thing we have to clear is that the I/O and memory regions are carried out either via static declaration of variables or dynamic allocation.<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/*static declaration*/</span></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">IVShmemState</span> &#123;</span></div><div class="line">        <span class="comment">/*&lt; private &gt;*/</span></div><div class="line">        PCIDevice parent_obj;</div><div class="line">        <span class="comment">/*&lt; public &gt;*/</span></div><div class="line">        ...</div><div class="line">        <span class="keyword">uint32_t</span> intrmask;</div><div class="line">        <span class="keyword">uint32_t</span> intrstatus;</div><div class="line">        <span class="keyword">uint32_t</span> doorbell;</div><div class="line">        [...]</div><div class="line">        &#125;</div><div class="line"></div><div class="line"><span class="comment">/*dynamic allocation*/</span></div><div class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">PCITestDevState</span> &#123;</span></div><div class="line">        <span class="comment">/*&lt; private &gt;*/</span></div><div class="line">        PCIDevice parent_obj;</div><div class="line">        <span class="comment">/*&lt; public &gt;*/</span></div><div class="line">        ...</div><div class="line">        IOTest *tests;</div><div class="line">        ...</div><div class="line">&#125; PCITestDevState;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">int</span> <span class="title">pci_testdev_init</span><span class="params">(PCIDevice *pci_dev)</span></span></div><div class="line">&#123;</div><div class="line">        PCITestDevState *d = PCI_TEST_DEV(pci_dev);</div><div class="line">        ...</div><div class="line">        d-&gt;tests = g_malloc0(IOTEST_MAX * <span class="keyword">sizeof</span> *d-&gt;tests)</div></pre></td></tr></table></figure></p>
+<p>So first use memory_region_init_io() to initialize the MemoryRegion structure, and finally invoke pci_register_bar() to register BAR information with QEMU.</p>
+<p>So far, we’ve talked about how qemu emulated a device. And <a href="https://github.com/rcvalle/blizzardctf2017" target="_blank" rel="external">here</a> is an good example to learn it or you can just read the source code.</p>
+<h2 id="See-Your-Devices"><a href="#See-Your-Devices" class="headerlink" title="See Your Devices"></a>See Your Devices</h2><p>We can use the command <em>lspci</em> to see the details about our devices.<br>Fist use <em>lspci</em> to see all the pci devices.<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">root@ubuntu:/home/ubuntu# lspci</div><div class="line">00:00.0 Host bridge: Intel Corporation 440FX - 82441FX PMC [Natoma] (rev 02)</div><div class="line">00:01.0 ISA bridge: Intel Corporation 82371SB PIIX3 ISA [Natoma/Triton II]</div><div class="line">00:01.1 IDE interface: Intel Corporation 82371SB PIIX3 IDE [Natoma/Triton II]</div><div class="line">00:01.3 Bridge: Intel Corporation 82371AB/EB/MB PIIX4 ACPI (rev 03)</div><div class="line">00:02.0 VGA compatible controller: Device 1234:1111 (rev 02)</div><div class="line">00:03.0 Unclassified device [00ff]: Device 1234:11e9 (rev 10)</div><div class="line">00:04.0 Ethernet controller: Intel Corporation 82540EM Gigabit Ethernet Controller (rev 03)</div></pre></td></tr></table></figure></p>
+<p>Then if you want to see more detail about some one device:<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">root@ubuntu:/home/ubuntu# lspci -s 00:03.0 -k -vv</div><div class="line">00:03.0 Unclassified device [00ff]: Device 1234:11e9 (rev 10)</div><div class="line">	Subsystem: Red Hat, Inc Device 1100</div><div class="line">	Physical Slot: 3</div><div class="line">	Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B- DisINTx-</div><div class="line">	Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast &gt;TAbort- &lt;TAbort- &lt;MAbort- &gt;SERR- &lt;PERR- INTx-</div><div class="line">	Region 0: Memory at febf1000 (32-bit, non-prefetchable) [size=256]</div><div class="line">	Region 1: I/O ports at c050 [size=8]</div></pre></td></tr></table></figure></p>
+<p>We can see that BAR0 is 32-bit and non-prefetchable. BAR1 corresponds to PMIO Region 0xc050-oxc058.<br>Last if you want to access the device memory or ports in userland(root), just access the resource files.<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">root@ubuntu:/home/ubuntu# ls -la /sys/devices/pci0000\:00/0000\:00\:03.0/</div><div class="line">......</div><div class="line">-r--r--r--  1 root root 4096 Nov  2 09:18 resource</div><div class="line">-rw-------  1 root root  256 Nov  2 09:22 resource0</div><div class="line">-rw-------  1 root root    8 Nov  2 09:22 resource1</div><div class="line">......</div></pre></td></tr></table></figure></p>
+<p>The file resource saves the info about resource0 and resource1.<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">root@ubuntu:/home/ubuntu# cat /sys/devices/pci0000\:00/0000\:00\:03.0/resource</div><div class="line">0x00000000febf1000 0x00000000febf10ff 0x0000000000040200</div><div class="line">0x000000000000c050 0x000000000000c057 0x0000000000040101</div><div class="line">0x0000000000000000 0x0000000000000000 0x0000000000000000</div><div class="line">0x0000000000000000 0x0000000000000000 0x0000000000000000</div><div class="line">......</div></pre></td></tr></table></figure></p>
+<p>The line indicates start-address, end-address and flags.<br>Resource0 and resource1 represent the device memory and port I/O. We can use dd command to access I/O and write a simple c program to access device memory, like <a href="https://github.com/billfarrow/pcimem" target="_blank" rel="external">pcimem</a>.</p>
+<p>Talked too much, time to end.</p>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><p><a href="http://blog.vmsplice.net/2011/03/qemu-internals-big-picture-overview.html" target="_blank" rel="external">QEMU Internals: Big picture overview</a><br><a href="http://www.phrack.org/papers/vm-escape-qemu-case-study.html" target="_blank" rel="external">VM escape - QEMU Case Study</a><br><a href="http://web.archive.org/web/20151116022950/http://nairobi-embedded.org/001_qemu_pci_device_essentials.html" target="_blank" rel="external">Essential QEMU PCI API</a><br><a href="http://web.archive.org/web/20151115031755/http://nairobi-embedded.org:80/linux_pci_device_driver.html" target="_blank" rel="external">Writing a PCI Device Driver</a><br><a href="#">include/qom/object.h</a><br><a href="#">QEMU Attack Surface and Security Internals</a><br><a href="https://blog.csdn.net/u011364612/article/details/53485856" target="_blank" rel="external">QEMU中的对象模型——QOM</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/qemu/" rel="tag">#qemu</a>
+          
+            <a href="/tags/emulate-device/" rel="tag">#emulate device</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/06/19/Arm-and-Mips-Arch-Exploitation/" rel="next" title="Arm and Mips Arch Exploitation">
+                <i class="fa fa-chevron-left"></i> Arm and Mips Arch Exploitation
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="//schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/wolf.jpg"
+               alt="w0lfzhang" />
+          <p class="site-author-name" itemprop="name">w0lfzhang</p>
+          <p class="site-description motion-element" itemprop="description">Go slowly! Just slowly!</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">61</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">102</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#How-qemu-works"><span class="nav-number">1.</span> <span class="nav-text">How qemu works</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Device-Emulation"><span class="nav-number">2.</span> <span class="nav-text">Device Emulation</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#See-Your-Devices"><span class="nav-number">3.</span> <span class="nav-text">See Your Devices</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#References"><span class="nav-number">4.</span> <span class="nav-text">References</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w0lfzhang</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+<span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;Visited <span id="busuanzi_value_site_pv"></span> times
+</span>
+
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.2"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'w0lfzhang';
+      var disqus_identifier = '2018/11/02/How-QEMU-Emulates-Devices/';
+      var disqus_title = "How QEMU Emulates Devices";
+      var disqus_url = 'http://yoursite.com/2018/11/02/How-QEMU-Emulates-Devices/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = false;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = decodeURIComponent(data.url);
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title >= 0 || index_content >= 0 ){
+                                isMatch = true;
+								if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            } 
+							
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>
