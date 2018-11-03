@@ -1,5 +1,5 @@
 ---
-title: How QEMU Emulate Devices
+title: How QEMU Emulates Devices
 date: 2018-11-02 17:43:09
 tags:
 - qemu
