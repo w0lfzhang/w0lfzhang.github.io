@@ -233,7 +233,7 @@ static int pci_testdev_init(PCIDevice *pci_dev)
 Then the last thing to be done is set up PCI regions. It includes configuration space and the I/O ports and device memory. Just like the physical machine, the kernel accesses the I/O ports or deivce memory via BARs(Base Adress Register). 
 <img src="/images/qemudevice.PNG" width="600" height="300"> 
 
-QEMU uses MemoryRegion structure to handle the memory. The structure is kind of complicated... Just see include/exec/memory.h. It contains a MemoryRegionOps which is required for MMIO and PMIO.
+QEMU uses MemoryRegion structure to handle the memory. The structure is kind of complicated... Just see include/exec/memory.h. It contains a MemoryRegionOps which is required for MMIO and PMIO, such as read/write handles.
 It's involved in two functions, first invoking memory_region_init_io() and then calling pci_register_bar(). It's not difficult to use the api functions. The only thing we have to clear is that the I/O and memory regions are carried out either via static declaration of variables or dynamic allocation.
 ```c
 /*static declaration*/
