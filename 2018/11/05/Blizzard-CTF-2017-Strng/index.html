@@ -1,0 +1,859 @@
+<!doctype html>
+
+
+
+
+<html class="theme-next pisces">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="ctf,vmescape," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/w0lfzhang.ico?v=5.0.2" />
+
+
+
+
+
+
+<meta name="description" content="After we figure out how qemu emulates devices, then we can turn to try some qemu vmescape challengs. I found 3 challenges and some qemu CVEs, I gonna try and analyze them. Here are the stuffs I will d">
+<meta name="keywords" content="ctf,vmescape">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Blizzard CTF 2017 Strng">
+<meta property="og:url" content="http://yoursite.com/2018/11/05/Blizzard-CTF-2017-Strng/index.html">
+<meta property="og:site_name" content="w0lfzhang&#39;s blog">
+<meta property="og:description" content="After we figure out how qemu emulates devices, then we can turn to try some qemu vmescape challengs. I found 3 challenges and some qemu CVEs, I gonna try and analyze them. Here are the stuffs I will d">
+<meta property="og:image" content="http://yoursite.com/images/strng-funcs.png">
+<meta property="og:updated_time" content="2018-11-05T01:45:05.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Blizzard CTF 2017 Strng">
+<meta name="twitter:description" content="After we figure out how qemu emulates devices, then we can turn to try some qemu vmescape challengs. I found 3 challenges and some qemu CVEs, I gonna try and analyze them. Here are the stuffs I will d">
+<meta name="twitter:image" content="http://yoursite.com/images/strng-funcs.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"always"},
+    fancybox: true,
+    motion: false,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/11/05/Blizzard-CTF-2017-Strng/"/>
+
+
+  <title> Blizzard CTF 2017 Strng | w0lfzhang's blog </title>
+</head>
+
+<body itemscope itemtype="//schema.org/WebPage" lang="en">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-86514506-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?c3be9cb478c70b5f3b819ddd0ba381b6";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="//schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">w0lfzhang's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">I love stories.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Blizzard CTF 2017 Strng
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2018-11-05T09:41:58+08:00" content="2018-11-05">
+              2018-11-05
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/vmescape/" itemprop="url" rel="index">
+                    <span itemprop="name">vmescape</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2018/11/05/Blizzard-CTF-2017-Strng/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2018/11/05/Blizzard-CTF-2017-Strng/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>After we figure out how qemu emulates devices, then we can turn to try some qemu vmescape challengs. I found 3 challenges and some qemu CVEs, I gonna try and analyze them. Here are the stuffs I will do:<br><a href="https://github.com/rcvalle/blizzardctf2017/" target="_blank" rel="external">blizzard ctf 2017 strng</a><br><a href="http://uaf.io/assets/EC3.tar.gz" target="_blank" rel="external">DefconQuals 2018 EC3</a><br><a href="https://kitctf.de/writeups/hitb2017/babyqemu" target="_blank" rel="external">HITB GSEC 2017 babyqemu</a><br><a href="http://www.phrack.org/papers/vm-escape-qemu-case-study.html" target="_blank" rel="external">VM escape - QEMU Case Study</a><br>If I find other good challenges and vulnerabilities, I’ll add them here. So let’s try strng.<br><a id="more"></a></p>
+<h2 id="Analysis"><a href="#Analysis" class="headerlink" title="Analysis"></a>Analysis</h2><p><a href="https://github.com/rcvalle/blizzardctf2017" target="_blank" rel="external">Here</a> is the introduction about the challenge.<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">Points: Legendary Solves: 0 Category: Exploitation Description: Blizzard CTF 2017: Sombra True Random Number Generator (STRNG) Sombra True Random Number Generator (STRNG) is a QEMU-based challenge developed for Blizzard CTF 2017. The challenge was to achieve a VM escape from a QEMU-based VM and capture the flag located at /root/flag on the host. The image used and distributed with the challenge was the Ubuntu Server 14.04 LTS Cloud Image. The host used the same image as the guest. The guest was reset every 10 minutes and was started with the following command: ./qemu-system-x86_64 -m 1G -device strng -hda my-disk.img -hdb my-seed.img -nographic -L pc-bios/ -enable-kvm -device e1000,netdev=net0 -netdev user,id=net0,hostfwd=tcp::5555-:22 Access to the guest was provided by redirecting incoming connections to the host on port 5555 to the guest on port 22.</div><div class="line"></div><div class="line">Username/password: ubuntu/passw0rd</div></pre></td></tr></table></figure></p>
+<p>From the running command we can see that qemu emulates a device: strng. Run it and we can see the detail about the device.<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">root@ubuntu:/home/ubuntu# lspci</div><div class="line">00:00.0 Host bridge: Intel Corporation 440FX - 82441FX PMC [Natoma] (rev 02)</div><div class="line">00:01.0 ISA bridge: Intel Corporation 82371SB PIIX3 ISA [Natoma/Triton II]</div><div class="line">00:01.1 IDE interface: Intel Corporation 82371SB PIIX3 IDE [Natoma/Triton II]</div><div class="line">00:01.3 Bridge: Intel Corporation 82371AB/EB/MB PIIX4 ACPI (rev 03)</div><div class="line">00:02.0 VGA compatible controller: Device 1234:1111 (rev 02)</div><div class="line">00:03.0 Unclassified device [00ff]: Device 1234:11e9 (rev 10)</div><div class="line">00:04.0 Ethernet controller: Intel Corporation 82540EM Gigabit Ethernet Controller (rev 03)</div><div class="line">root@ubuntu:/home/ubuntu# lspci -s 00:03.0 -k -vv</div><div class="line">00:03.0 Unclassified device [00ff]: Device 1234:11e9 (rev 10)</div><div class="line">	Subsystem: Red Hat, Inc Device 1100</div><div class="line">	Physical Slot: 3</div><div class="line">	Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop- ParErr- Stepping- SERR+ FastB2B- DisINTx-</div><div class="line">	Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast &gt;TAbort- &lt;TAbort- &lt;MAbort- &gt;SERR- &lt;PERR- INTx-</div><div class="line">	Region 0: Memory at febf1000 (32-bit, non-prefetchable) [size=256]</div><div class="line">	Region 1: I/O ports at c050 [size=8]</div></pre></td></tr></table></figure></p>
+<p>It’s clear the device has both MMIO(0xfebf1000-0xfebf10ff) and PMIO(0xc050-0xc058). You can also see the I/O sources via file /sys/devices/pci0000:00/0000:00:03.0/resource.</p>
+<p>We use string /<em>strng</em>/ to filter the functions.<br><img src="/images/strng-funcs.png"><br>Just analyze the functions strng_mmio_read, strng_mmio_write, strng_pmio_read and strng_pmio_write. They handle the I/O requests(read/write) from the user.<br>strng_mmio_read and strng_mmio_write:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">uint64_t</span> __<span class="function">fastcall <span class="title">strng_mmio_read</span><span class="params">(<span class="keyword">void</span> *opaque, hwaddr addr, <span class="keyword">unsigned</span> <span class="keyword">int</span> size)</span></span></div><div class="line">&#123;</div><div class="line">  <span class="keyword">uint64_t</span> result; <span class="comment">// rax</span></div><div class="line"></div><div class="line">  result = <span class="number">-1L</span>L;</div><div class="line">  <span class="keyword">if</span> ( size == <span class="number">4</span> &amp;&amp; !(addr &amp; <span class="number">3</span>) )</div><div class="line">    result = *((<span class="keyword">unsigned</span> <span class="keyword">int</span> *)opaque + (addr &gt;&gt; <span class="number">2</span>) + <span class="number">701</span>);</div><div class="line">  <span class="keyword">return</span> result;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">void</span> __<span class="function">fastcall <span class="title">strng_mmio_write</span><span class="params">(<span class="keyword">void</span> *opaque, hwaddr addr, <span class="keyword">uint64_t</span> val, <span class="keyword">unsigned</span> <span class="keyword">int</span> size)</span></span></div><div class="line">&#123;</div><div class="line">  hwaddr v4; <span class="comment">// rsi</span></div><div class="line">  <span class="keyword">int</span> v5; <span class="comment">// ST08_4</span></div><div class="line">  <span class="keyword">int</span> v6; <span class="comment">// eax</span></div><div class="line">  <span class="keyword">unsigned</span> __int64 v7; <span class="comment">// [rsp+18h] [rbp-20h]</span></div><div class="line"></div><div class="line">  v7 = __readfsqword(<span class="number">0x28</span>u);</div><div class="line">  <span class="keyword">if</span> ( size == <span class="number">4</span> &amp;&amp; !(addr &amp; <span class="number">3</span>) )</div><div class="line">  &#123;</div><div class="line">    v4 = addr &gt;&gt; <span class="number">2</span>;</div><div class="line">    <span class="keyword">if</span> ( (_DWORD)v4 == <span class="number">1</span> )</div><div class="line">    &#123;</div><div class="line">      *((_DWORD *)opaque + <span class="number">702</span>) = (*((__int64 (__fastcall **)(<span class="keyword">void</span> *, hwaddr, <span class="keyword">uint64_t</span>))opaque + <span class="number">384</span>))(opaque, v4, val);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">else</span> <span class="keyword">if</span> ( (<span class="keyword">unsigned</span> <span class="keyword">int</span>)v4 &lt; <span class="number">1</span> )</div><div class="line">    &#123;</div><div class="line">      <span class="keyword">if</span> ( __readfsqword(<span class="number">0x28</span>u) == v7 )</div><div class="line">        (*((<span class="keyword">void</span> (__fastcall **)(_QWORD))opaque + <span class="number">383</span>))((<span class="keyword">unsigned</span> <span class="keyword">int</span>)val);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">else</span></div><div class="line">    &#123;</div><div class="line">      <span class="keyword">if</span> ( (_DWORD)v4 == <span class="number">3</span> )</div><div class="line">      &#123;</div><div class="line">        v5 = val;</div><div class="line">        v6 = (*((__int64 (__fastcall **)(<span class="keyword">char</span> *))opaque + <span class="number">385</span>))((<span class="keyword">char</span> *)opaque + <span class="number">2812</span>);</div><div class="line">        LODWORD(val) = v5;</div><div class="line">        *((_DWORD *)opaque + <span class="number">704</span>) = v6;</div><div class="line">      &#125;</div><div class="line">      *((_DWORD *)opaque + (<span class="keyword">unsigned</span> <span class="keyword">int</span>)v4 + <span class="number">701</span>) = val;</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>strng_mmio_read gets the value from the address(actually the index) you specify from the device memory and strng_mmio_write invokes 3 function pointers to do something and write the value into the device memory.<br>The addresses passed into the functions(the four) are safe, I worried about that too at the beginning.</p>
+<p>strng_pmio_read and strng_pmio_write:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">uint64_t</span> __<span class="function">fastcall <span class="title">strng_pmio_read</span><span class="params">(<span class="keyword">void</span> *opaque, hwaddr addr, <span class="keyword">unsigned</span> <span class="keyword">int</span> size)</span></span></div><div class="line">&#123;</div><div class="line">  <span class="keyword">uint64_t</span> result; <span class="comment">// rax</span></div><div class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> v4; <span class="comment">// edx</span></div><div class="line"></div><div class="line">  result = <span class="number">-1L</span>L;</div><div class="line">  <span class="keyword">if</span> ( size == <span class="number">4</span> )</div><div class="line">  &#123;</div><div class="line">    <span class="keyword">if</span> ( addr )</div><div class="line">    &#123;</div><div class="line">      <span class="keyword">if</span> ( addr == <span class="number">4</span> )</div><div class="line">      &#123;</div><div class="line">        v4 = *((_DWORD *)opaque + <span class="number">700</span>);</div><div class="line">        <span class="keyword">if</span> ( !(v4 &amp; <span class="number">3</span>) )</div><div class="line">          result = *((<span class="keyword">unsigned</span> <span class="keyword">int</span> *)opaque + (v4 &gt;&gt; <span class="number">2</span>) + <span class="number">701</span>);</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">else</span></div><div class="line">    &#123;</div><div class="line">      result = *((<span class="keyword">unsigned</span> <span class="keyword">int</span> *)opaque + <span class="number">700</span>);</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">return</span> result;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">void</span> __<span class="function">fastcall <span class="title">strng_pmio_write</span><span class="params">(<span class="keyword">void</span> *opaque, hwaddr addr, <span class="keyword">uint64_t</span> val, <span class="keyword">unsigned</span> <span class="keyword">int</span> size)</span></span></div><div class="line">&#123;</div><div class="line">  <span class="keyword">unsigned</span> <span class="keyword">int</span> v4; <span class="comment">// eax</span></div><div class="line">  __int64 v5; <span class="comment">// rax</span></div><div class="line">  <span class="keyword">unsigned</span> __int64 v6; <span class="comment">// [rsp+8h] [rbp-10h]</span></div><div class="line"></div><div class="line">  v6 = __readfsqword(<span class="number">0x28</span>u);</div><div class="line">  <span class="keyword">if</span> ( size == <span class="number">4</span> )</div><div class="line">  &#123;</div><div class="line">    <span class="keyword">if</span> ( addr )</div><div class="line">    &#123;</div><div class="line">      <span class="keyword">if</span> ( addr == <span class="number">4</span> )</div><div class="line">      &#123;</div><div class="line">        v4 = *((_DWORD *)opaque + <span class="number">700</span>);</div><div class="line">        <span class="keyword">if</span> ( !(v4 &amp; <span class="number">3</span>) )</div><div class="line">        &#123;</div><div class="line">          v5 = v4 &gt;&gt; <span class="number">2</span>;</div><div class="line">          <span class="keyword">if</span> ( (_DWORD)v5 == <span class="number">1</span> )</div><div class="line">          &#123;</div><div class="line">            *((_DWORD *)opaque + <span class="number">702</span>) = (*((__int64 (__fastcall **)(<span class="keyword">void</span> *, <span class="keyword">signed</span> __int64, <span class="keyword">uint64_t</span>))opaque + <span class="number">384</span>))(</div><div class="line">                                          opaque,</div><div class="line">                                          <span class="number">4L</span>L,</div><div class="line">                                          val);</div><div class="line">          &#125;</div><div class="line">          <span class="keyword">else</span> <span class="keyword">if</span> ( (<span class="keyword">unsigned</span> <span class="keyword">int</span>)v5 &lt; <span class="number">1</span> )</div><div class="line">          &#123;</div><div class="line">            <span class="keyword">if</span> ( __readfsqword(<span class="number">0x28</span>u) == v6 )</div><div class="line">              (*((<span class="keyword">void</span> (__fastcall **)(_QWORD))opaque + <span class="number">383</span>))((<span class="keyword">unsigned</span> <span class="keyword">int</span>)val);</div><div class="line">          &#125;</div><div class="line">          <span class="keyword">else</span> <span class="keyword">if</span> ( (_DWORD)v5 == <span class="number">3</span> )</div><div class="line">          &#123;</div><div class="line">            *((_DWORD *)opaque + <span class="number">704</span>) = (*((__int64 (__fastcall **)(<span class="keyword">char</span> *, <span class="keyword">signed</span> __int64, <span class="keyword">uint64_t</span>))opaque + <span class="number">385</span>))((<span class="keyword">char</span> *)opaque + <span class="number">2812</span>);</div><div class="line">          &#125;</div><div class="line">          <span class="keyword">else</span></div><div class="line">          &#123;</div><div class="line">            *((_DWORD *)opaque + v5 + <span class="number">701</span>) = val;  &lt;== arbitray write</div><div class="line">          &#125;</div><div class="line">        &#125;</div><div class="line">      &#125;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">else</span></div><div class="line">    &#123;</div><div class="line">      *((_DWORD *)opaque + <span class="number">700</span>) = val; &lt;== we can control val.</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>strng_pmio_read read the value from the port 0xc050 or can read the value from the device memory(arbitray-read) if you can control the variable v4. And in strng_pmio_write, we do can control it in strng_pmio_write. And also we have a arbitray-write vulnerability in strng_pmio_write. </p>
+<p>So consider all that, first we can leak the libc’s address and then overwrite the function pointer whose index is 385 in the structure(If you read the previous post, you know that the structure is an object representing a device) with system’s address. </p>
+<h2 id="Exploit"><a href="#Exploit" class="headerlink" title="Exploit"></a>Exploit</h2><p>Let’s overcome some troubles.<br>First how to leak the libc address using the arbitray-read bug. We know that the device is Random Number Generator, so I guess it will invoke rand() and srand() or other related functions. Let us debug the qemu. For convenience, we create a gdb-script with the following content:<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">/* debug.txt */</div><div class="line">b strng_mmio_read</div><div class="line">b strng_mmio_write</div><div class="line">b strng_pmio_read</div><div class="line">b strng_pmio_write</div><div class="line"></div><div class="line">run  -m 1G -device strng -hda my-disk.img -hdb my-seed.img -nographic -L pc-bios/ -enable-kvm -device e1000,netdev=net0 -netdev user,id=net0,hostfwd=tcp::5555-:22</div></pre></td></tr></table></figure></p>
+<p>Then just debug it.<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">➜  strng-exp gdb qemu-system-x86_64 </div><div class="line">GNU gdb (Ubuntu 7.11.1-0ubuntu1~16.5) 7.11.1</div><div class="line">[*] 5 commands could not be loaded, run `gef missing` to know why.</div><div class="line">Reading symbols from qemu-system-x86_64...done.</div><div class="line">gef➤  source debug.txt </div><div class="line">[+] Disabling ASLR</div><div class="line">Breakpoint 1 at 0x555555964390</div><div class="line">Breakpoint 2 at 0x5555559643e0</div><div class="line">Breakpoint 3 at 0x5555559644b0</div><div class="line">Breakpoint 4 at 0x555555964520</div><div class="line">[Thread debugging using libthread_db enabled]</div><div class="line">Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".</div><div class="line">[New Thread 0x7ffff627b700 (LWP 7222)]</div><div class="line">[New Thread 0x7ffff5a7a700 (LWP 7224)]</div></pre></td></tr></table></figure></p>
+<p>Access the guest through the port 5555 on the host with the following command:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">ssh -p 5555 ubuntu@localhost</div></pre></td></tr></table></figure></p>
+<p>First use /<em>dd if=1 of=/sys/devices/pci0000\:00/0000\:00\:03.0/resource1 bs=4 count=2</em>/ command to trigger strng_pmio_write(8 byte to observe the bug). Because the functions just handle 4 bytes, so strng_pmio_write will be hit twice. And use <a href="https://github.com/billfarrow/pcimem" target="_blank" rel="external">pcimem</a> to read and write device memory.<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">     90	 static void strng_pmio_write(void *opaque, hwaddr addr, uint64_t val, unsigned size)</div><div class="line"> →   91	 &#123;</div><div class="line">     92	     STRNGState *strng = opaque;</div><div class="line">     93	     uint32_t saddr;</div><div class="line">     94	 </div><div class="line">     95	     if (size != 4)</div><div class="line">     96	         return;</div><div class="line">──────────────────────────────────────────────────────────────────────────────────────────────────────[ threads ]────</div><div class="line"><span class="meta">[#</span>0] Id 1, Name: "qemu-system-x86", stopped, reason: BREAKPOINT</div><div class="line"><span class="meta">[#</span>1] Id 2, Name: "qemu-system-x86", stopped, reason: BREAKPOINT</div><div class="line"><span class="meta">[#</span>2] Id 4, Name: "qemu-system-x86", stopped, reason: BREAKPOINT</div><div class="line">────────────────────────────────────────────────────────────────────────────────────────────────────────[ trace ]────</div><div class="line"><span class="meta">[#</span>0] 0x555555964520 → Name: strng_pmio_write(opaque=0x555557e20a20, addr=0x0, val=0x61616161, size=0x4)</div><div class="line"><span class="meta">[#</span>1] 0x5555557b31c9 → Name: memory_region_write_accessor(mr=0x555557e21410, addr=0x0, value=&lt;optimized out&gt;, size=0x4, shift=&lt;optimized out&gt;, mask=&lt;optimized out&gt;, attrs=&#123;</div><div class="line">......</div></pre></td></tr></table></figure></p>
+<p>The first time, the argument addr is 0, which means we write the /<em>aaaa</em>/ into port 0xc050.<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">gef➤  x/40gx $rdi+0xaf0</div><div class="line">0x555557e21510:	0x0000000061616161	0x0000000000000000</div><div class="line">0x555557e21520:	0x0000000000000000	0x0000000000000000</div><div class="line">0x555557e21530:	0x0000000000000000	0x0000000000000000</div><div class="line">0x555557e21540:	0x0000000000000000	0x0000000000000000</div><div class="line">0x555557e21550:	0x0000000000000000	0x0000000000000000</div><div class="line">0x555557e21560:	0x0000000000000000	0x0000000000000000</div><div class="line">0x555557e21570:	0x0000000000000000	0x0000000000000000</div><div class="line">0x555557e21580:	0x0000000000000000	0x0000000000000000</div><div class="line">0x555557e21590:	0x0000000000000000	0x0000000000000000</div><div class="line">0x555557e215a0:	0x0000000000000000	0x0000000000000000</div><div class="line">0x555557e215b0:	0x0000000000000000	0x0000000000000000</div><div class="line">0x555557e215c0:	0x0000000000000000	0x0000000000000000</div><div class="line">0x555557e215d0:	0x0000000000000000	0x0000000000000000</div><div class="line">0x555557e215e0:	0x0000000000000000	0x0000000000000000</div><div class="line">0x555557e215f0:	0x0000000000000000	0x0000000000000000</div><div class="line">0x555557e21600:	0x0000000000000000	0x0000000000000000</div><div class="line">0x555557e21610:	0x0000000000000000	0x00007ffff65268d0 &lt;==</div><div class="line">0x555557e21620:	0x00007ffff6526f60	0x00007ffff6526f70 &lt;==</div><div class="line">0x555557e21630:	0x0000000000000000	0x0000000000000051</div><div class="line">0x555557e21640:	0x0000555557e1ceb0	0x0000555557e1ced0</div></pre></td></tr></table></figure></p>
+<p>When you see the memory initializing functions, the PMIO’s size should be 8 bytes, but actually the real size is decided by qemu. You can read the source code, and it’s just 4 bytes. So the emulated PMIO is from 0x555557e21510 to 0x555557e21513 and MMIO is from 0x555557e21514 to 0x555557e21614.<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">void</span> __<span class="function">fastcall <span class="title">pci_strng_realize</span><span class="params">(PCIDevice_0 *pdev, Error_0 **errp)</span></span></div><div class="line">&#123;</div><div class="line">  <span class="keyword">unsigned</span> __int64 v2; <span class="comment">// ST08_8</span></div><div class="line"></div><div class="line">  v2 = __readfsqword(<span class="number">0x28</span>u);</div><div class="line">  memory_region_init_io(</div><div class="line">    (MemoryRegion_0 *)&amp;pdev[<span class="number">1</span>],</div><div class="line">    &amp;pdev-&gt;qdev.parent_obj,</div><div class="line">    &amp;strng_mmio_ops,</div><div class="line">    pdev,</div><div class="line">    <span class="string">"strng-mmio"</span>,</div><div class="line">    <span class="number">0x100</span>uLL);</div><div class="line">  pci_register_bar(pdev, <span class="number">0</span>, <span class="number">0</span>, (MemoryRegion_0 *)&amp;pdev[<span class="number">1</span>]);</div><div class="line">  memory_region_init_io(</div><div class="line">    (MemoryRegion_0 *)&amp;pdev[<span class="number">1</span>].io_regions[<span class="number">0</span>].size,</div><div class="line">    &amp;pdev-&gt;qdev.parent_obj,</div><div class="line">    &amp;strng_pmio_ops,</div><div class="line">    pdev,</div><div class="line">    <span class="string">"strng-pmio"</span>,</div><div class="line">    <span class="number">8u</span>LL);</div><div class="line">  <span class="keyword">if</span> ( __readfsqword(<span class="number">0x28</span>u) == v2 )</div><div class="line">    pci_register_bar(pdev, <span class="number">1</span>, <span class="number">1u</span>, (MemoryRegion_0 *)&amp;pdev[<span class="number">1</span>].io_regions[<span class="number">0</span>].size);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>With the analysis of the functions, we know that there are 3 function pointers in the structure. So let’s check it:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">gef➤  x/2i 0x00007ffff65268d0</div><div class="line">   0x7ffff65268d0 &lt;__srandom&gt;:	sub    rsp,0x8</div><div class="line">   0x7ffff65268d4 &lt;__srandom+4&gt;:	mov    edx,edi</div><div class="line">gef➤  x/2i 0x00007ffff6526f60</div><div class="line">   0x7ffff6526f60 &lt;rand&gt;:	sub    rsp,0x8</div><div class="line">   0x7ffff6526f64 &lt;rand+4&gt;:	call   0x7ffff6526ac0 &lt;__random&gt;</div><div class="line">gef➤  x/2i 0x00007ffff6526f70</div><div class="line">   0x7ffff6526f70 &lt;rand_r&gt;:	imul   edx,DWORD PTR [rdi],0x41c64e6d</div><div class="line">   0x7ffff6526f76 &lt;rand_r+6&gt;:	add    edx,0x3039</div></pre></td></tr></table></figure></p>
+<p>So they are srandom, rand and rand_r, they are all located in libc. Just leak one of them. Only rand_r takes one argument and it’s a pointer. We put our command on the emulated device memory and then trigger the rand_r() via strng_mmio_write or strng_pmio_write.</p>
+<p>There is a full exploit source code in the reference, and a few points need to be changed.</p>
+<ol>
+<li>Change the last argument of mmap as 0, not MAP_SIZE &amp; ~MAP_MASK.</li>
+<li>You can’t read the /root/flag unless the qemu runs as the root privilege or it’s set the correct permission.<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">host:</div><div class="line">root@ubuntu16:~# cat flag</div><div class="line">flag&#123;You_Get_it&#125;</div><div class="line"></div><div class="line">guest:</div><div class="line">root@ubuntu:/home/ubuntu# ./exp</div><div class="line">cat: -: Resource temporarily unavailable</div><div class="line">libc_base: 7f0843192000</div><div class="line">_system  : 7f08431d7390</div><div class="line">flag&#123;You_Get_it&#125;</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<h2 id="References"><a href="#References" class="headerlink" title="References"></a>References</h2><p><a href="http://uaf.io/exploitation/2018/05/17/BlizzardCTF-2017-Strng.html" target="_blank" rel="external">BlizzardCTF 2017 - Strng</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ctf/" rel="tag">#ctf</a>
+          
+            <a href="/tags/vmescape/" rel="tag">#vmescape</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/11/02/How-QEMU-Emulates-Devices/" rel="next" title="How QEMU Emulates Devices">
+                <i class="fa fa-chevron-left"></i> How QEMU Emulates Devices
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="//schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/wolf.jpg"
+               alt="w0lfzhang" />
+          <p class="site-author-name" itemprop="name">w0lfzhang</p>
+          <p class="site-description motion-element" itemprop="description">Go slowly! Just slowly!</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">62</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">16</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">103</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Analysis"><span class="nav-number">1.</span> <span class="nav-text">Analysis</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Exploit"><span class="nav-number">2.</span> <span class="nav-text">Exploit</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#References"><span class="nav-number">3.</span> <span class="nav-text">References</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w0lfzhang</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+<span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;Visited <span id="busuanzi_value_site_pv"></span> times
+</span>
+
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.2"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'w0lfzhang';
+      var disqus_identifier = '2018/11/05/Blizzard-CTF-2017-Strng/';
+      var disqus_title = "Blizzard CTF 2017 Strng";
+      var disqus_url = 'http://yoursite.com/2018/11/05/Blizzard-CTF-2017-Strng/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = false;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = decodeURIComponent(data.url);
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title >= 0 || index_content >= 0 ){
+                                isMatch = true;
+								if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            } 
+							
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>
