@@ -287,6 +287,130 @@
             
               
                 
+                <a class="post-title-link" href="/2017/03/06/Process-Management/" itemprop="url">
+                  Process Management
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2017-03-06T00:17:26+08:00" content="2017-03-06">
+              2017-03-06
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/kernel-development/" itemprop="url" rel="index">
+                    <span itemprop="name">kernel_development</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/03/06/Process-Management/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/03/06/Process-Management/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>感觉自己在linux内核方面的知识有所欠缺，所以打算把Linux Kernel Development这本书读一遍，顺便记录一下。<br>进程这块感觉还是挺重要的，毕竟是基础。以前略微读过windows内核，现在稍微还有点印象，所以读起来还是不难的。</p>
+<h2 id="Process-Descriptor-and-the-Task-Structure"><a href="#Process-Descriptor-and-the-Task-Structure" class="headerlink" title="Process Descriptor and the Task Structure"></a>Process Descriptor and the Task Structure</h2><p>内核把进程的列表放在叫做任务队列的双向循环链表中，其中的每一项是task_struct（定义在linux/sched.h中）的结构体，也被称作进程描述符，包含着一个进程的所有信息。<br>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2017/03/06/Process-Management/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2017/03/02/2016-CSAW-CTF-tutorial/" itemprop="url">
                   2016 CSAW CTF tutorial
                 </a>
@@ -765,137 +889,6 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2016/11/02/arm-instructions-learning/" itemprop="url">
-                  arm instructions learning
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">Posted on</span>
-            <time itemprop="dateCreated" datetime="2016-11-02T11:48:54+08:00" content="2016-11-02">
-              2016-11-02
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/arm/" itemprop="url" rel="index">
-                    <span itemprop="name">arm</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2016/11/02/arm-instructions-learning/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2016/11/02/arm-instructions-learning/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-	 
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>Recnetly, I want to learn the pwn of arm, so I find some docs to read.</p>
-<h2 id="Register"><a href="#Register" class="headerlink" title="Register"></a>Register</h2><p>below are the points about the register:</p>
-<ol>
-<li>37 registers, but most using 16 registers each time(not including status register)</li>
-<li>R0-7 for everything</li>
-<li>R8-12 are general registers and when changing to FIQ model, use their shadow register</li>
-<li>R13 for stack pointer, but it’s optional</li>
-<li>R14 for keeping the return address specially</li>
-<li>R15 for PC pointer
-          <div class="post-more-link text-center">
-            <a class="btn" href="/2016/11/02/arm-instructions-learning/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -941,7 +934,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">63</span>
+              <span class="site-state-item-count">64</span>
               <span class="site-state-item-name">posts</span>
             </a>
           </div>

@@ -287,6 +287,134 @@
             
               
                 
+                <a class="post-title-link" href="/2018/03/14/Windows-Kernel-Exploit-A-Series-of-Simple-loopholes/" itemprop="url">
+                  Windows Kernel Exploit: A Series of Simple loopholes
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2018-03-14T12:01:25+08:00" content="2018-03-14">
+              2018-03-14
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/kernel-exploit/" itemprop="url" rel="index">
+                    <span itemprop="name">kernel_exploit</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2018/03/14/Windows-Kernel-Exploit-A-Series-of-Simple-loopholes/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2018/03/14/Windows-Kernel-Exploit-A-Series-of-Simple-loopholes/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>这个系列教程的前几个漏洞类型的利用方式都比较简单吧，所以打算把这几个简单的漏洞集中简单的记录下就行了，不打算每种利用方式都详细记录。然后剩下的关于kernel pool的利用就没咋有时间在研究了。具体来说有以下几种漏洞类型：</p>
+<ol>
+<li>Arbitrary Memory Overwrite</li>
+<li>Null Pointer Dereference</li>
+<li>Uninitialized Stack Variable</li>
+<li>Interger Overflow
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2018/03/14/Windows-Kernel-Exploit-A-Series-of-Simple-loopholes/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2018/03/12/Windows-Kernel-Exploit-Stack-based-Overflow/" itemprop="url">
                   Windows Kernel Exploit: Stack-based Overflow
                 </a>
@@ -761,130 +889,6 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2017/10/02/Splice-Syscall-Analysis-2/" itemprop="url">
-                  Splice Syscall Analysis(2)
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">Posted on</span>
-            <time itemprop="dateCreated" datetime="2017-10-02T01:21:18+08:00" content="2017-10-02">
-              2017-10-02
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/kernel-development/" itemprop="url" rel="index">
-                    <span itemprop="name">kernel_development</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2017/10/02/Splice-Syscall-Analysis-2/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/10/02/Splice-Syscall-Analysis-2/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-	 
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>接下来继续分析另外两种情况。</p>
-<h2 id="do-splice-from"><a href="#do-splice-from" class="headerlink" title="do_splice_from"></a>do_splice_from</h2><p>do_splice_from用于从in管道读取数据到out文件描述符对应的文件。<br>这个函数调用层次太深，不过分析倒是不难。接着看源码~<br>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/2017/10/02/Splice-Syscall-Analysis-2/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -930,7 +934,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">63</span>
+              <span class="site-state-item-count">64</span>
               <span class="site-state-item-name">posts</span>
             </a>
           </div>

@@ -287,6 +287,131 @@
             
               
                 
+                <a class="post-title-link" href="/2017/04/25/Starting-kernel-exploit-prepared-knowledge/" itemprop="url">
+                  Starting kernel exploit--Prepared Knowledge
+                </a>
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2017-04-25T10:55:28+08:00" content="2017-04-25">
+              2017-04-25
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/kernel-exploit/" itemprop="url" rel="index">
+                    <span itemprop="name">kernel_exploit</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2017/04/25/Starting-kernel-exploit-prepared-knowledge/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/04/25/Starting-kernel-exploit-prepared-knowledge/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        
+          <p>今天开始好好搞kernel exploit。</p>
+<h2 id="Inline-assembly"><a href="#Inline-assembly" class="headerlink" title="Inline assembly"></a>Inline assembly</h2><p>基本形式：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">asm [ volatile ] (  </div><div class="line">    assembler template</div><div class="line">    [ : output operands ]  ()               /* optional */</div><div class="line">    [ : input operands  ]  ()              /* optional */</div><div class="line">    [ : list of clobbered registers ]  ()   /* optional */</div><div class="line">    );</div></pre></td></tr></table></figure></p>
+<p>圆括号中的是约束条件。对输出操作数来说，’=’表示’只写；’&amp;’表示这是一个已经被修改过的操作数。%%reg表示引用寄存器的值。<br>所有参数从0看是编号。%0表示第一个参数，%n-1表示第n个参数。注意是在asm里面声明的输入操作数和输出操作数。<br>
+          <div class="post-more-link text-center">
+            <a class="btn" href="/2017/04/25/Starting-kernel-exploit-prepared-knowledge/#more" rel="contents">
+              Read more &raquo;
+            </a>
+          </div>
+        
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <div>
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+
+      
+      
+        <div class="post-eof"></div>
+      
+    </footer>
+  </article>
+
+
+    
+      
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                
                 <a class="post-title-link" href="/2017/04/23/pwnable-md5-calculator/" itemprop="url">
                   pwnable md5_calculator
                 </a>
@@ -759,130 +884,6 @@
 
 
     
-      
-
-  
-  
-
-  
-  
-  
-
-  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
-
-    
-      <header class="post-header">
-
-        
-        
-          <h1 class="post-title" itemprop="name headline">
-            
-            
-              
-                
-                <a class="post-title-link" href="/2017/03/28/Sigreturn-Oriented-Programming/" itemprop="url">
-                  Sigreturn Oriented Programming
-                </a>
-              
-            
-          </h1>
-        
-
-        <div class="post-meta">
-          <span class="post-time">
-            <span class="post-meta-item-icon">
-              <i class="fa fa-calendar-o"></i>
-            </span>
-            <span class="post-meta-item-text">Posted on</span>
-            <time itemprop="dateCreated" datetime="2017-03-28T05:44:08+08:00" content="2017-03-28">
-              2017-03-28
-            </time>
-          </span>
-
-          
-            <span class="post-category" >
-              &nbsp; | &nbsp;
-              <span class="post-meta-item-icon">
-                <i class="fa fa-folder-o"></i>
-              </span>
-              <span class="post-meta-item-text">In</span>
-              
-                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
-                  <a href="/categories/stack-exploit/" itemprop="url" rel="index">
-                    <span itemprop="name">stack_exploit</span>
-                  </a>
-                </span>
-
-                
-                
-
-              
-            </span>
-          
-
-          
-            
-              <span class="post-comments-count">
-                &nbsp; | &nbsp;
-                <a href="/2017/03/28/Sigreturn-Oriented-Programming/#comments" itemprop="discussionUrl">
-                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2017/03/28/Sigreturn-Oriented-Programming/" itemprop="commentsCount"></span>
-                </a>
-              </span>
-            
-          
-
-          
-	 
-
-          
-          
-
-          
-        </div>
-      </header>
-    
-
-
-    <div class="post-body" itemprop="articleBody">
-
-      
-      
-
-      
-        
-          <p>Posted on bobao360–<a href="http://bobao.360.cn/learning/detail/3675.html" target="_blank" rel="external">http://bobao.360.cn/learning/detail/3675.html</a>.<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">the content below was added on 2017-09-05</div></pre></td></tr></table></figure></p>
-<p>这段时间看linux kernel的信号处理时突然想到了一种利用方法——SROP(Sigreturn Oriented Programming)。记得去年在某个博客上看到过这方面的pwn题，所以我就干脆就去认真研究了一下。<br>
-          <div class="post-more-link text-center">
-            <a class="btn" href="/2017/03/28/Sigreturn-Oriented-Programming/#more" rel="contents">
-              Read more &raquo;
-            </a>
-          </div>
-        
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <div>
-      
-    </div>
-
-    <footer class="post-footer">
-      
-
-      
-
-      
-      
-        <div class="post-eof"></div>
-      
-    </footer>
-  </article>
-
-
-    
   </section>
 
   
@@ -928,7 +929,7 @@
         <nav class="site-state motion-element">
           <div class="site-state-item site-state-posts">
             <a href="/archives">
-              <span class="site-state-item-count">63</span>
+              <span class="site-state-item-count">64</span>
               <span class="site-state-item-name">posts</span>
             </a>
           </div>

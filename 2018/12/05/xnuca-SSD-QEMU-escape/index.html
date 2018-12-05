@@ -1,0 +1,859 @@
+<!doctype html>
+
+
+
+
+<html class="theme-next pisces">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/lib/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.2" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="vmescape," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/images/w0lfzhang.ico?v=5.0.2" />
+
+
+
+
+
+
+<meta name="description" content="A few weeks ago, I remember I played xnuca ctf during my working time~ And I just saw the challenge ssd, because it was a qemu-escape and I found the bug at that time, but I didn’t write the exploit s">
+<meta name="keywords" content="vmescape">
+<meta property="og:type" content="article">
+<meta property="og:title" content="xnuca SSD QEMU escape">
+<meta property="og:url" content="http://yoursite.com/2018/12/05/xnuca-SSD-QEMU-escape/index.html">
+<meta property="og:site_name" content="w0lfzhang&#39;s blog">
+<meta property="og:description" content="A few weeks ago, I remember I played xnuca ctf during my working time~ And I just saw the challenge ssd, because it was a qemu-escape and I found the bug at that time, but I didn’t write the exploit s">
+<meta property="og:updated_time" content="2018-12-05T09:37:18.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="xnuca SSD QEMU escape">
+<meta name="twitter:description" content="A few weeks ago, I remember I played xnuca ctf during my working time~ And I just saw the challenge ssd, because it was a qemu-escape and I found the bug at that time, but I didn’t write the exploit s">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Pisces',
+    sidebar: {"position":"left","display":"always"},
+    fancybox: true,
+    motion: false,
+    duoshuo: {
+      userId: '0',
+      author: 'Author'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://yoursite.com/2018/12/05/xnuca-SSD-QEMU-escape/"/>
+
+
+  <title> xnuca SSD QEMU escape | w0lfzhang's blog </title>
+</head>
+
+<body itemscope itemtype="//schema.org/WebPage" lang="en">
+
+  
+
+
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+  ga('create', 'UA-86514506-1', 'auto');
+  ga('send', 'pageview');
+</script>
+
+
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?c3be9cb478c70b5f3b819ddd0ba381b6";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="//schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">w0lfzhang's blog</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">I love stories.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+            Home
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+            Categories
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+            About
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+            Archives
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+            Tags
+          </a>
+        </li>
+      
+
+      
+        <li class="menu-item menu-item-search">
+          
+            <a href="javascript:;" class="popup-trigger">
+          
+            
+            Search
+          </a>
+        </li>
+      
+    </ul>
+  
+
+  
+    <div class="site-search">
+      
+  <div class="popup">
+ <span class="search-icon fa fa-search"></span>
+ <input type="text" id="local-search-input">
+ <div id="local-search-result"></div>
+ <span class="popup-btn-close">close</span>
+</div>
+
+
+    </div>
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="//schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                xnuca SSD QEMU escape
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">Posted on</span>
+            <time itemprop="dateCreated" datetime="2018-12-05T17:36:34+08:00" content="2018-12-05">
+              2018-12-05
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">In</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/vmescape/" itemprop="url" rel="index">
+                    <span itemprop="name">vmescape</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2018/12/05/xnuca-SSD-QEMU-escape/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count disqus-comment-count" data-disqus-identifier="2018/12/05/xnuca-SSD-QEMU-escape/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+	 
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p>A few weeks ago, I remember I played xnuca ctf during my working time~ And I just saw the challenge ssd, because it was a qemu-escape and I found the bug at that time, but I didn’t write the exploit script because I thought it’s not so hard(I didn’t know how many teams solved this challenge), after all, work is work~ The reason I write this write-up is to help those guys want to learn qemu-escape. I will give a detail talking about the exploit.<br>&lt;–!more–&gt;</p>
+<h2 id="The-Challenge"><a href="#The-Challenge" class="headerlink" title="The Challenge"></a>The Challenge</h2><p>The first thing you need to do is figure out what the device does. If you are unfamiliar with how qemu emulates devices, you can see my previous post <a href="https://www.w0lfzhang.com/2018/11/02/How-QEMU-Emulates-Devices/" target="_blank" rel="external">here</a>. I won’t talk this much.</p>
+<p>After analysis, I think it’s a really simple device. And if you are a linux device driver programmer, nothing is difficult to understand. Let’s see xnuca_mmio_read:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">__int64 __<span class="function">fastcall <span class="title">xnuca_mmio_read</span><span class="params">(__int64 a1, <span class="keyword">unsigned</span> __int8 a2)</span></span></div><div class="line">&#123;</div><div class="line">  _BYTE v3[<span class="number">12</span>]; <span class="comment">// [rsp+20h] [rbp-14h]</span></div><div class="line"></div><div class="line">  *(_DWORD *)&amp;v3[<span class="number">8</span>] = <span class="number">0</span>;</div><div class="line">  *(_QWORD *)v3 = a2;</div><div class="line">  <span class="keyword">if</span> ( a2 == <span class="number">16</span> )</div><div class="line">    <span class="keyword">return</span> *(<span class="keyword">unsigned</span> <span class="keyword">int</span> *)(a1 + <span class="number">0x9DC</span>);</div><div class="line">  <span class="keyword">if</span> ( a2 == <span class="number">32</span> )</div><div class="line">    *(_QWORD *)&amp;v3[<span class="number">4</span>] = *(<span class="keyword">unsigned</span> <span class="keyword">int</span> *)(a1 + <span class="number">0x9D0</span>);</div><div class="line">  <span class="keyword">return</span> *(_QWORD *)&amp;v3[<span class="number">4</span>];</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>Easy and useless for your exploit. And turn to xnuca_mmio_write:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line">__int64 __<span class="function">fastcall <span class="title">xnuca_mmio_write</span><span class="params">(__int64 XnucaState, <span class="keyword">int</span> addr, <span class="keyword">unsigned</span> <span class="keyword">int</span> val, <span class="keyword">int</span> size)</span></span></div><div class="line">&#123;</div><div class="line">  __int64 result; <span class="comment">// rax</span></div><div class="line">  <span class="keyword">int</span> _addr; <span class="comment">// [rsp+10h] [rbp-30h]</span></div><div class="line"></div><div class="line">  _addr = addr;</div><div class="line">  result = XnucaState;</div><div class="line">  <span class="keyword">if</span> ( size == <span class="number">4</span> || size == <span class="number">8</span> )</div><div class="line">  &#123;</div><div class="line">    result = (<span class="keyword">unsigned</span> __int8)addr;</div><div class="line">    <span class="keyword">if</span> ( (<span class="keyword">unsigned</span> __int8)addr == <span class="number">32</span> )</div><div class="line">    &#123;</div><div class="line">      result = xnuca_set_timer(XnucaState);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">else</span> <span class="keyword">if</span> ( (_DWORD)result == <span class="number">48</span> )</div><div class="line">    &#123;</div><div class="line">      result = xnuca_send_request(</div><div class="line">                 XnucaState,</div><div class="line">                 (<span class="keyword">unsigned</span> __int64)(addr &amp; <span class="number">0xF00</span>) &gt;&gt; <span class="number">8</span>,</div><div class="line">                 (<span class="keyword">unsigned</span> __int64)((<span class="keyword">unsigned</span> __int16)addr &amp; <span class="number">0xF000</span>) &gt;&gt; <span class="number">12</span>,</div><div class="line">                 (_addr &amp; <span class="number">0xFF0000</span>u) &gt;&gt; <span class="number">16</span>,</div><div class="line">                 (<span class="keyword">unsigned</span> __int8)val);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">else</span> <span class="keyword">if</span> ( (_DWORD)result == <span class="number">16</span> )</div><div class="line">    &#123;</div><div class="line">      result = xnuca_auth(XnucaState, val);</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>It’s obvious you should focus on this function. There are 3 types requests for the device:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">1. auth</div><div class="line">2. set_timer</div><div class="line">3. send_request</div></pre></td></tr></table></figure></p>
+<p>Let’s step into xnuca_auth:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">__int64 __<span class="function">fastcall <span class="title">xnuca_auth</span><span class="params">(__int64 XnucaState, <span class="keyword">char</span> val)</span></span></div><div class="line">&#123;</div><div class="line">  __int64 result; <span class="comment">// rax</span></div><div class="line"></div><div class="line">  <span class="keyword">if</span> ( *(_DWORD *)(XnucaState + <span class="number">0x9DC</span>) &lt;= <span class="number">4u</span> )</div><div class="line">  &#123;</div><div class="line">    <span class="keyword">if</span> ( *(_BYTE *)(XnucaState + *(<span class="keyword">unsigned</span> <span class="keyword">int</span> *)(XnucaState + <span class="number">0x9DC</span>) + <span class="number">0x9D4</span>) == val )</div><div class="line">      ++*(_DWORD *)(XnucaState + <span class="number">0x9DC</span>);</div><div class="line">    <span class="keyword">else</span></div><div class="line">      *(_DWORD *)(XnucaState + <span class="number">0x9DC</span>) = <span class="number">0</span>;</div><div class="line">  &#125;</div><div class="line">  result = *(<span class="keyword">unsigned</span> <span class="keyword">int</span> *)(XnucaState + <span class="number">0x9DC</span>);</div><div class="line">  <span class="keyword">if</span> ( (_DWORD)result == <span class="number">5</span> )</div><div class="line">  &#123;</div><div class="line">    *(_DWORD *)(XnucaState + <span class="number">0x9D0</span>) |= <span class="number">1u</span>;</div><div class="line">    result = XnucaState;</div><div class="line">    *(_DWORD *)(XnucaState + <span class="number">0x9DC</span>) = <span class="number">0</span>;</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>The function operates the field at offset 0x9DC and 0x9D0 of XnucaState structure. What we should remember is that it set the lowest bit of the 0x9D0-field when the 0x9DC-field equals 5.<br>Then we see the xnuca_set_timer:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line">__int64 __<span class="function">fastcall <span class="title">xnuca_set_timer</span><span class="params">(__int64 a1)</span></span></div><div class="line">&#123;</div><div class="line">  __int64 result; <span class="comment">// rax</span></div><div class="line"></div><div class="line">  result = *(_DWORD *)(a1 + <span class="number">0x9D0</span>) &amp; <span class="number">1</span>;</div><div class="line">  <span class="keyword">if</span> ( (_DWORD)result )</div><div class="line">  &#123;</div><div class="line">    result = *(_DWORD *)(a1 + <span class="number">0x9D0</span>) &amp; <span class="number">2</span>;</div><div class="line">    <span class="keyword">if</span> ( !(_DWORD)result )</div><div class="line">    &#123;</div><div class="line">      timer_init_ns(a1 + <span class="number">0xA00</span>, <span class="number">0</span>, (__int64)xnuca_timer, a1);</div><div class="line">      result = a1;</div><div class="line">      *(_DWORD *)(a1 + <span class="number">0x9D0</span>) |= <span class="number">2u</span>;</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>See? Only you set the 0x9D0-field’s lowest bit, you can set the timer for the device. But it’s just initializing the timer, if you want trigger the function xnuca_timer, you must invoke time_add or time_mod to add the timer into kernel. And let’s have a look what the device will do when the time is expired.<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line">__int64 __<span class="function">fastcall <span class="title">xnuca_timer</span><span class="params">(__int64 a1)</span></span></div><div class="line">&#123;</div><div class="line">  __int64 result; <span class="comment">// rax</span></div><div class="line">  <span class="keyword">int</span> v2; <span class="comment">// eax</span></div><div class="line">  <span class="keyword">void</span> **v3; <span class="comment">// rbx</span></div><div class="line"></div><div class="line">  result = *(_DWORD *)(a1 + <span class="number">0x9D0</span>) &amp; <span class="number">4</span>;</div><div class="line">  <span class="keyword">if</span> ( (_DWORD)result )</div><div class="line">  &#123;</div><div class="line">    v2 = *(_DWORD *)(a1 + <span class="number">0x9EC</span>);</div><div class="line">    <span class="keyword">switch</span> ( v2 )</div><div class="line">    &#123;</div><div class="line">      <span class="keyword">case</span> <span class="number">2</span>:</div><div class="line">        *(_DWORD *)(*(<span class="keyword">unsigned</span> <span class="keyword">int</span> *)(a1 + <span class="number">0x9F0</span>)</div><div class="line">                  + *(_QWORD *)(*(_QWORD *)(a1 + <span class="number">0x9E0</span>) + <span class="number">8L</span>L * *(<span class="keyword">unsigned</span> <span class="keyword">int</span> *)(a1 + <span class="number">0x9E8</span>))) = *(_DWORD *)(a1 + <span class="number">0x9F8</span>);</div><div class="line">        <span class="keyword">break</span>;</div><div class="line">      <span class="keyword">case</span> <span class="number">3</span>:</div><div class="line">        <span class="built_in">free</span>(*(<span class="keyword">void</span> **)(*(_QWORD *)(a1 + <span class="number">0x9E0</span>) + <span class="number">8L</span>L * *(<span class="keyword">unsigned</span> <span class="keyword">int</span> *)(a1 + <span class="number">0x9E8</span>)));</div><div class="line">        <span class="keyword">break</span>;</div><div class="line">      <span class="keyword">case</span> <span class="number">1</span>:</div><div class="line">        v3 = (<span class="keyword">void</span> **)(*(_QWORD *)(a1 + <span class="number">0x9E0</span>) + <span class="number">8L</span>L * *(<span class="keyword">unsigned</span> <span class="keyword">int</span> *)(a1 + <span class="number">0x9E8</span>));</div><div class="line">        *v3 = <span class="built_in">malloc</span>(*(<span class="keyword">unsigned</span> <span class="keyword">int</span> *)(a1 + <span class="number">0x9F0</span>));</div><div class="line">        <span class="keyword">break</span>;</div><div class="line">    &#125;</div><div class="line">    result = a1;</div><div class="line">    *(_DWORD *)(a1 + <span class="number">0x9D0</span>) &amp;= <span class="number">0xFFFFFFFB</span>;</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>Malloc, edit, and free? That’s right guess~ Obviously, the field at offset 0x9E0 is a ptr-array, field-0x9E8 is the index of array, field-0x9F0 is the size and field-0x9F8 is the content to write. Generally speaking, we can decide what to do and can pass the index and the size to it. So, can we? Let’s see the last type request: xnuca_send_request.<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">__int64 __<span class="function">fastcall <span class="title">xnuca_send_request</span><span class="params">(__int64 a1, <span class="keyword">int</span> index, <span class="keyword">int</span> what_to_do, <span class="keyword">int</span> size, <span class="keyword">unsigned</span> <span class="keyword">int</span> val)</span></span></div><div class="line">&#123;</div><div class="line">  __int64 v5; <span class="comment">// rax</span></div><div class="line"></div><div class="line">  *(_DWORD *)(a1 + <span class="number">0x9E8</span>) = index;</div><div class="line">  *(_DWORD *)(a1 + <span class="number">0x9EC</span>) = what_to_do;</div><div class="line">  *(_DWORD *)(a1 + <span class="number">0x9F0</span>) = size;</div><div class="line">  *(_QWORD *)(a1 + <span class="number">0x9F8</span>) = val;</div><div class="line">  *(_DWORD *)(a1 + <span class="number">0x9D0</span>) |= <span class="number">4u</span>;</div><div class="line">  v5 = qemu_clock_get_ns(<span class="number">1u</span>);</div><div class="line">  <span class="keyword">return</span> timer_mod(a1 + <span class="number">2560</span>, v5 + <span class="number">10</span>);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>The function just initializes the fields we talked about and starts the timer.</p>
+<p>Everything is clear? So you can find a UAF bug exists in xnuca_timer easily. Let’s exploit it.</p>
+<h2 id="Exploit"><a href="#Exploit" class="headerlink" title="Exploit"></a>Exploit</h2><p>There is a challenge called EC3 in defcon quals, and in that case the device don’t use the main_arena if you debug it and we can easily exploit that challenge because it saves the heap address(starting at 0x7f or 0x7e… whatever) in bss. But in this case, the device uses the main arena and the heap address is random totally. </p>
+<p>The easiest way to exploit a UAF bug is fastbin attack, and we just overwrite the fd-pointer and allocate mutil times to get the fake pointer. Buf the prerequisite is that you must find a place which saves the proper size field. You may want to overwrite malloc_hook or other hook functions, but you can not leaking libc’s address.</p>
+<p>So here comes the biggest challenge you will face: how to find a size field to satisfy the check of fastbin.</p>
+<p>Some guys who doesn’t see the source code of malloc don’t know the secret~ The size you pass to malloc is size_t type, which is a 64-bit data type, but malloc just use the low 4 bytes for the size to allocate memory~<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="comment">/* offset 2 to use otherwise unindexable first 2 bins */</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> fastbin_index(sz) \</span></div><div class="line">  ((((unsigned int) (sz)) &gt;&gt; (SIZE_SZ == 8 ? 4 : 3)) - 2)</div></pre></td></tr></table></figure></p>
+<p>So it’s easy to find the size field for check. In the binary, the got saves many plt’s address starting with 0x40, so you can make a fake chunk here.<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">gef➤  x/6gx 0x11b92a2</div><div class="line">0x11b92a2:  0xe6b600007fffe24d  0xae90000000000040</div><div class="line">0x11b92b2:  0xe6d600007fffe213  0xe6e6000000000040</div><div class="line">0x11b92c2:  0x14f0000000000040  0x934000007fffe219</div></pre></td></tr></table></figure></p>
+<p>Unlike EC3 challenge, in this time, we can control the order of malloc and we don’t need to allocate multi chunks and write content to all the pointers.</p>
+<p>All problems have solved, so here is the exploit steps:</p>
+<ol>
+<li>allocate 1 chunk</li>
+<li>free the above chunk</li>
+<li>overwrite the freed chunk’s fd pointer</li>
+<li>allocate 2 chunks to get the fake pointer</li>
+<li>overwrite free’s got as system@plt</li>
+<li>copy string ‘cat ./flag;’ to fake chunk</li>
+<li>free the fake chunk to tigger system</li>
+</ol>
+<p>You can see my exploit <a href="https://github.com/w0lfzhang/vmescape/blob/master/xnuca/exp.c" target="_blank" rel="external">here</a>.</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/vmescape/" rel="tag">#vmescape</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2018/11/08/Microprocessor-modes-for-the-x86-architecture/" rel="next" title="Microprocessor modes for the x86 architecture">
+                <i class="fa fa-chevron-left"></i> Microprocessor modes for the x86 architecture
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            Table of Contents
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            Overview
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="//schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/images/wolf.jpg"
+               alt="w0lfzhang" />
+          <p class="site-author-name" itemprop="name">w0lfzhang</p>
+          <p class="site-description motion-element" itemprop="description">Go slowly! Just slowly!</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">64</span>
+              <span class="site-state-item-name">posts</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">17</span>
+                <span class="site-state-item-name">categories</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">105</span>
+                <span class="site-state-item-name">tags</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#The-Challenge"><span class="nav-number">1.</span> <span class="nav-text">The Challenge</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Exploit"><span class="nav-number">2.</span> <span class="nav-text">Exploit</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+
+<div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">w0lfzhang</span>
+</div>
+
+<div class="powered-by">
+  Powered by <a class="theme-link" href="https://hexo.io">Hexo</a>
+</div>
+
+<div class="theme-info">
+  Theme -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Pisces
+  </a>
+</div>
+
+<span id="busuanzi_container_site_pv">
+    &nbsp; | &nbsp;Visited <span id="busuanzi_value_site_pv"></span> times
+</span>
+
+
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.2"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.0.2"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.0.2"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.2"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.2"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.2"></script>
+
+
+
+  
+
+
+
+  
+
+    <script type="text/javascript">
+      var disqus_shortname = 'w0lfzhang';
+      var disqus_identifier = '2018/12/05/xnuca-SSD-QEMU-escape/';
+      var disqus_title = "xnuca SSD QEMU escape";
+      var disqus_url = 'http://yoursite.com/2018/12/05/xnuca-SSD-QEMU-escape/';
+
+      function run_disqus_script(disqus_script){
+        var dsq = document.createElement('script');
+        dsq.type = 'text/javascript';
+        dsq.async = true;
+        dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+        (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+      }
+
+      run_disqus_script('count.js');
+      
+        var disqus_config = function () {
+            this.page.url = disqus_url;
+            this.page.identifier = disqus_identifier;
+            this.page.title = disqus_title;
+        };
+        run_disqus_script('embed.js');
+      
+    </script>
+  
+
+
+
+
+  
+  
+  <script type="text/javascript">
+    // Popup Window;
+    var isfetched = false;
+    // Search DB path;
+    var search_path = "search.xml";
+    if (search_path.length == 0) {
+       search_path = "search.xml";
+    }
+    var path = "/" + search_path;
+    // monitor main search box;
+
+    function proceedsearch() {
+      $("body").append('<div class="popoverlay">').css('overflow', 'hidden');
+      $('.popup').toggle();
+
+    }
+    // search function;
+    var searchFunc = function(path, search_id, content_id) {
+    'use strict';
+    $.ajax({
+        url: path,
+        dataType: "xml",
+        async: true,
+        success: function( xmlResponse ) {
+            // get the contents from search data
+            isfetched = true;
+            $('.popup').detach().appendTo('.header-inner');
+            var datas = $( "entry", xmlResponse ).map(function() {
+                return {
+                    title: $( "title", this ).text(),
+                    content: $("content",this).text(),
+                    url: $( "url" , this).text()
+                };
+            }).get();
+            var $input = document.getElementById(search_id);
+            var $resultContent = document.getElementById(content_id);
+            $input.addEventListener('input', function(){
+                var matchcounts = 0;
+                var str='<ul class=\"search-result-list\">';
+                var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                $resultContent.innerHTML = "";
+                if (this.value.trim().length > 1) {
+                // perform local searching
+                datas.forEach(function(data) {
+                    var isMatch = false;
+                    var content_index = [];
+                    var data_title = data.title.trim().toLowerCase();
+                    var data_content = data.content.trim().replace(/<[^>]+>/g,"").toLowerCase();
+                    var data_url = decodeURIComponent(data.url);
+                    var index_title = -1;
+                    var index_content = -1;
+                    var first_occur = -1;
+                    // only match artiles with not empty titles and contents
+                    if(data_title != '') {
+                        keywords.forEach(function(keyword, i) {
+                            index_title = data_title.indexOf(keyword);
+                            index_content = data_content.indexOf(keyword);
+                            if( index_title >= 0 || index_content >= 0 ){
+                                isMatch = true;
+								if (i == 0) {
+                                    first_occur = index_content;
+                                }
+                            } 
+							
+                        });
+                    }
+                    // show search results
+                    if (isMatch) {
+                        matchcounts += 1;
+                        str += "<li><a href='"+ data_url +"' class='search-result-title'>"+ data_title +"</a>";
+                        var content = data.content.trim().replace(/<[^>]+>/g,"");
+                        if (first_occur >= 0) {
+                            // cut out 100 characters
+                            var start = first_occur - 20;
+                            var end = first_occur + 80;
+                            if(start < 0){
+                                start = 0;
+                            }
+                            if(start == 0){
+                                end = 50;
+                            }
+                            if(end > content.length){
+                                end = content.length;
+                            }
+                            var match_content = content.substring(start, end);
+                            // highlight all keywords
+                            keywords.forEach(function(keyword){
+                                var regS = new RegExp(keyword, "gi");
+                                match_content = match_content.replace(regS, "<b class=\"search-keyword\">"+keyword+"</b>");
+                            });
+
+                            str += "<p class=\"search-result\">" + match_content +"...</p>"
+                        }
+                        str += "</li>";
+                    }
+                })};
+                str += "</ul>";
+                if (matchcounts == 0) { str = '<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>' }
+                if (keywords == "") { str = '<div id="no-result"><i class="fa fa-search fa-5x" /></div>' }
+                $resultContent.innerHTML = str;
+            });
+            proceedsearch();
+        }
+    });}
+
+    // handle and trigger popup window;
+    $('.popup-trigger').click(function(e) {
+      e.stopPropagation();
+      if (isfetched == false) {
+        searchFunc(path, 'local-search-input', 'local-search-result');
+      } else {
+        proceedsearch();
+      };
+
+    });
+
+    $('.popup-btn-close').click(function(e){
+      $('.popup').hide();
+      $(".popoverlay").remove();
+      $('body').css('overflow', '');
+    });
+    $('.popup').click(function(e){
+      e.stopPropagation();
+    });
+  </script>
+
+
+  
+
+  
+
+  
+<script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+
+
+  
+
+
+</body>
+</html>
