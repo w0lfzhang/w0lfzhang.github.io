@@ -85,13 +85,13 @@
 <meta name="description" content="A few weeks ago, I remember I played xnuca ctf during my working time~ And I just saw the challenge ssd, because it was a qemu-escape and I found the bug at that time, but I didn’t write the exploit s">
 <meta name="keywords" content="vmescape">
 <meta property="og:type" content="article">
-<meta property="og:title" content="xnuca SSD QEMU escape">
+<meta property="og:title" content="XNUCA SSD QEMU ESCAPE">
 <meta property="og:url" content="http://yoursite.com/2018/12/05/xnuca-SSD-QEMU-escape/index.html">
 <meta property="og:site_name" content="w0lfzhang&#39;s blog">
 <meta property="og:description" content="A few weeks ago, I remember I played xnuca ctf during my working time~ And I just saw the challenge ssd, because it was a qemu-escape and I found the bug at that time, but I didn’t write the exploit s">
-<meta property="og:updated_time" content="2018-12-05T09:37:18.000Z">
+<meta property="og:updated_time" content="2018-12-05T09:40:44.000Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="xnuca SSD QEMU escape">
+<meta name="twitter:title" content="XNUCA SSD QEMU ESCAPE">
 <meta name="twitter:description" content="A few weeks ago, I remember I played xnuca ctf during my working time~ And I just saw the challenge ssd, because it was a qemu-escape and I found the bug at that time, but I didn’t write the exploit s">
 
 
@@ -116,7 +116,7 @@
   <link rel="canonical" href="http://yoursite.com/2018/12/05/xnuca-SSD-QEMU-escape/"/>
 
 
-  <title> xnuca SSD QEMU escape | w0lfzhang's blog </title>
+  <title> XNUCA SSD QEMU ESCAPE | w0lfzhang's blog </title>
 </head>
 
 <body itemscope itemtype="//schema.org/WebPage" lang="en">
@@ -286,7 +286,7 @@
             
             
               
-                xnuca SSD QEMU escape
+                XNUCA SSD QEMU ESCAPE
               
             
           </h1>
@@ -353,7 +353,7 @@
       
 
       
-        <p>A few weeks ago, I remember I played xnuca ctf during my working time~ And I just saw the challenge ssd, because it was a qemu-escape and I found the bug at that time, but I didn’t write the exploit script because I thought it’s not so hard(I didn’t know how many teams solved this challenge), after all, work is work~ The reason I write this write-up is to help those guys want to learn qemu-escape. I will give a detail talking about the exploit.<br>&lt;–!more–&gt;</p>
+        <p>A few weeks ago, I remember I played xnuca ctf during my working time~ And I just saw the challenge ssd, because it was a qemu-escape and I found the bug at that time, but I didn’t write the exploit script because I thought it’s not so hard(I didn’t know how many teams solved this challenge), after all, work is work~ The reason I write this write-up is to help those guys want to learn qemu-escape. I will give a detail talking about the exploit.<br><a id="more"></a></p>
 <h2 id="The-Challenge"><a href="#The-Challenge" class="headerlink" title="The Challenge"></a>The Challenge</h2><p>The first thing you need to do is figure out what the device does. If you are unfamiliar with how qemu emulates devices, you can see my previous post <a href="https://www.w0lfzhang.com/2018/11/02/How-QEMU-Emulates-Devices/" target="_blank" rel="external">here</a>. I won’t talk this much.</p>
 <p>After analysis, I think it’s a really simple device. And if you are a linux device driver programmer, nothing is difficult to understand. Let’s see xnuca_mmio_read:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">__int64 __<span class="function">fastcall <span class="title">xnuca_mmio_read</span><span class="params">(__int64 a1, <span class="keyword">unsigned</span> __int8 a2)</span></span></div><div class="line">&#123;</div><div class="line">  _BYTE v3[<span class="number">12</span>]; <span class="comment">// [rsp+20h] [rbp-14h]</span></div><div class="line"></div><div class="line">  *(_DWORD *)&amp;v3[<span class="number">8</span>] = <span class="number">0</span>;</div><div class="line">  *(_QWORD *)v3 = a2;</div><div class="line">  <span class="keyword">if</span> ( a2 == <span class="number">16</span> )</div><div class="line">    <span class="keyword">return</span> *(<span class="keyword">unsigned</span> <span class="keyword">int</span> *)(a1 + <span class="number">0x9DC</span>);</div><div class="line">  <span class="keyword">if</span> ( a2 == <span class="number">32</span> )</div><div class="line">    *(_QWORD *)&amp;v3[<span class="number">4</span>] = *(<span class="keyword">unsigned</span> <span class="keyword">int</span> *)(a1 + <span class="number">0x9D0</span>);</div><div class="line">  <span class="keyword">return</span> *(_QWORD *)&amp;v3[<span class="number">4</span>];</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
 <p>Easy and useless for your exploit. And turn to xnuca_mmio_write:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line">__int64 __<span class="function">fastcall <span class="title">xnuca_mmio_write</span><span class="params">(__int64 XnucaState, <span class="keyword">int</span> addr, <span class="keyword">unsigned</span> <span class="keyword">int</span> val, <span class="keyword">int</span> size)</span></span></div><div class="line">&#123;</div><div class="line">  __int64 result; <span class="comment">// rax</span></div><div class="line">  <span class="keyword">int</span> _addr; <span class="comment">// [rsp+10h] [rbp-30h]</span></div><div class="line"></div><div class="line">  _addr = addr;</div><div class="line">  result = XnucaState;</div><div class="line">  <span class="keyword">if</span> ( size == <span class="number">4</span> || size == <span class="number">8</span> )</div><div class="line">  &#123;</div><div class="line">    result = (<span class="keyword">unsigned</span> __int8)addr;</div><div class="line">    <span class="keyword">if</span> ( (<span class="keyword">unsigned</span> __int8)addr == <span class="number">32</span> )</div><div class="line">    &#123;</div><div class="line">      result = xnuca_set_timer(XnucaState);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">else</span> <span class="keyword">if</span> ( (_DWORD)result == <span class="number">48</span> )</div><div class="line">    &#123;</div><div class="line">      result = xnuca_send_request(</div><div class="line">                 XnucaState,</div><div class="line">                 (<span class="keyword">unsigned</span> __int64)(addr &amp; <span class="number">0xF00</span>) &gt;&gt; <span class="number">8</span>,</div><div class="line">                 (<span class="keyword">unsigned</span> __int64)((<span class="keyword">unsigned</span> __int16)addr &amp; <span class="number">0xF000</span>) &gt;&gt; <span class="number">12</span>,</div><div class="line">                 (_addr &amp; <span class="number">0xFF0000</span>u) &gt;&gt; <span class="number">16</span>,</div><div class="line">                 (<span class="keyword">unsigned</span> __int8)val);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">else</span> <span class="keyword">if</span> ( (_DWORD)result == <span class="number">16</span> )</div><div class="line">    &#123;</div><div class="line">      result = xnuca_auth(XnucaState, val);</div><div class="line">    &#125;</div><div class="line">  &#125;</div><div class="line">  <span class="keyword">return</span> result;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
@@ -676,7 +676,7 @@
     <script type="text/javascript">
       var disqus_shortname = 'w0lfzhang';
       var disqus_identifier = '2018/12/05/xnuca-SSD-QEMU-escape/';
-      var disqus_title = "xnuca SSD QEMU escape";
+      var disqus_title = "XNUCA SSD QEMU ESCAPE";
       var disqus_url = 'http://yoursite.com/2018/12/05/xnuca-SSD-QEMU-escape/';
 
       function run_disqus_script(disqus_script){
