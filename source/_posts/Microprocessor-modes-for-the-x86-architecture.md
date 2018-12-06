@@ -14,6 +14,7 @@ There are several microprocessor modes fot the x86 architecture. And I gonna hav
 3. Virtual 8086 mode
 4. System Management Mode
 5. Long mode
+
 We'll discuss them one by one and how to switch the mode among them. Also, there is an other mode called unreal mode, which we don't talk about. It's not difficult to understand what we gonna talk about for those guys who leraned *Principles of Micro-computer*.
 <!--more-->
 
