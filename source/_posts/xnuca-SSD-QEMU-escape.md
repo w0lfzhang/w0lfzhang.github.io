@@ -166,11 +166,11 @@ Everything is clear? So you can find a UAF bug exists in xnuca_timer easily. Let
 ## Exploit
 There is a challenge called EC3 in defcon quals, and in that case the device don't use the main_arena if you debug it and we can easily exploit that challenge because it saves the heap address(starting at 0x7f or 0x7e... whatever) in bss. But in this case, the device uses the main arena and the heap address is random totally. 
 
-The easiest way to exploit a UAF bug is fastbin attack, and we just overwrite the fd-pointer and allocate mutil times to get the fake pointer. Buf the prerequisite is that you must find a place which saves the proper size field. You may want to overwrite malloc_hook or other hook functions, but you can not leaking libc's address.
+The easiest way to exploit a UAF bug is fastbin attack, and we just overwrite the fd-pointer and allocate mutil times to get the fake pointer. But the prerequisite is that you must find a place which saves the proper size field. You may want to overwrite malloc_hook or other hook functions, but you can not leaking libc's address.
 
 So here comes the biggest challenge you will face: how to find a size field to satisfy the check of fastbin.
 
-Some guys who doesn't see the source code of malloc don't know the secret~ The size you pass to malloc is size_t type, which is a 64-bit data type, but malloc just use the low 4 bytes for the size to allocate memory~ 
+Some guys who doesn't see the source code of malloc don't know the secret~ The size you pass to malloc is size_t type, which is a 64-bit data type in 64-bit platform systems, but malloc just use the low 4 bytes for the size to allocate memory~ 
 ```c
 /* offset 2 to use otherwise unindexable first 2 bins */
 #define fastbin_index(sz) \
